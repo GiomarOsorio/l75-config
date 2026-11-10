@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>L75 Config · Barra lateral</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="l75.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<nav class="l75 shell-side" data-theme="{{theme}}" aria-label="Secciones" style="width: {{width}}px; flex: none; min-height: 100vh; display: flex; flex-direction: column; gap: 4px; padding: 16px 12px 14px; background: var(--surface-1); border-right: 1px solid var(--border);">
+<div style="display: flex; align-items: center; gap: 10px; padding: 4px 6px 16px;">
+<div style="position: relative; width: 32px; height: 32px; flex: none; border-radius: 9px; background: var(--key-skirt); border: 1px solid var(--key-edge); overflow: hidden;" aria-hidden="true">
+<div style="position: absolute; left: 4px; right: 4px; top: 3px; bottom: 8px; border-radius: 6px; background: linear-gradient(180deg, var(--key-top-1), var(--key-top-2)); display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 10px; font-weight: 600; color: var(--text-1); letter-spacing: -0.02em;">75</div>
+<div style="position: absolute; left: 6px; right: 6px; bottom: 2px; height: 2px; border-radius: 2px; background: var(--rgb);"></div>
+</div>
+<sc-if value="{{full}}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; flex-direction: column; min-width: 0;">
+<span style="font-size: 14px; line-height: 18px; font-weight: 600; color: var(--text-1);">L75 Config</span>
+<span style="font-size: 11px; line-height: 14px; color: var(--text-2); white-space: nowrap;">ROYALAXE × ProtoArc</span>
+</div>
+</sc-if>
+</div>
+<div class="shell-nav" style="display: flex; flex-direction: column; gap: 2px;">
+<sc-for list="{{items}}" as="it" hint-placeholder-count="6">
+<a class="{{it.cls}}" href="{{it.href}}" aria-current="{{it.cur}}" title="{{it.label}}">
+<dc-import name="Icon" i="{{it.icon}}" s="20" hint-size="20px,20px"></dc-import>
+<sc-if value="{{full}}" hint-placeholder-val="{{ true }}"><span>{{it.label}}</span></sc-if>
+</a>
+</sc-for>
+</div>
+<div class="grow"></div>
+<div class="side-foot" style="display: flex; align-items: center; gap: 8px; padding: 10px 2px 0; border-top: 1px solid var(--border); flex-wrap: wrap;">
+<div class="seg" role="group" aria-label="Tema">
+<a class="{{darkCls}}" href="{{darkHref}}" aria-label="Tema oscuro" title="Tema oscuro"><dc-import name="Icon" i="luna" s="16" hint-size="16px,16px"></dc-import></a>
+<a class="{{lightCls}}" href="{{lightHref}}" aria-label="Tema claro" title="Tema claro"><dc-import name="Icon" i="sol" s="16" hint-size="16px,16px"></dc-import></a>
+</div>
+<sc-if value="{{full}}" hint-placeholder-val="{{ true }}">
+<span class="mono" style="margin-left: auto; font-size: 11px; color: var(--text-3);">v0.2.0</span>
+<a class="btn btn-ghost btn-sm btn-icon" href="https://github.com/GiomarOsorio/l75-config#readme" aria-label="Ayuda" title="Ayuda"><dc-import name="Icon" i="ayuda" s="16" hint-size="16px,16px"></dc-import></a>
+</sc-if>
+</div>
+</nav>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"active":{"editor":"enum","options":["teclas","iluminacion","colores","macros","pantalla","ajustes"],"default":"teclas"},"theme":{"editor":"enum","options":["dark","light"],"default":"dark"},"compact":{"editor":"boolean","default":false},"$preview":{"width":232,"height":800}}'>
+const NAV = [['teclas', 'Teclas', 'teclas'], ['iluminacion', 'Iluminación', 'iluminacion'], ['colores', 'Colores por tecla', 'colores'], ['macros', 'Macros', 'macros'], ['pantalla', 'Pantalla', 'pantalla'], ['ajustes', 'Ajustes', 'ajustes']];
+const FILES = {
+  dark: { teclas: 'Main.dc.html', iluminacion: 'Iluminacion.dc.html', colores: 'Colores.dc.html', macros: 'Macros.dc.html', pantalla: 'Pantalla.dc.html', ajustes: 'Ajustes.dc.html' },
+  light: { teclas: 'Claro-Teclas.dc.html', iluminacion: 'Claro-Iluminacion.dc.html', colores: 'Claro-Colores.dc.html', macros: 'Claro-Macros.dc.html', pantalla: 'Claro-Pantalla.dc.html', ajustes: 'Claro-Ajustes.dc.html' }
+};
+class Component extends DCLogic {
+  renderVals() {
+    const theme = this.props.theme === 'light' ? 'light' : 'dark';
+    const active = this.props.active ?? 'teclas';
+    const compact = !!this.props.compact;
+    const files = FILES[theme];
+    const items = NAV.map((n) => ({
+      label: n[1], icon: n[2], href: files[n[0]],
+      cur: n[0] === active ? 'page' : undefined,
+      cls: 'nav' + (n[0] === active ? ' on' : '') + (compact ? ' compact' : '')
+    }));
+    return {
+      theme, items, full: !compact, width: compact ? 72 : 232,
+      darkHref: FILES.dark[active], lightHref: FILES.light[active],
+      darkCls: 'seg-i' + (theme === 'dark' ? ' on' : ''), lightCls: 'seg-i' + (theme === 'light' ? ' on' : '')
+    };
+  }
+}
+</script>
+</body>
+</html>

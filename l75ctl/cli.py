@@ -9,7 +9,7 @@ from . import __version__
 from . import lighting as L
 from . import protocol as P
 from .keyboard import L75, SleepTimes
-from .keymap import FUNCTIONS, KEYS, MOUSE, find_key, parse_action
+from .keymap import FUNCTIONS, KEYS, MOUSE, find_key, is_system, parse_action
 from .macros import Macro, parse_macro_text
 from .transport import TransportError, list_devices
 
@@ -137,6 +137,13 @@ def cmd_keys(args):
                 act = key.default_action
             else:
                 act = parse_action(args.value)
+            if key.default_action.raw == (10, 1, 0, 0):
+                raise ValueError("la tecla Fn no se puede reasignar")
+            if args.fn:
+                cur = kb.read_matrix(fn=True)[key.slot]
+                if is_system(cur.raw):
+                    raise ValueError(f"Fn + {key.name} es una tecla del sistema ({cur.describe()}): "
+                                     "el driver oficial no deja cambiarla")
             kb.set_key(key, act, fn=args.fn)
             print(f"{key.name} -> {act.describe()}" + (" (capa Fn)" if args.fn else f" (perfil {kb.profile + 1})"))
         elif args.action == "reset":

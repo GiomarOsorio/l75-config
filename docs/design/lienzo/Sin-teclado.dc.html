@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>L75 Config · Sin teclado</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="l75.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div class="l75" data-theme="{{theme}}" style="position: relative; min-height: 100vh; display: flex; flex-wrap: wrap; background: var(--bg); color: var(--text-1);">
+<dc-import name="Sidebar" active="teclas" theme="{{theme}}" hint-size="232px,800px"></dc-import>
+<main style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column;">
+<dc-import name="Topbar" theme="{{theme}}" conn="{{conn}}" act="{{idle}}" profile="1" on-retry="{{retry}}" on-demo="{{demo}}" hint-size="100%,56px"></dc-import>
+<div style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 32px 28px;">
+<div style="width: 100%; max-width: 620px; display: flex; flex-direction: column; align-items: center; gap: 18px; text-align: center;">
+<div style="width: 100%; max-width: 440px; opacity: 0.85;">
+<dc-import name="Teclado" theme="{{theme}}" mode="{{kbMode}}" hint-size="100%,171px"></dc-import>
+</div>
+<sc-if value="{{isNone}}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+<h1 class="t-display" style="margin: 0;">No encuentro tu L75</h1>
+<p class="t-body" style="margin: 0; color: var(--text-2); max-width: 480px;">Conéctalo con el cable USB-C o empareja «L75 BT5.0» por Bluetooth y pulsa Reintentar.</p>
+</div>
+<div style="width: 100%; display: flex; flex-direction: column; gap: 8px; text-align: left;">
+<sc-for list="{{checks}}" as="c" hint-placeholder-count="3">
+<div style="display: flex; align-items: flex-start; gap: 12px; padding: 10px 14px; border-radius: 10px; background: var(--surface-1); border: 1px solid var(--border);">
+<span style="display: inline-flex; color: var(--text-2); margin-top: 1px;"><dc-import name="Icon" i="{{c.icon}}" s="18" hint-size="18px,18px"></dc-import></span>
+<span style="flex: 1;"><span class="lbl">{{c.title}}</span><br><span class="hint">{{c.text}}</span></span>
+</div>
+</sc-for>
+</div>
+<div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;">
+<button class="btn btn-primary" type="button" onClick="{{retry}}"><dc-import name="Icon" i="reintentar" s="16" hint-size="16px,16px"></dc-import>Reintentar</button>
+<button class="btn btn-secondary" type="button" onClick="{{demo}}"><dc-import name="Icon" i="demo" s="16" hint-size="16px,16px"></dc-import>Probar en modo demo</button>
+</div>
+</sc-if>
+<sc-if value="{{isSearch}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+<h1 class="t-display" style="margin: 0; display: inline-flex; align-items: center; gap: 10px;"><span class="spin" style="width: 18px; height: 18px; color: var(--accent);"></span>Buscando el teclado…</h1>
+<p class="t-body" style="margin: 0; color: var(--text-2); max-width: 480px;">Primero por cable y después por Bluetooth. Por Bluetooth puede tardar un par de segundos.</p>
+</div>
+<button class="btn btn-ghost" type="button" onClick="{{demo}}"><dc-import name="Icon" i="demo" s="16" hint-size="16px,16px"></dc-import>Probar en modo demo</button>
+</sc-if>
+<sc-if value="{{isPerm}}" hint-placeholder-val="{{ false }}">
+<div class="banner err" role="alert" style="width: 100%; text-align: left;">
+<span class="bi"><dc-import name="Icon" i="error" s="18" hint-size="18px,18px"></dc-import></span>
+<span style="flex: 1;"><strong>No pude abrir el teclado: falta permiso.</strong> Linux necesita una regla udev para usar el L75 sin ser root.</span>
+</div>
+<div style="width: 100%; display: flex; flex-direction: column; gap: 8px; text-align: left;">
+<div style="display: flex; align-items: center; justify-content: space-between;"><span class="lbl">Instala la regla y recarga udev</span><button class="btn btn-ghost btn-sm" type="button" onClick="{{copy}}"><dc-import name="Icon" i="{{copyIcon}}" s="14" hint-size="14px,14px"></dc-import>{{copyText}}</button></div>
+<pre class="code">sudo cp udev/70-royalaxe-l75.rules /etc/udev/rules.d/
+sudo udevadm control --reload-rules &amp;&amp; sudo udevadm trigger</pre>
+<span class="hint">O ejecuta <span class="mono" style="color: var(--text-1);">./install.sh</span> desde la carpeta de la app. Después desconecta y vuelve a conectar el teclado (por Bluetooth, desconéctalo y conéctalo de nuevo).</span>
+</div>
+<div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;">
+<button class="btn btn-primary" type="button" onClick="{{retry}}"><dc-import name="Icon" i="reintentar" s="16" hint-size="16px,16px"></dc-import>Reintentar</button>
+<a class="btn btn-secondary" href="https://github.com/GiomarOsorio/l75-config#solución-de-problemas"><dc-import name="Icon" i="externo" s="16" hint-size="16px,16px"></dc-import>Ver instrucciones</a>
+</div>
+</sc-if>
+<sc-if value="{{isDemo}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+<span class="pill demo"><dc-import name="Icon" i="demo" s="14" hint-size="14px,14px"></dc-import>Modo demo</span>
+<h1 class="t-display" style="margin: 0;">Teclado simulado listo</h1>
+<p class="t-body" style="margin: 0; color: var(--text-2); max-width: 480px;">Puedes probar todas las secciones sin tocar el hardware. Cuando conectes el L75, la app lo detecta sola.</p>
+</div>
+<a class="btn btn-primary" href="{{keysHref}}"><dc-import name="Icon" i="teclas" s="16" hint-size="16px,16px"></dc-import>Ir a Teclas</a>
+</sc-if>
+</div>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"variant":{"editor":"enum","options":["none","search","perm"],"default":"none"},"theme":{"editor":"enum","options":["dark","light"],"default":"dark"},"$preview":{"width":1280,"height":800}}'>
+const CHECKS = [
+  ['cable', 'Por cable', 'Bien conectado y con el interruptor del teclado en modo cable.'],
+  ['inalambrico', 'Por Bluetooth', 'Emparejado y conectado como «L75 BT5.0».'],
+  ['receptor', 'Receptor 2.4 GHz', 'Todavía no está soportado: usa cable o Bluetooth.']
+];
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { mode: null, copied: false }; }
+  componentWillUnmount() { clearTimeout(this.t); clearTimeout(this.c); }
+  renderVals() {
+    const base = this.props.variant ?? 'none';
+    const mode = this.state.mode || base;
+    const theme = this.props.theme === 'light' ? 'light' : 'dark';
+    return {
+      theme, idle: { k: 'idle' },
+      conn: mode === 'search' ? 'search' : mode === 'demo' ? 'demo' : 'none',
+      kbMode: mode === 'search' ? 'scan' : 'outline',
+      isNone: mode === 'none', isSearch: mode === 'search', isPerm: mode === 'perm', isDemo: mode === 'demo',
+      checks: CHECKS.map((c) => ({ icon: c[0], title: c[1], text: c[2] })),
+      retry: () => { clearTimeout(this.t); this.setState({ mode: 'search' }); this.t = setTimeout(() => this.setState({ mode: base === 'search' ? 'none' : base }), 1800); },
+      demo: () => { clearTimeout(this.t); this.setState({ mode: 'demo' }); },
+      keysHref: theme === 'light' ? 'Claro-Teclas.dc.html' : 'Main.dc.html',
+      copyText: this.state.copied ? 'Copiado' : 'Copiar', copyIcon: this.state.copied ? 'aplicar' : 'copiar',
+      copy: () => {
+        const txt = 'sudo cp udev/70-royalaxe-l75.rules /etc/udev/rules.d/\nsudo udevadm control --reload-rules && sudo udevadm trigger';
+        try { if (navigator.clipboard) navigator.clipboard.writeText(txt); } catch (e) { /* sin portapapeles */ }
+        this.setState({ copied: true }); clearTimeout(this.c); this.c = setTimeout(() => this.setState({ copied: false }), 1600);
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>

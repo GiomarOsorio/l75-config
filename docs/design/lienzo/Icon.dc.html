@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>L75 Config · Iconos</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="l75.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<sc-if value="{{single}}" hint-placeholder-val="{{ true }}">
+<svg class="ic" viewBox="0 0 24 24" width="{{s}}" height="{{s}}" aria-hidden="true"><sc-for list="{{paths}}" as="p" hint-placeholder-count="2"><path d="{{p.d}}" class="{{p.c}}"></path></sc-for></svg>
+</sc-if>
+<sc-if value="{{gallery}}" hint-placeholder-val="{{ false }}">
+<div class="l75" data-theme="{{theme}}" style="min-height: 100vh; background: var(--bg); color: var(--text-1); padding: 40px 48px 48px; display: flex; flex-direction: column; gap: 28px;">
+<div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; flex-wrap: wrap;">
+<div style="max-width: 680px;">
+<h1 class="ph-t">Iconos</h1>
+<p class="ph-s">Set propio, sin logotipos de marcas. Rejilla de 24 × 24 px, trazo de 1,75 px con extremos y uniones redondeados, y color heredado (currentColor) para que QSS o QPainter lo tiñan. Cada icono se exporta como SVG con el nombre que aparece debajo.</p>
+</div>
+<div style="display: flex; align-items: center; gap: 18px; padding: 12px 16px; border-radius: 12px; background: var(--surface-1); border: 1px solid var(--border);">
+<div style="display: flex; align-items: flex-end; gap: 10px; color: var(--text-2);">
+<svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><sc-for list="{{demo}}" as="p" hint-placeholder-count="2"><path d="{{p.d}}" class="{{p.c}}"></path></sc-for></svg>
+<svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><sc-for list="{{demo}}" as="p" hint-placeholder-count="2"><path d="{{p.d}}" class="{{p.c}}"></path></sc-for></svg>
+<svg class="ic" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><sc-for list="{{demo}}" as="p" hint-placeholder-count="2"><path d="{{p.d}}" class="{{p.c}}"></path></sc-for></svg>
+</div>
+<div class="hint" style="line-height: 18px;"><span class="mono" style="color: var(--text-1);">16 · 20 · 24 px</span><br>Botones 16 · navegación 20 · vacíos 24+</div>
+<div style="display: flex; gap: 8px;">
+<span style="color: var(--text-2);"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><sc-for list="{{demo}}" as="p" hint-placeholder-count="2"><path d="{{p.d}}" class="{{p.c}}"></path></sc-for></svg></span>
+<span style="color: var(--accent);"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><sc-for list="{{demo}}" as="p" hint-placeholder-count="2"><path d="{{p.d}}" class="{{p.c}}"></path></sc-for></svg></span>
+<span style="color: var(--text-3);"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><sc-for list="{{demo}}" as="p" hint-placeholder-count="2"><path d="{{p.d}}" class="{{p.c}}"></path></sc-for></svg></span>
+</div>
+</div>
+</div>
+<sc-for list="{{groups}}" as="g" hint-placeholder-count="3">
+<section style="display: flex; flex-direction: column; gap: 12px;">
+<div style="display: flex; align-items: baseline; gap: 10px;">
+<h2 class="t-sub" style="margin: 0;">{{g.title}}</h2>
+<span class="hint">{{g.count}}</span>
+</div>
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px;">
+<sc-for list="{{g.items}}" as="it" hint-placeholder-count="8">
+<div style="display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 16px 8px 12px; border-radius: 10px; background: var(--surface-1); border: 1px solid var(--border); min-width: 0;">
+<span style="color: var(--text-1);"><svg class="ic" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><sc-for list="{{it.paths}}" as="p" hint-placeholder-count="2"><path d="{{p.d}}" class="{{p.c}}"></path></sc-for></svg></span>
+<span style="font-size: 12px; line-height: 16px; color: var(--text-1); text-align: center;">{{it.label}}</span>
+<span class="mono" style="font-size: 10.5px; line-height: 14px; color: var(--text-3); text-align: center; word-break: break-all;">{{it.file}}</span>
+</div>
+</sc-for>
+</div>
+</section>
+</sc-for>
+</div>
+</sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"i":{"editor":"text","default":""},"s":{"editor":"int","default":20},"theme":{"editor":"enum","options":["dark","light"],"default":"dark"},"$preview":{"width":1280,"height":1040}}'>
+/* ICONS-BEGIN */
+const ICONS = {
+  "teclas": ["M6 3.5h12a2.5 2.5 0 0 1 2.5 2.5v12a2.5 2.5 0 0 1-2.5 2.5H6A2.5 2.5 0 0 1 3.5 18V6A2.5 2.5 0 0 1 6 3.5z", "M8.5 6.5h7A1.5 1.5 0 0 1 17 8v5.5a1.5 1.5 0 0 1-1.5 1.5h-7A1.5 1.5 0 0 1 7 13.5V8a1.5 1.5 0 0 1 1.5-1.5z"],
+  "iluminacion": ["M7.7 8.4a4.3 4.3 0 1 0 8.6 0a4.3 4.3 0 1 0-8.6 0", "M4 14.8a4.3 4.3 0 1 0 8.6 0a4.3 4.3 0 1 0-8.6 0", "M11.4 14.8a4.3 4.3 0 1 0 8.6 0a4.3 4.3 0 1 0-8.6 0"],
+  "colores": ["M18.2 3.8a2.1 2.1 0 0 1 3 3l-7.4 7.4-3-3z", "M10.4 11.6c-2.3-.4-4.5 1.2-4.8 3.6-.2 1.5-.9 2.6-2.3 3 3 2.1 8.8 1.7 9.6-2.5.3-1.4-.2-2.8-1.2-3.6"],
+  "macros": ["M4 6.5h9", "M4 11.5h6.5", "M4 16.5h9", "M15.5 10.3v6.4a.6.6 0 0 0 .92.5l5-3.2a.6.6 0 0 0 0-1l-5-3.2a.6.6 0 0 0-.92.5z"],
+  "pantalla": ["M5 4.5h14a2 2 0 0 1 2 2V15a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6.5a2 2 0 0 1 2-2z", "M9 20.5h6", "M12 17v3.5"],
+  "ajustes": ["M4 7h9", "M17 7h3", "M4 12h3", "M11 12h9", "M4 17h11", "M19 17h1", "M13 7a2 2 0 1 0 4 0a2 2 0 1 0-4 0", "M7 12a2 2 0 1 0 4 0a2 2 0 1 0-4 0", "M15 17a2 2 0 1 0 4 0a2 2 0 1 0-4 0"],
+  "leer": ["M12 3.5v11", "M7.5 10.5 12 15l4.5-4.5", "M4.5 15.5v2a3 3 0 0 0 3 3h9a3 3 0 0 0 3-3v-2"],
+  "guardar": ["M12 15V4", "M7.5 8.5 12 4l4.5 4.5", "M4.5 15.5v2a3 3 0 0 0 3 3h9a3 3 0 0 0 3-3v-2"],
+  "aplicar": ["M5 12.5l4.5 4.5L19 7.5"],
+  "restaurar": ["M4 12a8 8 0 1 0 2.34-5.66", "M6.34 2.34v4h4"],
+  "reintentar": ["M20 12a8 8 0 1 1-2.34-5.66", "M17.66 2.34v4h-4"],
+  "borrar": ["M4.5 7h15", "M9.5 7V5a1.5 1.5 0 0 1 1.5-1.5h2A1.5 1.5 0 0 1 14.5 5v2", "M6.5 7l.9 11.6a2 2 0 0 0 2 1.9h5.2a2 2 0 0 0 2-1.9L17.5 7", "M10.25 11v5.5", "M13.75 11v5.5"],
+  "grabar": ["M4 12a8 8 0 1 0 16 0a8 8 0 1 0-16 0", {"d": "M8.5 12a3.5 3.5 0 1 0 7 0a3.5 3.5 0 1 0-7 0", "f": 1}],
+  "detener": [{"d": "M7.5 6h9A1.5 1.5 0 0 1 18 7.5v9a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 6 16.5v-9A1.5 1.5 0 0 1 7.5 6z", "f": 1}],
+  "mas": ["M12 5v14", "M5 12h14"],
+  "menos": ["M5 12h14"],
+  "cerrar": ["M6.5 6.5l11 11", "M17.5 6.5l-11 11"],
+  "arrastrar": [{"d": "M7.9 6a1.1 1.1 0 1 0 2.2 0a1.1 1.1 0 1 0-2.2 0", "f": 1}, {"d": "M13.9 6a1.1 1.1 0 1 0 2.2 0a1.1 1.1 0 1 0-2.2 0", "f": 1}, {"d": "M7.9 12a1.1 1.1 0 1 0 2.2 0a1.1 1.1 0 1 0-2.2 0", "f": 1}, {"d": "M13.9 12a1.1 1.1 0 1 0 2.2 0a1.1 1.1 0 1 0-2.2 0", "f": 1}, {"d": "M7.9 18a1.1 1.1 0 1 0 2.2 0a1.1 1.1 0 1 0-2.2 0", "f": 1}, {"d": "M13.9 18a1.1 1.1 0 1 0 2.2 0a1.1 1.1 0 1 0-2.2 0", "f": 1}],
+  "play": ["M8 5.6v12.8a.8.8 0 0 0 1.23.67l9.9-6.4a.8.8 0 0 0 0-1.34l-9.9-6.4A.8.8 0 0 0 8 5.6z"],
+  "pausa": ["M8.5 5.5v13", "M15.5 5.5v13"],
+  "reloj": ["M3.5 12a8.5 8.5 0 1 0 17 0a8.5 8.5 0 1 0-17 0", "M12 7.5V12l3 2"],
+  "copiar": ["M9 8.5h9a1.5 1.5 0 0 1 1.5 1.5v9a1.5 1.5 0 0 1-1.5 1.5H9A1.5 1.5 0 0 1 7.5 19v-9A1.5 1.5 0 0 1 9 8.5z", "M16.5 8.5V6A1.5 1.5 0 0 0 15 4.5H6A1.5 1.5 0 0 0 4.5 6v9A1.5 1.5 0 0 0 6 16.5h1.5"],
+  "externo": ["M14 4.5h5.5V10", "M19.5 4.5 11 13", "M17 14v4a2 2 0 0 1-2 2H6.5a2 2 0 0 1-2-2V9.5a2 2 0 0 1 2-2H10"],
+  "buscar": ["M4.5 11a6.5 6.5 0 1 0 13 0a6.5 6.5 0 1 0-13 0", "M20 20l-4.4-4.4"],
+  "codigo": ["M8.5 7 4 12l4.5 5", "M15.5 7 20 12l-4.5 5"],
+  "mas-opciones": [{"d": "M4.7 12a1.3 1.3 0 1 0 2.6 0a1.3 1.3 0 1 0-2.6 0", "f": 1}, {"d": "M10.7 12a1.3 1.3 0 1 0 2.6 0a1.3 1.3 0 1 0-2.6 0", "f": 1}, {"d": "M16.7 12a1.3 1.3 0 1 0 2.6 0a1.3 1.3 0 1 0-2.6 0", "f": 1}],
+  "chevron-abajo": ["M6 9.5l6 6 6-6"],
+  "chevron-arriba": ["M6 14.5l6-6 6 6"],
+  "chevron-derecha": ["M9.5 6l6 6-6 6"],
+  "chevron-izquierda": ["M14.5 6l-6 6 6 6"],
+  "cable": ["M9.5 2.5h5A1.5 1.5 0 0 1 16 4v4.5a3.5 3.5 0 0 1-3.5 3.5h-1A3.5 3.5 0 0 1 8 8.5V4a1.5 1.5 0 0 1 1.5-1.5z", "M10.5 6h3", "M12 12v3.5a4 4 0 0 0 4 4h4"],
+  "inalambrico": [{"d": "M10.4 12a1.6 1.6 0 1 0 3.2 0a1.6 1.6 0 1 0-3.2 0", "f": 1}, "M9.17 9.17a4 4 0 0 0 0 5.66", "M14.83 9.17a4 4 0 0 1 0 5.66", "M6.7 6.7a7.5 7.5 0 0 0 0 10.6", "M17.3 6.7a7.5 7.5 0 0 1 0 10.6"],
+  "receptor": ["M9 9.5h6a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1v-9.5a1 1 0 0 1 1-1z", "M10 9.5v-3h4v3", "M8.2 4.6a5.4 5.4 0 0 1 7.6 0", "M6 2.5a8.5 8.5 0 0 1 12 0"],
+  "demo": ["M9.5 3.5h5", "M10.5 3.5v5.3l-5 8.6a2 2 0 0 0 1.73 3.1h9.54a2 2 0 0 0 1.73-3.1l-5-8.6V3.5", "M7.6 14.5h8.8"],
+  "desconectado": ["M9.5 2.5h5A1.5 1.5 0 0 1 16 4v4.5a3.5 3.5 0 0 1-3.5 3.5h-1A3.5 3.5 0 0 1 8 8.5V4a1.5 1.5 0 0 1 1.5-1.5z", "M12 12v3.5a4 4 0 0 0 4 4h4", "M3.5 3.5l17 17"],
+  "bateria": ["M4.5 7.5h12a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-12a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2z", "M21 10.5v3"],
+  "rayo": ["M13 2.8 5.8 13.2h5.4l-1 8 7.6-10.4h-5.5z"],
+  "exito": ["M3.5 12a8.5 8.5 0 1 0 17 0a8.5 8.5 0 1 0-17 0", "M8.25 12.25l2.5 2.5 5-5"],
+  "aviso": ["M10.3 4.3 2.9 17.2a2 2 0 0 0 1.7 3h14.8a2 2 0 0 0 1.7-3L13.7 4.3a2 2 0 0 0-3.4 0z", "M12 9.5v4", "M12 16.75v.01"],
+  "error": ["M8.3 3.5h7.4l4.8 4.8v7.4l-4.8 4.8H8.3l-4.8-4.8V8.3z", "M12 8v5", "M12 15.75v.01"],
+  "info": ["M3.5 12a8.5 8.5 0 1 0 17 0a8.5 8.5 0 1 0-17 0", "M12 11v5", "M12 7.75v.01"],
+  "ayuda": ["M3.5 12a8.5 8.5 0 1 0 17 0a8.5 8.5 0 1 0-17 0", "M9.6 9.4a2.5 2.5 0 0 1 4.8.9c0 1.6-2.4 2.2-2.4 3.7", "M12 16.75v.01"],
+  "candado": ["M7 10.5h10a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2z", "M8 10.5V8a4 4 0 0 1 8 0v2.5"],
+  "chip": ["M8 6h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z", "M9.5 3v3", "M14.5 3v3", "M9.5 18v3", "M14.5 18v3", "M3 9.5h3", "M3 14.5h3", "M18 9.5h3", "M18 14.5h3"],
+  "combinacion": ["M4 8.5h4A1.5 1.5 0 0 1 9.5 10v4A1.5 1.5 0 0 1 8 15.5H4A1.5 1.5 0 0 1 2.5 14v-4A1.5 1.5 0 0 1 4 8.5z", "M16 8.5h4a1.5 1.5 0 0 1 1.5 1.5v4a1.5 1.5 0 0 1-1.5 1.5h-4a1.5 1.5 0 0 1-1.5-1.5v-4A1.5 1.5 0 0 1 16 8.5z", "M12 10.5v3", "M10.5 12h3"],
+  "multimedia": ["M9 17.5V6l10.5-2.5V15", "M4 17.5a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0-5 0", "M14.5 15a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0-5 0"],
+  "raton": ["M12 3a5.5 5.5 0 0 1 5.5 5.5v7a5.5 5.5 0 0 1-11 0v-7A5.5 5.5 0 0 1 12 3z", "M12 7v3.5"],
+  "desactivada": ["M3.5 12a8.5 8.5 0 1 0 17 0a8.5 8.5 0 1 0-17 0", "M6 6l12 12"],
+  "capas": ["M12 4l8.5 4.5L12 13 3.5 8.5z", "M3.5 13 12 17.5l8.5-4.5"],
+  "pulsar": ["M12 4v10.5", "M7.5 10 12 14.5l4.5-4.5", "M5.5 19.5h13"],
+  "soltar": ["M12 19.5V9", "M7.5 13.5 12 9l4.5 4.5", "M5.5 4.5h13"],
+  "esperar": ["M5 13.5a7 7 0 1 0 14 0a7 7 0 1 0-14 0", "M12 13.5V10", "M10 3.5h4", "M18.2 6.8l1.3-1.3"],
+  "teclado": ["M4.5 6.5h15a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-15a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2z", "M6.5 10h.01", "M9.5 10h.01", "M12.5 10h.01", "M15.5 10h.01", "M18 10h.01", "M8 14h8"],
+  "brillo": ["M8.25 12a3.75 3.75 0 1 0 7.5 0a3.75 3.75 0 1 0-7.5 0", "M12 3v2", "M12 19v2", "M3 12h2", "M19 12h2", "M5.6 5.6 7 7", "M17 17l1.4 1.4", "M5.6 18.4 7 17", "M17 7l1.4-1.4"],
+  "velocidad": ["M4 16a8 8 0 1 1 16 0", "M12 16l3.5-5"],
+  "color": ["M12 3.5s6 6.1 6 10.3a6 6 0 0 1-12 0C6 9.6 12 3.5 12 3.5z"],
+  "arcoiris": ["M3 17.5a9 9 0 0 1 18 0", "M6.5 17.5a5.5 5.5 0 0 1 11 0", "M10 17.5a2 2 0 0 1 4 0"],
+  "cuentagotas": ["M17.1 3.4a2.2 2.2 0 0 1 3.1 3.1l-2.4 2.4-3.1-3.1z", "M13.2 5.3l5.5 5.5", "M15.3 8.7l-8.6 8.6-2.8.9.9-2.8 8.6-8.6"],
+  "pintar-todas": ["M5.7 10.3l5.6-5.6 7.1 7.1-5.6 5.6a2 2 0 0 1-2.8 0l-4.3-4.3a2 2 0 0 1 0-2.8z", "M5 12h13", "M20.5 16.3c0 1.2-.9 2.2-2 2.2s-2-1-2-2.2c0-1.2 2-3.8 2-3.8s2 2.6 2 3.8z"],
+  "tira": ["M4 9.5h16a1.5 1.5 0 0 1 1.5 1.5v2a1.5 1.5 0 0 1-1.5 1.5H4A1.5 1.5 0 0 1 2.5 13v-2A1.5 1.5 0 0 1 4 9.5z", "M6 12h.01", "M9.33 12h.01", "M12.66 12h.01", "M16 12h.01"],
+  "flecha-izquierda": ["M19 12H5", "M11 6l-6 6 6 6"],
+  "flecha-derecha": ["M5 12h14", "M13 6l6 6-6 6"],
+  "flecha-arriba": ["M12 19V5", "M6 11l6-6 6 6"],
+  "flecha-abajo": ["M12 5v14", "M6 13l6 6 6-6"],
+  "hacia-fuera": ["M14 4h6v6", "M20 4l-6 6", "M10 20H4v-6", "M4 20l6-6"],
+  "hacia-dentro": ["M4 10h6V4", "M10 10 4 4", "M20 14h-6v6", "M14 14l6 6"],
+  "en-z": ["M4.5 6h15L4.5 18h15"],
+  "ida-vuelta": ["M4 8h13", "M14 5l3 3-3 3", "M20 16H7", "M10 13l-3 3 3 3"],
+  "vertical": ["M6 18v-7", "M10 18V6", "M14 18V9", "M18 18v-5"],
+  "separado": ["M6 9.5v5", "M10 6v12", "M14 8v8", "M18 10.5v3"],
+  "cruzado": ["M4 18 20 6", "M4 6l16 12"],
+  "imagen": ["M5 4.5h14a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-11a2 2 0 0 1 2-2z", "M7 9a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0-3 0", "M21 15.5l-4.5-4.5L7 19.5"],
+  "ajustar": ["M5 4.5h14a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-11a2 2 0 0 1 2-2z", "M3 8.5h18", "M3 15.5h18"],
+  "rellenar": ["M7 3v13a1 1 0 0 0 1 1h13", "M3 7h13a1 1 0 0 1 1 1v13"],
+  "estirar": ["M3.5 6v12", "M20.5 6v12", "M7 12h10", "M10 9l-3 3 3 3", "M14 9l3 3-3 3"],
+  "pixeles": ["M4 4h16v16H4z", "M4 9.33h16", "M4 14.66h16", "M9.33 4v16", "M14.66 4v16"],
+  "sondeo": ["M3 12h4l2.5-6 5 12 2.5-6h4"],
+  "luna": ["M19.5 14.6A7.8 7.8 0 0 1 9.4 4.5a7.8 7.8 0 1 0 10.1 10.1z"],
+  "comando": ["M15 6.5v11a2.5 2.5 0 1 0 2.5-2.5h-11A2.5 2.5 0 1 0 9 17.5v-11A2.5 2.5 0 1 0 6.5 9h11A2.5 2.5 0 1 0 15 6.5z"],
+  "intercambiar": ["M7 4.5 4 7.5l3 3", "M4 7.5h12.5", "M17 13.5l3 3-3 3", "M20 16.5H7.5"],
+  "panel": ["M5 4.5h14a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-11a2 2 0 0 1 2-2z", "M9.5 4.5v15"]
+};
+/* ICONS-END */
+const ALIAS = { subir: 'guardar', tecla: 'teclas', macro: 'macros', defecto: 'restaurar', horario: 'reintentar', antihorario: 'restaurar', temporizador: 'esperar', sol: 'brillo', check: 'aplicar' };
+const GROUPS = [
+  ['Navegación', [['teclas', 'Teclas'], ['iluminacion', 'Iluminación'], ['colores', 'Colores por tecla'], ['macros', 'Macros'], ['pantalla', 'Pantalla'], ['ajustes', 'Ajustes']]],
+  ['Acciones', [['leer', 'Leer del teclado'], ['guardar', 'Guardar / subir'], ['aplicar', 'Aplicar'], ['restaurar', 'Restaurar'], ['reintentar', 'Reintentar'], ['borrar', 'Borrar'], ['grabar', 'Grabar'], ['detener', 'Detener'], ['mas', 'Añadir'], ['menos', 'Restar'], ['cerrar', 'Cerrar'], ['arrastrar', 'Arrastrar'], ['play', 'Reproducir'], ['pausa', 'Pausa'], ['reloj', 'Fecha y hora'], ['copiar', 'Copiar'], ['externo', 'Abrir fuera'], ['buscar', 'Buscar'], ['codigo', 'Vista de texto'], ['mas-opciones', 'Más opciones'], ['chevron-abajo', 'Desplegar'], ['chevron-arriba', 'Plegar'], ['chevron-derecha', 'Siguiente'], ['chevron-izquierda', 'Anterior']]],
+  ['Conexión y estado', [['cable', 'Cable USB-C'], ['inalambrico', 'Bluetooth'], ['receptor', 'Receptor 2.4 GHz'], ['demo', 'Modo demo'], ['desconectado', 'Sin teclado'], ['bateria', 'Batería'], ['rayo', 'Cargando'], ['exito', 'Éxito'], ['aviso', 'Aviso'], ['error', 'Error'], ['info', 'Información'], ['ayuda', 'Ayuda'], ['candado', 'Bloqueado'], ['chip', 'Firmware']]],
+  ['Tipos de acción y macros', [['teclas', 'Tecla'], ['combinacion', 'Combinación'], ['multimedia', 'Multimedia'], ['raton', 'Ratón'], ['macros', 'Macro'], ['desactivada', 'Desactivada'], ['capas', 'Capa Fn'], ['pulsar', 'Pulsar'], ['soltar', 'Soltar'], ['esperar', 'Esperar'], ['teclado', 'Capturar tecla']]],
+  ['Luz y color', [['brillo', 'Brillo'], ['velocidad', 'Velocidad'], ['color', 'Color'], ['arcoiris', 'Arcoíris'], ['cuentagotas', 'Cuentagotas'], ['pintar-todas', 'Pintar todas'], ['tira', 'Tira lateral'], ['flecha-izquierda', 'Izquierda'], ['flecha-derecha', 'Derecha'], ['flecha-arriba', 'Arriba'], ['flecha-abajo', 'Abajo'], ['reintentar', 'Horario'], ['restaurar', 'Antihorario'], ['hacia-fuera', 'Hacia fuera'], ['hacia-dentro', 'Hacia dentro'], ['en-z', 'En Z'], ['ida-vuelta', 'Ida y vuelta'], ['vertical', 'Música: vertical'], ['separado', 'Música: separado'], ['cruzado', 'Música: cruzado']]],
+  ['Pantalla y ajustes', [['imagen', 'Imagen'], ['ajustar', 'Ajustar con bandas'], ['rellenar', 'Rellenar recortando'], ['estirar', 'Estirar'], ['pixeles', 'Píxeles reales'], ['sondeo', 'Tasa de sondeo'], ['esperar', 'Debounce'], ['luna', 'Reposo / tema oscuro'], ['brillo', 'Tema claro'], ['candado', 'Bloquear Windows'], ['comando', 'Modo Mac'], ['intercambiar', 'WASD ↔ flechas'], ['panel', 'Plegar barra']]]
+];
+function pathsOf(name) {
+  const list = ICONS[ALIAS[name] || name] || ICONS.info;
+  return list.map((p) => (typeof p === 'string' ? { d: p, c: '' } : { d: p.d, c: 'f' }));
+}
+class Component extends DCLogic {
+  renderVals() {
+    const i = this.props.i;
+    const single = !!i;
+    if (single) return { single: true, gallery: false, s: this.props.s ?? 20, paths: pathsOf(i), groups: [], demo: [], theme: 'dark' };
+    const groups = GROUPS.map((g) => ({
+      title: g[0], count: g[1].length + ' iconos',
+      items: g[1].map((it) => ({ label: it[1], file: 'ic-' + (ALIAS[it[0]] || it[0]) + '.svg', paths: pathsOf(it[0]) }))
+    }));
+    return { single: false, gallery: true, s: 20, paths: [], groups, demo: pathsOf('iluminacion'), theme: this.props.theme ?? 'dark' };
+  }
+}
+</script>
+</body>
+</html>

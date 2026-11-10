@@ -1,0 +1,457 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>L75 Config · Iluminación</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="l75.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div class="l75" data-theme="{{theme}}" style="position: relative; min-height: 100vh; display: flex; flex-wrap: wrap; background: var(--bg); color: var(--text-1);">
+<dc-import name="Sidebar" active="iluminacion" theme="{{theme}}" hint-size="232px,800px"></dc-import>
+<main style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column;">
+<dc-import name="Topbar" theme="{{theme}}" conn="{{conn}}" act="{{act}}" profile="{{profile}}" loading="{{profLoading}}" on-profile="{{setProfile}}" on-retry-act="{{retry}}" hint-size="100%,56px"></dc-import>
+<div style="flex: 1; display: flex; flex-direction: column; gap: 16px; padding: 20px 28px 24px; min-width: 0;">
+<div class="ph">
+<div>
+<h1 class="ph-t">Iluminación</h1>
+<p class="ph-s">Efectos para las teclas y para la tira lateral. Pasa el ratón por un efecto para verlo en movimiento.</p>
+</div>
+<div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+<label style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer;" title="Envía cada cambio al teclado al soltar el control">
+<button class="{{liveCls}}" type="button" role="switch" aria-checked="{{live}}" aria-label="Aplicar en vivo" onClick="{{toggleLive}}"><span class="kn"></span></button>
+<span class="lbl">Aplicar en vivo</span>
+</label>
+<button class="btn btn-secondary" type="button" onClick="{{read}}"><dc-import name="Icon" i="leer" s="16" hint-size="16px,16px"></dc-import>Leer</button>
+<span title="{{applyTip}}"><button class="btn btn-primary" type="button" disabled="{{applyOff}}" onClick="{{applyNow}}"><dc-import name="Icon" i="aplicar" s="16" hint-size="16px,16px"></dc-import>Aplicar</button></span>
+</div>
+</div>
+<div class="seg zone block" role="tablist" aria-label="Zona de luz">
+<sc-for list="{{zones}}" as="z" hint-placeholder-count="2">
+<button class="{{z.cls}}" type="button" role="tab" aria-selected="{{z.on}}" onClick="{{z.pick}}">
+<span style="display: inline-flex; color: {{z.icColor}};"><dc-import name="Icon" i="{{z.icon}}" s="20" hint-size="20px,20px"></dc-import></span>
+<span style="display: flex; flex-direction: column; min-width: 0;">
+<span style="font-size: 13px; font-weight: 600; color: var(--text-1);">{{z.label}}</span>
+<span style="font-size: 12px; font-weight: 400; color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{z.sum}}</span>
+</span>
+</button>
+</sc-for>
+</div>
+<div style="flex: 1; display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-start; min-height: 0;">
+<section class="card" style="flex: 1 1 520px; min-width: 0; padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 12px;" aria-label="Modos">
+<div class="card-h">
+<h2 class="t-sub" style="margin: 0;">Modo</h2>
+<span class="hint">{{modeCount}}</span>
+<span class="hint" style="margin-left: auto; display: inline-flex; align-items: center; gap: 6px;"><span class="mc-live"></span>En el teclado</span>
+</div>
+<div class="scroll" style="max-height: 492px; overflow: auto; margin: 0 -6px; padding: 4px 6px 6px;">
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(136px, 1fr)); gap: 10px;">
+<sc-for list="{{modes}}" as="m" hint-placeholder-count="12">
+<button class="{{m.cls}}" type="button" aria-pressed="{{m.on}}" title="{{m.tip}}" onClick="{{m.pick}}" onMouseEnter="{{m.hoverIn}}" onMouseLeave="{{m.hoverOut}}">
+<canvas class="mc-pv" ref="{{m.ref}}" aria-hidden="true"></canvas>
+<span class="mc-n"><span class="nm">{{m.label}}</span><sc-if value="{{m.applied}}" hint-placeholder-val="{{ false }}"><span class="mc-live" title="En el teclado"></span></sc-if></span>
+</button>
+</sc-for>
+</div>
+</div>
+</section>
+<section class="card" style="flex: 0 1 320px; min-width: 280px; padding: 16px; display: flex; flex-direction: column; gap: 14px; position: relative;" aria-label="Ajustes del modo">
+<canvas ref="{{bigRef}}" role="img" aria-label="{{bigAria}}" style="display: block; width: 100%; aspect-ratio: 2.4 / 1; border-radius: 8px; background: var(--preview-bg);"></canvas>
+<div style="display: flex; align-items: center; gap: 8px; margin-top: -2px;">
+<span class="t-title" style="flex: 1; min-width: 0;">{{modeName}}</span>
+<span class="{{statusCls}}">{{statusText}}</span>
+</div>
+<sc-for list="{{sliders}}" as="sl" hint-placeholder-count="2">
+<div class="slw" title="{{sl.reason}}">
+<div style="display: flex; align-items: center; gap: 8px; margin-bottom: 2px;">
+<span style="display: inline-flex; color: var(--text-2);"><dc-import name="Icon" i="{{sl.icon}}" s="16" hint-size="16px,16px"></dc-import></span>
+<span class="lbl" style="flex: 1;">{{sl.label}}</span>
+<span class="mono" style="font-size: 12px; color: var(--text-2);">{{sl.valueText}}</span>
+</div>
+<div class="{{sl.cls}}">
+<div class="sl-track"><div class="sl-fill" style="width: {{sl.pct}}%;"></div></div>
+<sc-for list="{{sl.dots}}" as="d" hint-placeholder-count="5"><span class="{{d.cls}}" style="left: {{d.left}}%;"></span></sc-for>
+<span class="sl-knob" style="left: {{sl.pct}}%;"></span>
+<input class="sl-in" type="range" min="0" max="4" step="1" value="{{sl.value}}" disabled="{{sl.dis}}" aria-label="{{sl.label}}" onChange="{{sl.change}}">
+</div>
+<div class="sl-labels"><sc-for list="{{sl.labels}}" as="lb" hint-placeholder-count="5"><span class="{{lb.cls}}">{{lb.t}}</span></sc-for></div>
+<sc-if value="{{sl.hasReason}}" hint-placeholder-val="{{ false }}"><span class="hint" style="margin-top: 4px;">{{sl.reason}}</span></sc-if>
+</div>
+</sc-for>
+<div style="display: flex; flex-direction: column; gap: 8px;">
+<div style="display: flex; align-items: center; gap: 8px;">
+<span style="display: inline-flex; color: var(--text-2);"><dc-import name="Icon" i="color" s="16" hint-size="16px,16px"></dc-import></span>
+<span class="lbl" style="flex: 1;">Color</span>
+<span class="mono" style="font-size: 12px; color: var(--text-2);">{{colorText}}</span>
+</div>
+<div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+<sc-for list="{{swatches}}" as="sw" hint-placeholder-count="8">
+<button class="{{sw.cls}}" type="button" title="{{sw.name}}" aria-label="{{sw.name}}" disabled="{{colorDis}}" style="background: {{sw.hex}};" onClick="{{sw.pick}}"></button>
+</sc-for>
+<button class="sw" type="button" title="Color personalizado" aria-label="Color personalizado" aria-expanded="{{pickerOpen}}" disabled="{{colorDis}}" style="display: inline-flex; align-items: center; justify-content: center; background: var(--surface-3); color: var(--text-1);" onClick="{{togglePicker}}"><dc-import name="Icon" i="cuentagotas" s="14" hint-size="14px,14px"></dc-import></button>
+</div>
+<sc-if value="{{hasColorReason}}" hint-placeholder-val="{{ false }}"><span class="hint">{{colorReason}}</span></sc-if>
+<sc-if value="{{pickerOpen}}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; right: 12px; bottom: 120px; z-index: 30;">
+<dc-import name="Color" value="{{curColor}}" theme="{{theme}}" embedded="{{yes}}" on-change="{{setColor}}" hint-size="296px,330px"></dc-import>
+</div>
+</sc-if>
+</div>
+<div style="display: flex; align-items: center; gap: 10px;" title="{{rbReason}}">
+<span style="display: inline-flex; color: var(--text-2);"><dc-import name="Icon" i="arcoiris" s="16" hint-size="16px,16px"></dc-import></span>
+<span class="lbl" style="flex: 1;">Arcoíris <span class="hint">(colores cíclicos)</span></span>
+<button class="{{rbCls}}" type="button" role="switch" aria-checked="{{rb}}" aria-label="Arcoíris" disabled="{{rbDis}}" onClick="{{toggleRb}}"><span class="kn"></span></button>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px;">
+<div style="display: flex; align-items: center; gap: 8px;">
+<span style="display: inline-flex; color: var(--text-2);"><dc-import name="Icon" i="{{optIcon}}" s="16" hint-size="16px,16px"></dc-import></span>
+<span class="lbl" style="flex: 1;">{{optTitle}}</span>
+<span class="hint">{{optValue}}</span>
+</div>
+<sc-if value="{{hasOpts}}" hint-placeholder-val="{{ false }}">
+<div class="seg block" role="radiogroup" aria-label="{{optTitle}}">
+<sc-for list="{{opts}}" as="o" hint-placeholder-count="4">
+<button class="{{o.cls}}" type="button" role="radio" aria-checked="{{o.on}}" aria-label="{{o.label}}" title="{{o.label}}" onClick="{{o.pick}}">
+<sc-if value="{{o.hasIc}}" hint-placeholder-val="{{ true }}"><dc-import name="Icon" i="{{o.icon}}" s="16" hint-size="16px,16px"></dc-import></sc-if>
+<sc-if value="{{o.showText}}" hint-placeholder-val="{{ false }}"><span>{{o.text}}</span></sc-if>
+</button>
+</sc-for>
+</div>
+</sc-if>
+<sc-if value="{{noOpts}}" hint-placeholder-val="{{ true }}">
+<div class="seg block"><button class="seg-i" type="button" disabled="{{yes}}">—</button></div>
+<span class="hint">{{optReason}}</span>
+</sc-if>
+</div>
+</section>
+</div>
+</div>
+</main>
+<sc-if value="{{pickerOpen}}" hint-placeholder-val="{{ false }}"><button type="button" tabindex="-1" aria-label="Cerrar selector de color" onClick="{{togglePicker}}" style="position: fixed; inset: 0; z-index: 20; background: transparent; border: 0; cursor: default;"></button></sc-if>
+<sc-if value="{{toastOn}}" hint-placeholder-val="{{ false }}">
+<div class="toasts" aria-live="polite">
+<div class="{{toastCls}}" role="status">
+<span class="ti"><dc-import name="Icon" i="{{toastIcon}}" s="18" hint-size="18px,18px"></dc-import></span>
+<span class="tx">{{toastText}}</span>
+<sc-if value="{{toastHasAct}}" hint-placeholder-val="{{ false }}"><button class="btn btn-secondary btn-sm" type="button" onClick="{{retry}}"><dc-import name="Icon" i="reintentar" s="14" hint-size="14px,14px"></dc-import>Reintentar</button></sc-if>
+<button class="btn btn-ghost btn-sm btn-icon" type="button" aria-label="Cerrar aviso" onClick="{{closeToast}}"><dc-import name="Icon" i="cerrar" s="14" hint-size="14px,14px"></dc-import></button>
+</div>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark","section":"Prototipo"},"conn":{"editor":"enum","options":["cable","bt","demo"],"default":"cable","section":"Prototipo"},"demo":{"editor":null},"$preview":{"width":1280,"height":800}}'>
+const DIR4 = [['right', 'Derecha', 'flecha-derecha'], ['left', 'Izquierda', 'flecha-izquierda'], ['down', 'Abajo', 'flecha-abajo'], ['up', 'Arriba', 'flecha-arriba']];
+const DIR2 = [['right', 'Derecha', 'flecha-derecha'], ['left', 'Izquierda', 'flecha-izquierda']];
+const SNAKE = [['z', 'En Z', 'en-z'], ['return', 'Ida y vuelta', 'ida-vuelta']];
+const MUS = [['upright', 'Vertical', 'vertical'], ['separate', 'Separado', 'separado'], ['intersect', 'Cruzado', 'cruzado']];
+const PICS = [['1', 'Imagen 1', ''], ['2', 'Imagen 2', ''], ['3', 'Imagen 3', ''], ['4', 'Imagen 4', ''], ['5', 'Imagen 5', '']];
+const KMODES = [
+  { k: 'off', l: 'Apagado', speed: false, color: false, kind: 'off' },
+  { k: 'static', l: 'Fijo', speed: false },
+  { k: 'breath', l: 'Respiración' },
+  { k: 'neon', l: 'Neón', color: false },
+  { k: 'wave', l: 'Ola', opts: DIR4, dir: true },
+  { k: 'ripple', l: 'Onda expansiva' },
+  { k: 'raindrop', l: 'Gotas de lluvia' },
+  { k: 'snake', l: 'Serpiente', opts: SNAKE },
+  { k: 'reactive', l: 'Reactivo', tip: 'Se enciende al pulsar' },
+  { k: 'converge', l: 'Convergencia' },
+  { k: 'sine', l: 'Onda senoidal' },
+  { k: 'kaleidoscope', l: 'Caleidoscopio', opts: [['out', 'Hacia fuera', 'hacia-fuera'], ['in', 'Hacia dentro', 'hacia-dentro']], dir: true },
+  { k: 'linewave', l: 'Línea', opts: DIR2, dir: true },
+  { k: 'user', l: 'Imagen de usuario', speed: false, color: false, kind: 'picture', opts: PICS, tip: 'Usa los colores de «Colores por tecla»' },
+  { k: 'laser', l: 'Láser' },
+  { k: 'circle', l: 'Círculo', opts: [['anti-clockwise', 'Antihorario', 'antihorario'], ['clockwise', 'Horario', 'horario']], dir: true },
+  { k: 'dazzling', l: 'Deslumbrante' },
+  { k: 'raindown', l: 'Lluvia' },
+  { k: 'meteor', l: 'Meteoro' },
+  { k: 'reactive-off', l: 'Reactivo inverso', tip: 'Se apaga al pulsar' },
+  { k: 'music3', l: 'Música 1', speed: false, kind: 'music', opts: MUS },
+  { k: 'screen', l: 'Color de pantalla', speed: false, color: false, kind: 'screen', tip: 'Imita los colores del monitor' },
+  { k: 'music2', l: 'Música 2', speed: false, kind: 'music', opts: MUS }
+];
+const SMODES = [
+  { k: 'off', l: 'Apagado', speed: false, color: false, kind: 'off' },
+  { k: 'static', l: 'Fijo', speed: false },
+  { k: 'breath', l: 'Respiración' },
+  { k: 'neon', l: 'Neón', color: false },
+  { k: 'wave', l: 'Ola', opts: DIR4, dir: true },
+  { k: 'snake', l: 'Serpiente', opts: SNAKE }
+];
+const PRESETS = [['Rojo', '#FF0000'], ['Naranja', '#FF8000'], ['Amarillo', '#FFFF00'], ['Verde', '#00FF00'], ['Cian', '#00FFFF'], ['Azul', '#0000FF'], ['Magenta', '#FF00FF'], ['Blanco', '#FFFFFF']];
+const NAMES = { '#FF0000': 'rojo', '#FF8000': 'naranja', '#FFFF00': 'amarillo', '#00FF00': 'verde', '#00FFFF': 'cian', '#0000FF': 'azul', '#FF00FF': 'magenta', '#FFFFFF': 'blanco' };
+const BF = [0.1, 0.32, 0.55, 0.78, 1];
+const L = [
+  ['Esc', 0, 0, 25], ['F1', 60, 0, 25], ['F2', 96, 0, 25], ['F3', 131, 0, 25], ['F4', 166, 0, 25], ['F5', 213, 0, 25], ['F6', 249, 0, 25], ['F7', 284, 0, 25], ['F8', 319, 0, 25], ['F9', 366, 0, 25], ['F10', 402, 0, 25], ['F11', 437, 0, 25], ['F12', 472, 0, 25],
+  ['`', 0, 44, 25], ['1', 35, 44, 25], ['2', 71, 44, 25], ['3', 106, 44, 25], ['4', 142, 44, 25], ['5', 177, 44, 25], ['6', 213, 44, 25], ['7', 248, 44, 25], ['8', 284, 44, 25], ['9', 319, 44, 25], ['0', 355, 44, 25], ['-', 390, 44, 25], ['=', 426, 44, 25], ['Backspace', 462, 44, 59], ['Ins', 547, 44, 25],
+  ['Tab', 0, 79, 42], ['Q', 53, 79, 25], ['W', 89, 79, 25], ['E', 124, 79, 25], ['R', 160, 79, 25], ['T', 195, 79, 25], ['Y', 231, 79, 25], ['U', 266, 79, 25], ['I', 302, 79, 25], ['O', 337, 79, 25], ['P', 373, 79, 25], ['[', 408, 79, 25], [']', 444, 79, 25], ['\\', 479, 79, 42], ['Del', 547, 79, 25],
+  ['CapsLock', 0, 114, 51], ['A', 61, 114, 25], ['S', 97, 114, 25], ['D', 132, 114, 25], ['F', 168, 114, 25], ['G', 203, 114, 25], ['H', 239, 114, 25], ['J', 274, 114, 25], ['K', 310, 114, 25], ['L', 345, 114, 25], [';', 381, 114, 25], ["'", 416, 114, 25], ['Enter', 452, 114, 69], ['PgUp', 547, 114, 25],
+  ['Shift', 0, 150, 69], ['Z', 79, 150, 25], ['X', 115, 150, 25], ['C', 150, 150, 25], ['V', 186, 150, 25], ['B', 221, 150, 25], ['N', 257, 150, 25], ['M', 292, 150, 25], [',', 328, 150, 25], ['.', 363, 150, 25], ['/', 399, 150, 25], ['RShift', 434, 150, 51], ['PgDn', 547, 150, 25],
+  ['Ctrl', 0, 186, 33], ['Win', 44, 186, 33], ['Alt', 89, 186, 33], ['Space', 135, 186, 207], ['RAlt', 355, 186, 25], ['Fn', 390, 186, 25], ['RCtrl', 426, 186, 25],
+  ['↑', 504, 158, 25], ['←', 469, 193, 25], ['↓', 504, 193, 25], ['→', 540, 193, 25]
+];
+function hash(n) { const x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); }
+function hsv(h, s, v) { h = ((h % 1) + 1) % 1; const i = Math.floor(h * 6); const f = h * 6 - i; const p = v * (1 - s); const q = v * (1 - f * s); const u = v * (1 - (1 - f) * s); return [[v, u, p], [q, v, p], [p, v, u], [p, q, v], [u, p, v], [v, p, q]][i % 6]; }
+function rgbOf(h) { const n = parseInt(h.slice(1), 16); return [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255]; }
+function sc(c, v) { return [c[0] * v, c[1] * v, c[2] * v]; }
+function col(p, h) { return p.rb ? hsv(h, 1, 1) : p.rgb; }
+const ROWS = { 0: 0, 44: 1, 79: 2, 114: 3, 150: 4, 158: 4, 186: 5, 193: 5 };
+const KEYS = L.map((k, i) => ({ i, name: k[0], x: k[1], y: k[2], w: k[3], nx: (k[1] + (k[3] + 7) / 2) / 579, ny: (k[2] + 16) / 225, row: ROWS[k[2]], col: Math.round(k[1] / 35.6), h1: hash(i + 1), h2: hash(i * 7 + 3) }));
+KEYS.slice().sort((a, b) => a.row - b.row || (a.row % 2 ? b.x - a.x : a.x - b.x)).forEach((k, j) => { k.ord = j; });
+KEYS.forEach((k) => {
+  const g = (off) => hsv((320 - k.nx * 130 + off) / 360, 1, 1);
+  k.user = [g(0), g(120), g(200), g(60), g(260)];
+  if (['W', 'A', 'S', 'D', '↑', '←', '↓', '→'].indexOf(k.name) >= 0) k.user[0] = [1, 0.69, 0.13];
+});
+const STRIP = [];
+for (let i = 0; i < 24; i++) STRIP.push({ i, nx: (i + 0.5) / 24, ny: 0.5, row: 0, col: Math.round(i * 16 / 24), h1: hash(i + 101), h2: hash(i * 5 + 17), ord: i * 81 / 24, user: [[0, 0, 0]] });
+function mus(k, t, p, variant) {
+  const c = k.col;
+  const h = 0.2 + 0.75 * Math.abs(Math.sin(t * (2 + variant) + c * 0.9) * Math.cos(t * 1.3 + c * 0.37));
+  const yy = 1 - k.ny;
+  let lit;
+  if (p.opt === 'separate') lit = Math.abs(k.ny - 0.5) <= h / 2;
+  else if (p.opt === 'intersect') lit = (c % 2 === 0 ? yy : k.ny) <= h;
+  else lit = yy <= h;
+  if (!lit) return [0, 0, 0];
+  return p.rb ? hsv(0.33 - yy * 0.33, 1, 1) : p.rgb;
+}
+const FX = {
+  off: () => [0, 0, 0],
+  static: (k, t, p) => col(p, k.nx * 0.85),
+  breath: (k, t, p) => sc(col(p, t * 0.04), 0.1 + 0.9 * Math.pow(0.5 + 0.5 * Math.sin(t * 2), 2)),
+  neon: (k, t) => hsv(t * 0.1, 1, 1),
+  wave: (k, t, p) => { const d = ({ right: k.nx, left: 1 - k.nx, down: k.ny, up: 1 - k.ny })[p.opt] ?? k.nx; const ph = d * 1.1 - t * 0.45; return p.rb ? hsv(ph, 1, 1) : sc(p.rgb, 0.12 + 0.88 * Math.pow(0.5 + 0.5 * Math.sin(ph * 6.283), 2)); },
+  ripple: (k, t, p) => { const d = Math.hypot((k.nx - 0.5) * 2.57, k.ny - 0.55); const r = (t * 0.8) % 2.1; const v = Math.exp(-Math.pow((d - r) * 4.5, 2)); return sc(col(p, d * 0.35 - t * 0.15), 0.04 + 0.96 * v); },
+  raindrop: (k, t, p) => { const ph = k.h1 * 9; const c = (t * 0.8 + ph) % 4.5; const v = c < 1 ? 1 - c : 0; const n = Math.floor((t * 0.8 + ph) / 4.5); return sc(p.rb ? hsv(hash(k.i * 3 + n), 1, 1) : p.rgb, 0.03 + 0.97 * v); },
+  snake: (k, t, p) => { const N = 81; const len = 14; const u = t * 24; let d; if (p.opt === 'return') { const m = u % (2 * N); const head = m < N ? m : 2 * N - m; d = Math.abs(head - k.ord); } else { d = (u % N) - k.ord; if (d < 0) d += N; } const v = d < len ? 1 - d / len : 0; return sc(col(p, k.ord / N), 0.03 + 0.97 * v); },
+  reactive: (k, t, p) => { const c = (t + k.h2 * 9) % 9; const v = c < 1 ? 1 - c : 0; return sc(col(p, k.h1), 0.03 + 0.97 * v); },
+  converge: (k, t, p) => { const r = 0.55 - ((t * 0.32) % 0.6); const d = Math.abs(k.nx - 0.5); const v = Math.exp(-Math.pow((d - r) * 9, 2)); return sc(col(p, d + t * 0.08), 0.04 + 0.96 * v); },
+  sine: (k, t, p) => { const yy = 0.5 + 0.36 * Math.sin(k.nx * 6.9 + t * 2.4); const v = Math.exp(-Math.pow((k.ny - yy) * 4.2, 2)); return sc(col(p, k.nx - t * 0.1), 0.04 + 0.96 * v); },
+  kaleidoscope: (k, t, p) => { const dx = (k.nx - 0.5) * 2.57; const dy = k.ny - 0.5; const a = Math.atan2(dy, dx) / 6.283; const h = a * 3 + Math.hypot(dx, dy) * 0.8 + (p.opt === 'in' ? 1 : -1) * t * 0.25; return p.rb ? hsv(h, 1, 1) : sc(p.rgb, 0.12 + 0.88 * (0.5 + 0.5 * Math.sin(h * 6.283))); },
+  linewave: (k, t, p) => { let pos = ((t * 0.45) % 1.3) - 0.15; if (p.opt === 'left') pos = 1 - pos; const v = Math.exp(-Math.pow((k.nx - pos) * 10, 2)); return sc(col(p, t * 0.07), 0.03 + 0.97 * v); },
+  user: (k, t, p) => k.user[(Number(p.opt) || 1) - 1] || k.user[0],
+  laser: (k, t, p) => { const n = Math.floor(t / 1.5); const age = (t % 1.5) / 1.5; const o = KEYS[Math.floor(hash(n * 7.3) * KEYS.length)]; let v = 0; if (k.row === o.row) v = Math.exp(-Math.abs(k.nx - o.nx) / (0.04 + age * 0.5)); if (Math.abs(k.nx - o.nx) < 0.03) v = Math.max(v, Math.exp(-Math.abs(k.ny - o.ny) / (0.06 + age * 0.6))); return sc(col(p, hash(n)), 0.03 + 0.97 * v * (1 - age)); },
+  circle: (k, t, p) => { const dx = (k.nx - 0.5) * 2.57; const dy = (k.ny - 0.5) * 1.6; const a = Math.atan2(dy, dx) / 6.283; const cw = p.opt === 'clockwise'; const head = (cw ? 1 : -1) * t * 0.35; let d = cw ? head - a : a - head; d = ((d % 1) + 1) % 1; const ring = Math.exp(-Math.pow((Math.hypot(dx, dy) - 0.75) * 1.8, 2)); return sc(col(p, a), 0.03 + 0.97 * Math.pow(1 - d, 3) * (0.3 + 0.7 * ring)); },
+  dazzling: (k, t, p) => { const n = Math.floor(t * 6 + k.h1 * 3); const on = hash(k.i * 31 + n) > 0.55; return sc(p.rb ? hsv(hash(k.i * 17 + n), 1, 1) : p.rgb, on ? 1 : 0.05); },
+  raindown: (k, t, p) => { const sp = 0.5 + hash(k.col * 9.1) * 0.5; const head = ((t * sp + hash(k.col * 3.7) * 2) % 1.7) - 0.25; const d = head - k.ny; const v = d >= 0 && d < 0.6 ? Math.pow(1 - d / 0.6, 2) : 0; return sc(col(p, k.col / 16), 0.03 + 0.97 * v); },
+  meteor: (k, t, p) => { const w = k.ny - 0.45 * k.nx; const u = k.nx + 0.45 * k.ny; let v = 0; const lanes = [-0.15, 0.2, 0.55]; for (let j = 0; j < 3; j++) { if (Math.abs(w - lanes[j]) > 0.11) continue; const hh = ((t * 0.55 + j * 0.55) % 1.9) - 0.3; const d = hh - u; if (d >= 0 && d < 0.4) v = Math.max(v, Math.pow(1 - d / 0.4, 2.2)); } return sc(col(p, u * 0.8 + t * 0.05), 0.03 + 0.97 * v); },
+  'reactive-off': (k, t, p) => { const c = (t + k.h2 * 9) % 9; const v = c < 1.1 ? c / 1.1 : 1; return sc(col(p, k.nx * 0.7), 0.03 + 0.97 * v); },
+  music3: (k, t, p) => mus(k, t, p, 0),
+  screen: (k, t) => hsv(0.56 + 0.07 * Math.sin(t * 0.4 + k.nx * 2.2), 0.55 + 0.25 * Math.sin(t * 0.3 + k.ny * 3), 0.9),
+  music2: (k, t, p) => mus(k, t, p, 1)
+};
+function caps(m) {
+  const off = m.kind === 'off';
+  const colorCap = (m.color !== false || m.kind === 'music') && !off;
+  return { bright: !off && m.kind !== 'screen', speed: m.speed !== false && !off, color: colorCap, opts: m.opts || null };
+}
+function clone(o) { return JSON.parse(JSON.stringify(o)); }
+const INIT = {
+  k: { mode: 'raindown', b: 4, sp: 4, color: '#00FF00', rb: false, opt: { wave: 'right', snake: 'z', kaleidoscope: 'out', linewave: 'right', user: '1', circle: 'clockwise', music3: 'upright', music2: 'upright' } },
+  s: { mode: 'wave', b: 4, sp: 3, color: '#2BD2F0', rb: true, opt: { wave: 'right', snake: 'z' } }
+};
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    const err = props.demo === 'error';
+    this.state = {
+      zone: 'k', set: clone(INIT), applied: clone(INIT), live: true, picker: false, hover: null,
+      profile: 1, profLoading: 0,
+      act: err ? { k: 'err', text: 'El teclado no respondió' } : { k: 'idle' },
+      toast: err ? { kind: 'err', text: 'El teclado no respondió al aplicar «Lluvia». Revisa el cable y reintenta.', act: true, keep: true } : null
+    };
+    this.cv = {};
+    this.refFns = {};
+    this.timers = [];
+    this.bigRef = (el) => { this.big = el; };
+    this.tick = this.tick.bind(this);
+  }
+  componentDidMount() { this.t0 = performance.now(); this.last = 0; this.raf = requestAnimationFrame(this.tick); }
+  componentWillUnmount() { cancelAnimationFrame(this.raf); this.timers.forEach((t) => clearTimeout(t)); }
+  refFor(id) {
+    if (!this.refFns[id]) this.refFns[id] = (el) => { if (el) this.cv[id] = el; else delete this.cv[id]; };
+    return this.refFns[id];
+  }
+  params(zone, m, cur) {
+    const c = caps(m);
+    if (cur) return { b: cur.b, sp: c.speed ? cur.sp : 2, rb: c.color && cur.rb, rgb: rgbOf(cur.color), opt: cur.opt[m.k] || (m.opts ? m.opts[0][0] : null) };
+    return { b: 4, sp: 3, rb: c.color, rgb: [0.17, 0.82, 0.94], opt: m.opts ? m.opts[0][0] : null };
+  }
+  draw(el, zone, m, p, t, big) {
+    const dpr = window.devicePixelRatio || 1;
+    const W = Math.round(el.clientWidth * dpr); const H = Math.round(el.clientHeight * dpr);
+    if (!W || !H) return;
+    if (el.width !== W) el.width = W;
+    if (el.height !== H) el.height = H;
+    const ctx = el.getContext('2d');
+    const light = (this.props.theme ?? 'dark') === 'light';
+    const off = light ? [26, 30, 36] : [22, 26, 32];
+    ctx.fillStyle = light ? '#0B0D10' : '#07090B';
+    ctx.fillRect(0, 0, W, H);
+    const fx = FX[m.k] || FX.off;
+    const bf = BF[p.b] ?? 1;
+    const tt = t * (0.3 + (p.sp ?? 2) * 0.32);
+    const paint = (c) => 'rgb(' + Math.min(255, Math.round(off[0] + c[0] * 255 * bf)) + ',' + Math.min(255, Math.round(off[1] + c[1] * 255 * bf)) + ',' + Math.min(255, Math.round(off[2] + c[2] * 255 * bf)) + ')';
+    const rr = (x, y, w, h, r) => { ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(x, y, w, h, r); else ctx.rect(x, y, w, h); ctx.fill(); };
+    if (zone === 'k' || big) {
+      const area = zone === 's' ? 0.74 : 1;
+      const s = Math.min(W / 579, (H * area) / 225) * 0.9;
+      const ox = (W - 579 * s) / 2; const oy = (H * area - 225 * s) / 2;
+      KEYS.forEach((k) => {
+        ctx.fillStyle = zone === 'k' ? paint(fx(k, tt, p)) : 'rgb(' + off.join(',') + ')';
+        rr(ox + (k.x + 1.2) * s, oy + (k.y + 1.2) * s, (k.w + 7 - 2.4) * s, (32 - 2.4) * s, 3 * s);
+      });
+    }
+    if (zone === 's') {
+      const bw = W * 0.88; const bh = big ? H * 0.1 : H * 0.26;
+      const bx = (W - bw) / 2; const by = big ? H * 0.82 : (H - bh) / 2;
+      const seg = bw / STRIP.length;
+      STRIP.forEach((k) => {
+        ctx.fillStyle = paint(fx(k, tt, p));
+        rr(bx + k.i * seg + seg * 0.12, by, seg * 0.76, bh, Math.min(bh / 2, 3 * dpr));
+      });
+    }
+  }
+  tick(now) {
+    this.raf = requestAnimationFrame(this.tick);
+    if (now - this.last < 33) return;
+    this.last = now;
+    const t = (now - this.t0) / 1000;
+    const s = this.state;
+    const list = s.zone === 'k' ? KMODES : SMODES;
+    const cur = s.set[s.zone];
+    list.forEach((m) => {
+      const el = this.cv[s.zone + ':' + m.k];
+      if (!el) return;
+      const sel = m.k === cur.mode;
+      const animate = sel || s.hover === m.k;
+      this.draw(el, s.zone, m, this.params(s.zone, m, sel ? cur : null), animate ? t : 2.6 + (m.k.length % 5) * 0.7, false);
+    });
+    if (this.big) { const m = list.find((x) => x.k === cur.mode) || list[0]; this.draw(this.big, s.zone, m, this.params(s.zone, m, cur), t, true); }
+  }
+  toast(kind, text) {
+    clearTimeout(this.toastT);
+    this.setState({ toast: { kind, text } });
+    this.toastT = setTimeout(() => this.setState({ toast: null }), 3200);
+    this.timers.push(this.toastT);
+  }
+  busy(text, ms, done) {
+    this.setState({ act: { k: 'busy', text, p: null } });
+    this.timers.push(setTimeout(() => { this.setState({ act: { k: 'idle' } }); if (done) done(); }, ms));
+  }
+  change(fn) {
+    const s = this.state;
+    const set = clone(s.set);
+    fn(set[s.zone]);
+    this.setState({ set });
+    if (s.live) {
+      clearTimeout(this.liveT);
+      this.liveT = setTimeout(() => this.applyZone(s.zone, false), 250);
+      this.timers.push(this.liveT);
+    }
+  }
+  applyZone(zone, withToast) {
+    this.busy(zone === 'k' ? 'Aplicando luz…' : 'Aplicando tira lateral…', 380, () => {
+      const applied = clone(this.state.applied);
+      applied[zone] = clone(this.state.set[zone]);
+      this.setState({ applied, toast: null });
+      if (withToast) this.toast('ok', (zone === 'k' ? 'Luz de teclas' : 'Tira lateral') + ' aplicada');
+    });
+  }
+  renderVals() {
+    const s = this.state;
+    const theme = this.props.theme ?? 'dark';
+    const zone = s.zone;
+    const list = zone === 'k' ? KMODES : SMODES;
+    const cur = s.set[zone];
+    const ap = s.applied[zone];
+    const m = list.find((x) => x.k === cur.mode) || list[0];
+    const c = caps(m);
+    const dirty = JSON.stringify(cur) !== JSON.stringify(ap);
+    const summary = (z) => {
+      const st = s.set[z]; const ml = (z === 'k' ? KMODES : SMODES).find((x) => x.k === st.mode); const cp = caps(ml);
+      const parts = [ml.l];
+      if (cp.bright) parts.push('brillo ' + st.b);
+      if (cp.color) parts.push(st.rb ? 'arcoíris' : (NAMES[st.color] || st.color));
+      return parts.join(' · ');
+    };
+    const zones = [['k', 'Luz de teclas', 'teclas'], ['s', 'Tira lateral', 'tira']].map((z) => ({
+      label: z[1], icon: z[2], sum: summary(z[0]), on: zone === z[0], cls: 'seg-i' + (zone === z[0] ? ' on' : ''),
+      icColor: zone === z[0] ? 'var(--accent)' : 'var(--text-2)',
+      pick: () => this.setState({ zone: z[0], picker: false, hover: null })
+    }));
+    const modes = list.map((x) => ({
+      label: x.l, tip: x.tip || x.l, on: x.k === cur.mode, applied: x.k === ap.mode,
+      cls: 'mc' + (x.k === cur.mode ? ' on' : ''), ref: this.refFor(zone + ':' + x.k),
+      pick: () => this.change((z) => { z.mode = x.k; }),
+      hoverIn: () => this.setState({ hover: x.k }), hoverOut: () => { if (this.state.hover === x.k) this.setState({ hover: null }); }
+    }));
+    const slider = (key, label, icon, enabled, reason) => {
+      const v = cur[key];
+      return {
+        label, icon, value: v, valueText: enabled ? v + ' / 4' : '—', dis: !enabled, pct: v * 25,
+        cls: 'sl' + (enabled ? '' : ' is-disabled'), reason: enabled ? '' : reason, hasReason: !enabled,
+        dots: [0, 1, 2, 3, 4].map((i) => ({ left: i * 25, cls: 'sl-dot' + (i <= v ? ' on' : '') })),
+        labels: [0, 1, 2, 3, 4].map((i) => ({ t: i, cls: i === v && enabled ? 'on' : '' })),
+        change: (e) => { const n = Number(e.target.value); this.change((z) => { z[key] = n; }); }
+      };
+    };
+    const offReason = 'Con la luz apagada no hay nada que ajustar';
+    const sliders = [
+      slider('b', 'Brillo', 'brillo', c.bright, m.kind === 'screen' ? 'Color de pantalla usa siempre el brillo máximo' : offReason),
+      slider('sp', 'Velocidad', 'velocidad', c.speed, m.kind === 'off' ? offReason : m.l + ' no usa velocidad')
+    ];
+    const colorDis = !c.color || cur.rb;
+    const colorReason = !c.color ? (m.kind === 'off' ? offReason : m.l + ' elige sus propios colores') : cur.rb ? 'Arcoíris activo: los colores cambian solos' : '';
+    const swatches = PRESETS.map((p) => ({ name: p[0], hex: p[1], cls: 'sw' + (p[1] === cur.color && !colorDis ? ' on' : ''), pick: () => this.change((z) => { z.color = p[1]; }) }));
+    const optSel = c.opts ? (cur.opt[m.k] || c.opts[0][0]) : null;
+    const iconOnly = c.opts && c.opts.length >= 4 && c.opts[0][2];
+    const opts = (c.opts || []).map((o) => ({
+      label: o[1], icon: o[2], hasIc: !!o[2], text: o[2] ? o[1] : o[0], showText: !iconOnly,
+      on: o[0] === optSel, cls: 'seg-i' + (o[0] === optSel ? ' on' : ''),
+      pick: () => this.change((z) => { z.opt[m.k] = o[0]; })
+    }));
+    const optObj = c.opts ? c.opts.find((o) => o[0] === optSel) : null;
+    const t = s.toast;
+    return {
+      theme, conn: this.props.conn ?? 'cable', act: s.act, profile: s.profile, profLoading: s.profLoading, yes: true,
+      setProfile: (n) => {
+        if (n === s.profile || s.profLoading) return;
+        this.setState({ profLoading: n });
+        this.busy('Cargando perfil ' + n + '…', 900, () => { this.setState({ profile: n, profLoading: 0 }); this.toast('info', 'Perfil ' + n + ' cargado'); });
+      },
+      live: s.live, liveCls: 'tg' + (s.live ? ' on' : ''),
+      toggleLive: () => this.setState({ live: !s.live }),
+      applyOff: s.live || !dirty, applyTip: s.live ? 'Con «Aplicar en vivo» cada cambio se envía al momento' : dirty ? 'Enviar al teclado' : 'No hay cambios',
+      applyNow: () => this.applyZone(zone, true),
+      read: () => this.busy('Leyendo luz…', 700, () => { const set = clone(this.state.set); set[zone] = clone(this.state.applied[zone]); this.setState({ set }); this.toast('ok', 'Luz leída del teclado'); }),
+      retry: () => { this.setState({ toast: null }); this.applyZone('k', true); },
+      zones, modes, modeCount: zone === 'k' ? '23 efectos' : '6 efectos',
+      bigRef: this.bigRef, bigAria: 'Vista previa de ' + m.l,
+      modeName: m.l, statusCls: 'pill ' + (dirty ? 'warn' : 'ok'), statusText: dirty ? 'Sin aplicar' : 'En el teclado',
+      sliders, colorDis, colorReason, hasColorReason: !!colorReason, swatches,
+      colorText: c.color ? (cur.rb ? 'arcoíris' : cur.color) : '—', curColor: cur.color,
+      pickerOpen: s.picker && !colorDis, togglePicker: () => this.setState({ picker: !s.picker }),
+      setColor: (hex) => this.change((z) => { z.color = hex; }),
+      rb: !!cur.rb && c.color, rbDis: !c.color, rbCls: 'tg rgb' + (cur.rb && c.color ? ' on' : ''), rbReason: c.color ? 'Los colores van cambiando solos' : m.l + ' no admite arcoíris',
+      toggleRb: () => this.change((z) => { z.rb = !z.rb; }),
+      hasOpts: !!c.opts, noOpts: !c.opts, opts,
+      optTitle: m.kind === 'picture' ? 'Imagen' : m.dir ? 'Dirección' : 'Variante',
+      optIcon: m.kind === 'picture' ? 'imagen' : m.dir ? 'flecha-derecha' : 'mas-opciones',
+      optValue: optObj ? optObj[1] : '', optReason: m.l + ' no tiene variantes',
+      toastOn: !!t, toastCls: 'toast ' + (t ? t.kind : ''), toastText: t ? t.text : '', toastHasAct: !!(t && t.act),
+      toastIcon: t ? ({ ok: 'exito', err: 'error', warn: 'aviso', info: 'info' })[t.kind] : 'info',
+      closeToast: () => this.setState({ toast: null })
+    };
+  }
+}
+</script>
+</body>
+</html>

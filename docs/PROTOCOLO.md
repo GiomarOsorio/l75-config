@@ -132,3 +132,30 @@ El driver cambia el blanco `FFFFFF` por `FAFFFA`.
 - Receptor 2.4 GHz (`3151:4011/4014/4017`): el driver usa un envoltorio "dongle_common" distinto. No implementado.
 - `0x8F` devuelve el ID de modelo en `[1..2]` LE. Un L75 real devolvió 820, que en la tabla del driver también es "L75".
 - La capa por defecto de Fn no se conoce. Por eso `keys set --fn ... default` no está permitido.
+
+## Capa Fn: funciones del sistema
+
+Leídas de un L75 real (firmware 1.17); los nombres salen del manual oficial. El driver oficial
+no deja cambiar estas teclas: las pinta en rojo y avisa «tecla del sistema» (`系统按键无法修改`).
+Lo mismo con la propia tecla Fn (`[10, 1, 0, 0]`). Regla del driver: en la capa Fn se bloquea
+todo valor de tipo 2, 8, 10, 13, 14, 18 o 19 que no sea una función multimedia básica.
+
+| Valor | Tecla (Fn +) | Función |
+|---|---|---|
+| `[10, 2, 0, 0]` | Esc | Restablecer el teclado |
+| `[10, 3, 0, 0]` | Win | Bloquear la tecla Windows (sin confirmar) |
+| `[10, 5, 2/1/0, 0]` | I / O / P | Distribución iOS / Mac / Windows |
+| `[10, 8, 0, 0]` | = | Indicador de batería |
+| `[10, 12, 0, 0]` | Del | Encender / apagar la luz |
+| `[13, 1, 0, 0]` | Ins | Cambiar el efecto de luz |
+| `[13, 2, 1/2, 0]` | ↑ / ↓ | Subir / bajar el brillo de la luz |
+| `[13, 3, 1/2, 0]` | ← / → | Bajar / subir la velocidad de la luz |
+| `[13, 5, 1, 0]` | Backspace | Cambiar el color de la luz (monocromo) |
+| `[13, 8, 0, 0]` | PgUp | Modo de la tira lateral / apagarla (sin confirmar) |
+| `[14, 0, 0/1/2, 0]` | Q / W / E | Bluetooth canal 1 / 2 / 3 (mantener: emparejar) |
+| `[14, 0, 5, 0]` | R | Canal 2.4 GHz (sin confirmar) |
+| `[19, 0, 0, 0]` | Ctrl, RCtrl | Pantalla: tu imagen o el estilo por defecto |
+| `[19, 2, 0, 0]` | PgDn | Pantalla: otra vista (sin confirmar) |
+
+Las demás teclas de la capa Fn (F1–F12, 4, ;) son acciones normales (multimedia y combinaciones)
+y sí se pueden cambiar.

@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>L75 Config · Teclado</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="l75.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<sc-if value="{{embedded}}" hint-placeholder-val="{{ true }}">
+<div class="l75" data-theme="{{theme}}" style="width: 100%;">
+<div class="{{kbCls}}" role="group" aria-label="Teclado L75">
+<sc-for list="{{keys}}" as="k" hint-placeholder-count="81">
+<button class="{{k.cls}}" type="button" title="{{k.tip}}" aria-label="{{k.tip}}" aria-pressed="{{k.sel}}" style="left: {{k.x}}%; top: {{k.y}}%; width: {{k.w}}%; height: {{k.h}}%; background: {{k.bg}}; border-color: {{k.bc}}; box-shadow: {{k.sh}}; animation-delay: {{k.delay}};" onClick="{{k.click}}" onMouseDown="{{k.down}}" onMouseEnter="{{k.enter}}">
+<span class="k-top" style="background: {{k.face}};">
+<sc-if value="{{k.hasIc}}" hint-placeholder-val="{{ false }}"><span class="kic"><dc-import name="Icon" i="{{k.ic}}" s="12" hint-size="12px,12px"></dc-import></span></sc-if>
+<sc-if value="{{k.hasL}}" hint-placeholder-val="{{ true }}"><span class="{{k.lcls}}" style="color: {{k.fg}};">{{k.l}}</span></sc-if>
+</span>
+<sc-if value="{{k.hasSub}}" hint-placeholder-val="{{ false }}"><span class="k-sub">{{k.sub}}</span></sc-if>
+</button>
+</sc-for>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{standalone}}" hint-placeholder-val="{{ false }}">
+<div class="l75" data-theme="{{theme}}" style="min-height: 100vh; background: var(--bg); color: var(--text-1); padding: 32px 40px; display: flex; gap: 32px; flex-wrap: wrap; align-items: flex-start;">
+<div style="flex: 1 1 640px; min-width: 0; display: flex; flex-direction: column; gap: 14px;">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+<div>
+<h1 class="t-title" style="margin: 0;">Lienzo del teclado</h1>
+<p class="hint" style="margin: 2px 0 0;">Disposición real del L75 (LAYOUT de l75_data.py). Prueba los modos.</p>
+</div>
+<div class="seg" role="radiogroup" aria-label="Modo del lienzo">
+<sc-for list="{{modes}}" as="m" hint-placeholder-count="3"><button class="{{m.cls}}" type="button" role="radio" aria-checked="{{m.on}}" onClick="{{m.pick}}">{{m.label}}</button></sc-for>
+</div>
+</div>
+<div class="deck" style="padding: 20px 22px 24px;">
+<div class="{{kbCls}}" role="group" aria-label="Teclado L75">
+<sc-for list="{{keys}}" as="k" hint-placeholder-count="81">
+<button class="{{k.cls}}" type="button" title="{{k.tip}}" aria-label="{{k.tip}}" aria-pressed="{{k.sel}}" style="left: {{k.x}}%; top: {{k.y}}%; width: {{k.w}}%; height: {{k.h}}%; background: {{k.bg}}; border-color: {{k.bc}}; box-shadow: {{k.sh}}; animation-delay: {{k.delay}};" onClick="{{k.click}}" onMouseDown="{{k.down}}" onMouseEnter="{{k.enter}}">
+<span class="k-top" style="background: {{k.face}};">
+<sc-if value="{{k.hasIc}}" hint-placeholder-val="{{ false }}"><span class="kic"><dc-import name="Icon" i="{{k.ic}}" s="12" hint-size="12px,12px"></dc-import></span></sc-if>
+<sc-if value="{{k.hasL}}" hint-placeholder-val="{{ true }}"><span class="{{k.lcls}}" style="color: {{k.fg}};">{{k.l}}</span></sc-if>
+</span>
+<sc-if value="{{k.hasSub}}" hint-placeholder-val="{{ false }}"><span class="k-sub">{{k.sub}}</span></sc-if>
+</button>
+</sc-for>
+</div>
+<div class="deck-glow"></div>
+</div>
+</div>
+<div class="card" style="flex: 0 1 380px; padding: 18px 20px; display: flex; flex-direction: column; gap: 10px;">
+<h2 class="t-sub" style="margin: 0;">Cómo dibujarlo con QPainter</h2>
+<p class="hint" style="margin: 0;">Medidas en unidades del driver; multiplica por la escala s = ancho disponible / 579.</p>
+<div class="kv"><span class="kv-l">Rect de la tecla</span><span class="kv-v">LAYOUT −3,5/−3 · +7/+6</span></div>
+<div class="kv"><span class="kv-l">Tecla 1 u</span><span class="kv-v">32 × 32 u</span></div>
+<div class="kv"><span class="kv-l">Falda · radio</span><span class="kv-v">4,6 u · key-skirt</span></div>
+<div class="kv"><span class="kv-l">Cara · inset</span><span class="kv-v">3 · 1,6 · 3 · 5 u</span></div>
+<div class="kv"><span class="kv-l">Cara · radio</span><span class="kv-v">3,4 u · key-top-1→2</span></div>
+<div class="kv"><span class="kv-l">Leyenda</span><span class="kv-v">Inter 500 · 8,4 / 7 / 6,2 u</span></div>
+<div class="kv"><span class="kv-l">Nombre original</span><span class="kv-v">5,6 u · arriba izq.</span></div>
+<div class="kv"><span class="kv-l">Seleccionada</span><span class="kv-v">2 px acento + 4 px suave</span></div>
+<div class="kv"><span class="kv-l">Pintada</span><span class="kv-v">cara = color · halo 9 u</span></div>
+<p class="hint" style="margin: 4px 0 0;">Cursor: flecha al reasignar, cruz al pintar. Los colores salen de los tokens key-*; en modo pintura la cara usa el color real y la leyenda pasa a blanco o negro según su luminancia.</p>
+</div>
+</div>
+</sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"mode":{"editor":null},"theme":{"editor":"enum","options":["dark","light"],"default":"dark"},"labels":{"editor":null},"colors":{"editor":null},"selected":{"editor":null},"dimrest":{"editor":null},"pick":{"editor":null},"disabled":{"editor":null},"onKey":{"editor":null},"onPaint":{"editor":null},"$preview":{"width":1280,"height":560}}'>
+const LAYOUT = [
+  ['Esc', 0, 0, 25], ['F1', 60, 0, 25], ['F2', 96, 0, 25], ['F3', 131, 0, 25], ['F4', 166, 0, 25],
+  ['F5', 213, 0, 25], ['F6', 249, 0, 25], ['F7', 284, 0, 25], ['F8', 319, 0, 25],
+  ['F9', 366, 0, 25], ['F10', 402, 0, 25], ['F11', 437, 0, 25], ['F12', 472, 0, 25],
+  ['`', 0, 44, 25], ['1', 35, 44, 25], ['2', 71, 44, 25], ['3', 106, 44, 25], ['4', 142, 44, 25], ['5', 177, 44, 25], ['6', 213, 44, 25], ['7', 248, 44, 25], ['8', 284, 44, 25], ['9', 319, 44, 25], ['0', 355, 44, 25], ['-', 390, 44, 25], ['=', 426, 44, 25], ['Backspace', 462, 44, 59], ['Ins', 547, 44, 25],
+  ['Tab', 0, 79, 42], ['Q', 53, 79, 25], ['W', 89, 79, 25], ['E', 124, 79, 25], ['R', 160, 79, 25], ['T', 195, 79, 25], ['Y', 231, 79, 25], ['U', 266, 79, 25], ['I', 302, 79, 25], ['O', 337, 79, 25], ['P', 373, 79, 25], ['[', 408, 79, 25], [']', 444, 79, 25], ['\\', 479, 79, 42], ['Del', 547, 79, 25],
+  ['CapsLock', 0, 114, 51], ['A', 61, 114, 25], ['S', 97, 114, 25], ['D', 132, 114, 25], ['F', 168, 114, 25], ['G', 203, 114, 25], ['H', 239, 114, 25], ['J', 274, 114, 25], ['K', 310, 114, 25], ['L', 345, 114, 25], [';', 381, 114, 25], ["'", 416, 114, 25], ['Enter', 452, 114, 69], ['PgUp', 547, 114, 25],
+  ['Shift', 0, 150, 69], ['Z', 79, 150, 25], ['X', 115, 150, 25], ['C', 150, 150, 25], ['V', 186, 150, 25], ['B', 221, 150, 25], ['N', 257, 150, 25], ['M', 292, 150, 25], [',', 328, 150, 25], ['.', 363, 150, 25], ['/', 399, 150, 25], ['RShift', 434, 150, 51], ['PgDn', 547, 150, 25],
+  ['Ctrl', 0, 186, 33], ['Win', 44, 186, 33], ['Alt', 89, 186, 33], ['Space', 135, 186, 207], ['RAlt', 355, 186, 25], ['Fn', 390, 186, 25], ['RCtrl', 426, 186, 25],
+  ['↑', 504, 158, 25], ['←', 469, 193, 25], ['↓', 504, 193, 25], ['→', 540, 193, 25]
+];
+const SAMPLE = {
+  CapsLock: { cls: 'remap', l: 'Esc', sub: 'CapsLock', tip: 'CapsLock → Esc' },
+  F1: { cls: 'remap', l: 'Ctrl+⇧\nT', sub: 'F1', tip: 'F1 → Ctrl + Shift + T' },
+  RAlt: { cls: 'remap', ic: 'play', sub: 'RAlt', tip: 'RAlt → Reproducir/Pausa' },
+  F12: { cls: 'remap', l: 'M0', sub: 'F12', tip: 'F12 → Macro 0' },
+  Ins: { cls: 'off', ic: 'desactivada', sub: 'Ins', tip: 'Ins → Desactivada' },
+  Fn: { cls: 'locked', l: 'Fn', tip: 'Fn activa la capa Fn y no se puede reasignar' }
+};
+function rgbOf(h) { const n = parseInt(h.slice(1), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; }
+function hexOf(r, g, b) { return '#' + [r, g, b].map((v) => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0')).join('').toUpperCase(); }
+function mix(c, t, a) { const p = rgbOf(c); const q = rgbOf(t); return hexOf(p[0] + (q[0] - p[0]) * a, p[1] + (q[1] - p[1]) * a, p[2] + (q[2] - p[2]) * a); }
+function lum(c) { const p = rgbOf(c).map((v) => { const x = v / 255; return x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4); }); return 0.2126 * p[0] + 0.7152 * p[1] + 0.0722 * p[2]; }
+function hsl(h, s, l) { const a = s * Math.min(l, 1 - l); const f = (n) => { const k = (n + h / 30) % 12; return l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1)); }; return hexOf(f(0) * 255, f(8) * 255, f(4) * 255); }
+function sampleColors() {
+  const c = {};
+  LAYOUT.forEach((k) => { c[k[0]] = hsl(320 - (k[1] + k[3] / 2) / 572 * 130, 1, 0.56); });
+  ['W', 'A', 'S', 'D', '↑', '←', '↓', '→'].forEach((n) => { c[n] = '#FFB020'; });
+  c.Esc = '#FF3B3B';
+  return c;
+}
+function legendClass(text, w) {
+  const lines = String(text).split('\n');
+  const len = Math.max.apply(null, lines.map((x) => x.length));
+  const avail = (w + 1) * 0.86;
+  if (len * 0.6 * 8.4 <= avail) return 'k-l';
+  if (len * 0.6 * 7 <= avail) return 'k-l long';
+  return 'k-l xs';
+}
+const r3 = (v) => Math.round(v * 1000) / 1000;
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { mode: 'remap', sel: 'CapsLock', colors: sampleColors() }; }
+  renderVals() {
+    const p = this.props;
+    const standalone = !p.mode;
+    const mode = standalone ? this.state.mode : p.mode;
+    const labels = standalone ? (mode === 'remap' ? SAMPLE : {}) : (p.labels || {});
+    const colors = standalone ? this.state.colors : (p.colors || {});
+    const selected = standalone ? (mode === 'remap' ? this.state.sel : null) : p.selected;
+    const dimrest = !!p.dimrest;
+    const paint = mode === 'paint';
+    const outline = mode === 'outline' || mode === 'scan';
+    const keys = LAYOUT.map((k, i) => {
+      const name = k[0]; const w = k[3];
+      const lab = labels[name];
+      const isSel = name === selected;
+      let cls = 'k'; let l = name; let ic = ''; let sub = ''; let tip = name;
+      let bg = ''; let bc = ''; let sh = ''; let face = ''; let fg = '';
+      if (paint) {
+        const c = colors[name];
+        if (!c || c === '#000000') { cls += ' dim'; tip = name + ' · apagada'; }
+        else {
+          face = 'linear-gradient(180deg, ' + mix(c, '#FFFFFF', 0.16) + ', ' + c + ')';
+          bg = mix(c, '#000000', 0.45); bc = mix(c, '#000000', 0.62);
+          const rgb = rgbOf(c);
+          sh = '0 0 calc(var(--u) * 9) rgba(' + rgb.join(', ') + ', 0.38)';
+          fg = lum(c) > 0.35 ? '#0B0D10' : '#FFFFFF';
+          tip = name + ' · ' + c;
+        }
+      } else if (lab) {
+        cls += ' ' + lab.cls;
+        l = lab.l || ''; ic = lab.ic || ''; sub = lab.sub || ''; tip = lab.tip || name;
+      } else if (dimrest) { cls += ' dim'; tip = name + ' · sin función con Fn'; }
+      if (isSel) cls += ' sel';
+      if (sub) cls += ' has-sub';
+      const click = () => {
+        if (standalone) { if (mode === 'remap' && name !== 'Fn') this.setState({ sel: name }); if (paint) this.setState({ colors: Object.assign({}, this.state.colors, { [name]: '#2BD2F0' }) }); return; }
+        if (paint && p.onPaint) p.onPaint(name);
+        else if (!paint && p.onKey) p.onKey(name);
+      };
+      return {
+        name, cls, l, lcls: legendClass(l || 'M', w), hasL: !!l && !ic, ic, hasIc: !!ic, sub, hasSub: !!sub, tip, sel: isSel,
+        x: r3(k[1] / 579 * 100), y: r3(k[2] / 225 * 100), w: r3((w + 7) / 579 * 100), h: r3(32 / 225 * 100),
+        bg, bc, sh, face, fg, delay: outline ? r3((k[1] / 572) * 1.2) + 's' : '0s',
+        click,
+        down: () => { if (paint && !standalone && p.onPaint) p.onPaint(name); },
+        enter: (e) => { if (paint && e.buttons === 1) { if (standalone) this.setState({ colors: Object.assign({}, this.state.colors, { [name]: '#2BD2F0' }) }); else if (p.onPaint) p.onPaint(name); } }
+      };
+    });
+    const kbCls = 'kb' + (paint ? ' paint' : '') + (p.pick ? ' pick' : '') + (outline ? ' outline' : '') + (mode === 'scan' ? ' scan' : '') + (p.disabled ? ' is-disabled' : '');
+    const modes = [['remap', 'Reasignar'], ['paint', 'Pintar'], ['scan', 'Sin teclado']].map((m) => ({
+      label: m[1], on: mode === m[0], cls: 'seg-i' + (mode === m[0] ? ' on' : ''), pick: () => this.setState({ mode: m[0] })
+    }));
+    return { theme: p.theme === 'light' ? 'light' : 'dark', embedded: !standalone, standalone, keys, kbCls, modes };
+  }
+}
+</script>
+</body>
+</html>

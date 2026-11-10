@@ -1,0 +1,11 @@
+{
+  "subir": "guardar",
+  "tecla": "teclas",
+  "macro": "macros",
+  "defecto": "restaurar",
+  "horario": "reintentar",
+  "antihorario": "restaurar",
+  "temporizador": "esperar",
+  "sol": "brillo",
+  "check": "aplicar"
+}

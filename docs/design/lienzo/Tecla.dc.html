@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>L75 Config · Tecla</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="l75.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<sc-if value="{{single}}" hint-placeholder-val="{{ true }}">
+<div class="{{one.wrap}}" data-theme="{{theme}}" style="display: inline-flex; opacity: {{one.op}};">
+<div style="position: relative; width: {{one.pw}}px; height: {{one.ph}}px;">
+<span class="{{one.cls}}" style="display: block; left: 0; top: 0; width: 100%; height: 100%; cursor: default; background: {{one.bg}}; border-color: {{one.bc}}; box-shadow: {{one.sh}};">
+<span class="k-top" style="background: {{one.face}};">
+<sc-if value="{{one.hasIc}}" hint-placeholder-val="{{ false }}"><span class="kic"><dc-import name="Icon" i="{{one.icon}}" s="16" hint-size="16px,16px"></dc-import></span></sc-if>
+<sc-if value="{{one.hasL}}" hint-placeholder-val="{{ true }}"><span class="{{one.lcls}}" style="color: {{one.fg}};">{{one.label}}</span></sc-if>
+</span>
+<sc-if value="{{one.hasSub}}" hint-placeholder-val="{{ false }}"><span class="k-sub">{{one.sub}}</span></sc-if>
+</span>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{sheet}}" hint-placeholder-val="{{ false }}">
+<div class="l75" data-theme="{{theme}}" style="min-height: 100vh; background: var(--bg); color: var(--text-1); padding: 32px 40px; display: flex; flex-direction: column; gap: 22px;">
+<div>
+<h1 class="t-title" style="margin: 0;">Tecla del teclado</h1>
+<p class="hint" style="margin: 2px 0 0;">Mismo dibujo en todas las pantallas. Los estados se combinan: una tecla reasignada también puede estar seleccionada.</p>
+</div>
+<div style="display: flex; gap: 14px; flex-wrap: wrap; align-items: flex-end;">
+<sc-for list="{{states}}" as="st" hint-placeholder-count="10">
+<div style="display: flex; flex-direction: column; align-items: center; gap: 10px; width: 104px;">
+<div style="height: 96px; width: 100%; display: flex; align-items: center; justify-content: center; border-radius: 10px; background: var(--deck); border: 1px solid var(--deck-edge);">
+<div class="{{st.wrap}}" style="display: inline-flex; opacity: {{st.op}};">
+<div style="position: relative; width: {{st.pw}}px; height: {{st.ph}}px;">
+<span class="{{st.cls}}" style="display: block; left: 0; top: 0; width: 100%; height: 100%; cursor: default; background: {{st.bg}}; border-color: {{st.bc}}; box-shadow: {{st.sh}};">
+<span class="k-top" style="background: {{st.face}};">
+<sc-if value="{{st.hasIc}}" hint-placeholder-val="{{ false }}"><span class="kic"><dc-import name="Icon" i="{{st.icon}}" s="16" hint-size="16px,16px"></dc-import></span></sc-if>
+<sc-if value="{{st.hasL}}" hint-placeholder-val="{{ true }}"><span class="{{st.lcls}}" style="color: {{st.fg}};">{{st.label}}</span></sc-if>
+</span>
+<sc-if value="{{st.hasSub}}" hint-placeholder-val="{{ false }}"><span class="k-sub">{{st.sub}}</span></sc-if>
+</span>
+</div>
+</div>
+</div>
+<div style="text-align: center;">
+<div style="font-size: 12px; line-height: 16px; font-weight: 500; color: var(--text-1);">{{st.title}}</div>
+<div class="mono" style="font-size: 10.5px; line-height: 14px; color: var(--text-3);">{{st.code}}</div>
+</div>
+</div>
+</sc-for>
+</div>
+<div style="display: flex; gap: 28px; flex-wrap: wrap; align-items: flex-start;">
+<div style="position: relative; width: 330px; height: 236px; flex: none; border-radius: 12px; background: var(--deck); border: 1px solid var(--deck-edge);" aria-label="Medidas de una tecla de 1 u">
+<div style="position: absolute; left: 70px; top: 44px; width: 160px; height: 160px; border-radius: 23px; background: var(--key-skirt); border: 1px solid var(--key-edge);">
+<div style="position: absolute; left: 15px; right: 15px; top: 8px; bottom: 25px; border-radius: 17px; background: linear-gradient(180deg, var(--key-top-1), var(--key-top-2)); display: flex; align-items: center; justify-content: center; font-size: 42px; font-weight: 500; color: var(--key-legend);">A</div>
+</div>
+<div style="position: absolute; left: 70px; top: 22px; width: 160px; height: 1px; background: var(--accent-line);"></div>
+<span class="mono" style="position: absolute; left: 70px; top: 6px; width: 160px; text-align: center; font-size: 11px; color: var(--accent);">32 u</span>
+<div style="position: absolute; left: 244px; top: 44px; width: 1px; height: 8px; background: var(--accent-line);"></div>
+<span class="mono" style="position: absolute; left: 252px; top: 40px; font-size: 11px; color: var(--accent);">1,6 u</span>
+<div style="position: absolute; left: 244px; top: 179px; width: 1px; height: 25px; background: var(--accent-line);"></div>
+<span class="mono" style="position: absolute; left: 252px; top: 184px; font-size: 11px; color: var(--accent);">5 u</span>
+<div style="position: absolute; left: 70px; top: 216px; width: 15px; height: 1px; background: var(--accent-line);"></div>
+<span class="mono" style="position: absolute; left: 90px; top: 208px; font-size: 11px; color: var(--accent);">3 u</span>
+<span class="mono" style="position: absolute; left: 8px; top: 112px; width: 58px; text-align: right; font-size: 11px; color: var(--accent);">8,4 u</span>
+<div style="position: absolute; left: 70px; top: 120px; width: 36px; height: 1px; background: var(--accent-line);"></div>
+</div>
+<div style="flex: 1 1 380px; min-width: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); gap: 0 28px;">
+<div class="kv"><span class="kv-l">Falda (radio)</span><span class="kv-v">4,6 u · key-skirt / key-edge</span></div>
+<div class="kv"><span class="kv-l">Cara (radio)</span><span class="kv-v">3,4 u · key-top-1 → key-top-2</span></div>
+<div class="kv"><span class="kv-l">Hover</span><span class="kv-v">borde key-hover-edge</span></div>
+<div class="kv"><span class="kv-l">Seleccionada</span><span class="kv-v">anillo 2 px + halo 4 px</span></div>
+<div class="kv"><span class="kv-l">Reasignada</span><span class="kv-v">cara key-remap · leyenda acento</span></div>
+<div class="kv"><span class="kv-l">Desactivada</span><span class="kv-v">trama 135° (Qt::BDiagPattern)</span></div>
+<div class="kv"><span class="kv-l">Pintada</span><span class="kv-v">cara = color · falda −45 %</span></div>
+<div class="kv"><span class="kv-l">Sin teclado</span><span class="kv-v">lienzo al 40 % de opacidad</span></div>
+</div>
+</div>
+</div>
+</sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark"},"kind":{"editor":"enum","options":["normal","hover","sel","remap","off","paint","locked","held","dim","disabled"],"default":"normal"},"label":{"editor":"text","default":"A"},"sub":{"editor":"text","default":""},"icon":{"editor":"text","default":""},"w":{"editor":"int","default":25},"s":{"editor":"float","default":2.4},"color":{"editor":"color","default":"#FFB020"},"$preview":{"width":1280,"height":480}}'>
+function rgbOf(h) { const n = parseInt(h.slice(1), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; }
+function hexOf(r, g, b) { return '#' + [r, g, b].map((v) => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0')).join('').toUpperCase(); }
+function mix(c, t, a) { const p = rgbOf(c); const q = rgbOf(t); return hexOf(p[0] + (q[0] - p[0]) * a, p[1] + (q[1] - p[1]) * a, p[2] + (q[2] - p[2]) * a); }
+function lum(c) { const p = rgbOf(c).map((v) => { const x = v / 255; return x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4); }); return 0.2126 * p[0] + 0.7152 * p[1] + 0.0722 * p[2]; }
+function legendClass(text, w) {
+  const len = Math.max.apply(null, String(text).split('\n').map((x) => x.length));
+  const avail = (w + 1) * 0.86;
+  if (len * 0.6 * 8.4 <= avail) return 'k-l';
+  if (len * 0.6 * 7 <= avail) return 'k-l long';
+  return 'k-l xs';
+}
+function uClass(s) { return s >= 2.8 ? 'u28' : s >= 2.4 ? 'u24' : s >= 2 ? 'u20' : s >= 1.6 ? 'u16' : s >= 1.2 ? 'u12' : 'u09'; }
+function uVal(s) { return s >= 2.8 ? 2.8 : s >= 2.4 ? 2.4 : s >= 2 ? 2 : s >= 1.6 ? 1.6 : s >= 1.2 ? 1.2 : 0.9; }
+function keyView(o) {
+  const w = Number(o.w || 25);
+  const s = uVal(Number(o.s || 2.4));
+  const kind = o.kind || 'normal';
+  const label = o.label == null ? 'A' : String(o.label);
+  const icon = o.icon || '';
+  let cls = 'k';
+  if (kind === 'hover') cls += ' is-hover';
+  if (['sel', 'remap', 'off', 'locked', 'held', 'dim'].indexOf(kind) >= 0) cls += ' ' + kind;
+  const sub = (kind === 'remap' || kind === 'off' || kind === 'remapsel') ? (o.sub || '') : '';
+  if (kind === 'remapsel') cls += ' remap sel';
+  if (sub) cls += ' has-sub';
+  let bg = ''; let bc = ''; let sh = ''; let face = ''; let fg = '';
+  if (kind === 'paint') {
+    const c = o.color || '#FFB020';
+    face = 'linear-gradient(180deg, ' + mix(c, '#FFFFFF', 0.16) + ', ' + c + ')';
+    bg = mix(c, '#000000', 0.45); bc = mix(c, '#000000', 0.62);
+    sh = '0 0 calc(var(--u) * 9) rgba(' + rgbOf(c).join(', ') + ', 0.38)';
+    fg = lum(c) > 0.35 ? '#0B0D10' : '#FFFFFF';
+  }
+  return {
+    wrap: 'l75 ' + uClass(s), op: kind === 'disabled' ? 0.4 : 1,
+    pw: Math.round((w + 7) * s), ph: Math.round(32 * s), cls, label, icon, hasIc: !!icon, hasL: !icon && label !== '',
+    lcls: legendClass(label || 'M', w), sub, hasSub: !!sub, bg, bc, sh, face, fg
+  };
+}
+const STATES = [
+  { title: 'Normal', code: 'normal', label: 'A' },
+  { title: 'Hover', code: ':hover', label: 'A', kind: 'hover' },
+  { title: 'Seleccionada', code: 'sel', label: 'A', kind: 'sel' },
+  { title: 'Reasignada', code: 'remap', label: 'Esc', sub: 'Caps', kind: 'remap' },
+  { title: 'Reasignada + sel.', code: 'remap sel', label: 'M0', sub: 'F12', kind: 'remapsel' },
+  { title: 'Desactivada', code: 'off', label: '', icon: 'desactivada', sub: 'Ins', kind: 'off' },
+  { title: 'Pintada', code: 'paint', label: 'W', kind: 'paint', color: '#FFB020' },
+  { title: 'Bloqueada', code: 'locked', label: 'Fn', kind: 'locked' },
+  { title: 'Fn mantenida', code: 'held', label: 'Fn', kind: 'held' },
+  { title: 'Sin función', code: 'dim', label: 'Q', kind: 'dim' },
+  { title: 'Sin teclado', code: 'disabled', label: 'A', kind: 'disabled' }
+];
+class Component extends DCLogic {
+  renderVals() {
+    const p = this.props;
+    const theme = p.theme === 'light' ? 'light' : 'dark';
+    const single = p.kind !== undefined || p.label !== undefined;
+    if (single) return { theme, single: true, sheet: false, one: keyView(p), states: [] };
+    const states = STATES.map((st) => Object.assign({ title: st.title, code: st.code }, keyView(Object.assign({ w: 25, s: 2.4 }, st))));
+    return { theme, single: false, sheet: true, one: keyView({}), states };
+  }
+}
+</script>
+</body>
+</html>

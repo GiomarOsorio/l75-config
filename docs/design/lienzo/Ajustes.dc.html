@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>L75 Config · Ajustes</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="l75.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div class="l75" data-theme="{{theme}}" style="position: relative; min-height: 100vh; display: flex; flex-wrap: wrap; background: var(--bg); color: var(--text-1);">
+<dc-import name="Sidebar" active="ajustes" theme="{{theme}}" hint-size="232px,800px"></dc-import>
+<main style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column;">
+<dc-import name="Topbar" theme="{{theme}}" conn="{{conn}}" act="{{act}}" profile="{{profile}}" loading="{{profLoading}}" on-profile="{{setProfile}}" hint-size="100%,56px"></dc-import>
+<div style="flex: 1; display: flex; flex-direction: column; gap: 16px; padding: 20px 28px 24px; min-width: 0;">
+<div class="ph">
+<div>
+<h1 class="ph-t">Ajustes</h1>
+<p class="ph-s">Rendimiento, reposo y opciones del teclado para el perfil {{profile}}.</p>
+</div>
+<div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+<sc-if value="{{dirty}}" hint-placeholder-val="{{ false }}"><span class="pill warn">{{dirtyText}}</span></sc-if>
+<button class="btn btn-secondary" type="button" onClick="{{read}}"><dc-import name="Icon" i="leer" s="16" hint-size="16px,16px"></dc-import>Leer</button>
+<span title="{{applyTip}}"><button class="btn btn-primary" type="button" disabled="{{applyOff}}" onClick="{{apply}}"><dc-import name="Icon" i="aplicar" s="16" hint-size="16px,16px"></dc-import>Aplicar cambios</button></span>
+</div>
+</div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(380px, 100%), 1fr)); gap: 16px;">
+<section class="card" style="padding: 16px 18px; display: flex; flex-direction: column; gap: 14px;" aria-labelledby="h-rend">
+<div class="card-h"><span style="display: inline-flex; color: var(--text-2);"><dc-import name="Icon" i="sondeo" s="18" hint-size="18px,18px"></dc-import></span><h2 id="h-rend" class="t-sub" style="margin: 0;">Rendimiento</h2></div>
+<div style="display: flex; flex-direction: column; gap: 8px;">
+<span class="lbl">Tasa de sondeo</span>
+<div class="seg block" role="radiogroup" aria-label="Tasa de sondeo">
+<sc-for list="{{rates}}" as="r" hint-placeholder-count="4"><button class="{{r.cls}}" type="button" role="radio" aria-checked="{{r.on}}" onClick="{{r.pick}}"><span class="mono">{{r.label}}</span></button></sc-for>
+</div>
+<span class="hint">Más alto, menos latencia. 1000 Hz es lo habitual para jugar.</span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px;">
+<span class="lbl">Debounce</span>
+<div style="display: flex; align-items: center; gap: 12px;">
+<div class="sl" style="flex: 1;">
+<div class="sl-track"><div class="sl-fill" style="width: {{debPct}}%;"></div></div>
+<span class="sl-knob" style="left: {{debPct}}%;"></span>
+<input class="sl-in" type="range" min="0" max="50" step="1" value="{{deb}}" aria-label="Debounce" onChange="{{setDeb}}">
+</div>
+<span class="num sm"><input type="number" min="0" max="50" value="{{deb}}" aria-label="Debounce en milisegundos" onChange="{{setDeb}}"><span class="u">ms</span></span>
+</div>
+<span class="hint">Súbelo solo si alguna tecla escribe dos veces.</span>
+</div>
+</section>
+<section class="card" style="padding: 16px 18px; display: flex; flex-direction: column; gap: 14px;" aria-labelledby="h-rep">
+<div class="card-h"><span style="display: inline-flex; color: var(--text-2);"><dc-import name="Icon" i="luna" s="18" hint-size="18px,18px"></dc-import></span><h2 id="h-rep" class="t-sub" style="margin: 0;">Reposo <span class="hint">(modo inalámbrico)</span></h2></div>
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+<div><div class="lbl">Reposo tras</div><div class="hint">0 = nunca</div></div>
+<span class="num">
+<button type="button" aria-label="Menos" disabled="{{sleepMin}}" onClick="{{sleepDec}}"><dc-import name="Icon" i="menos" s="14" hint-size="14px,14px"></dc-import></button>
+<input type="number" min="0" max="60" value="{{sleep}}" aria-label="Minutos hasta reposo" onChange="{{setSleep}}">
+<span class="u">min</span>
+<button type="button" aria-label="Más" disabled="{{sleepMax}}" onClick="{{sleepInc}}"><dc-import name="Icon" i="mas" s="14" hint-size="14px,14px"></dc-import></button>
+</span>
+</div>
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px;" title="{{deepTip}}">
+<div><div class="lbl">Reposo profundo tras</div><div class="{{deepHintCls}}">{{deepHint}}</div></div>
+<span class="{{deepCls}}">
+<button type="button" aria-label="Menos" disabled="{{deepMin}}" onClick="{{deepDec}}"><dc-import name="Icon" i="menos" s="14" hint-size="14px,14px"></dc-import></button>
+<input type="number" min="10" max="60" value="{{deep}}" aria-label="Minutos hasta reposo profundo" disabled="{{deepDis}}" onChange="{{setDeep}}">
+<span class="u">min</span>
+<button type="button" aria-label="Más" disabled="{{deepMax}}" onClick="{{deepInc}}"><dc-import name="Icon" i="mas" s="14" hint-size="14px,14px"></dc-import></button>
+</span>
+</div>
+<span class="hint">Solo cuenta por Bluetooth o 2.4 GHz.</span>
+</section>
+<section class="card" style="padding: 16px 18px; display: flex; flex-direction: column; gap: 4px;" aria-labelledby="h-opt">
+<div class="card-h" style="margin-bottom: 6px;"><span style="display: inline-flex; color: var(--text-2);"><dc-import name="Icon" i="ajustes" s="18" hint-size="18px,18px"></dc-import></span><h2 id="h-opt" class="t-sub" style="margin: 0;">Opciones</h2></div>
+<sc-for list="{{options}}" as="o" hint-placeholder-count="3">
+<div style="display: flex; align-items: center; gap: 12px; min-height: 56px; border-bottom: 1px solid var(--border);">
+<span style="display: inline-flex; width: 32px; height: 32px; border-radius: 8px; align-items: center; justify-content: center; background: var(--surface-2); color: var(--text-2); flex: none;"><dc-import name="Icon" i="{{o.icon}}" s="16" hint-size="16px,16px"></dc-import></span>
+<div style="flex: 1; min-width: 0;"><div class="lbl">{{o.title}}</div><div class="hint">{{o.desc}}</div></div>
+<button class="{{o.cls}}" type="button" role="switch" aria-checked="{{o.on}}" aria-label="{{o.title}}" onClick="{{o.toggle}}"><span class="kn"></span></button>
+</div>
+</sc-for>
+</section>
+<section class="card" style="padding: 16px 18px; display: flex; flex-direction: column;" aria-labelledby="h-info">
+<div class="card-h" style="margin-bottom: 6px;"><span style="display: inline-flex; color: var(--text-2);"><dc-import name="Icon" i="chip" s="18" hint-size="18px,18px"></dc-import></span><h2 id="h-info" class="t-sub" style="margin: 0;">Información</h2></div>
+<sc-for list="{{info}}" as="i" hint-placeholder-count="6"><div class="kv"><span class="kv-l">{{i.l}}</span><span class="kv-v">{{i.v}}</span></div></sc-for>
+</section>
+</div>
+<section class="card" style="padding: 14px 18px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; border-color: var(--error-line);" aria-labelledby="h-danger">
+<span style="display: inline-flex; width: 36px; height: 36px; border-radius: 10px; align-items: center; justify-content: center; background: var(--error-soft); color: var(--error); flex: none;"><dc-import name="Icon" i="aviso" s="18" hint-size="18px,18px"></dc-import></span>
+<div style="flex: 1; min-width: 240px;">
+<h2 id="h-danger" class="t-sub" style="margin: 0; color: var(--error);">Zona peligrosa</h2>
+<p class="hint" style="margin: 2px 0 0;"><strong style="color: var(--text-1); font-weight: 600;">Restaurar de fábrica</strong> devuelve el teclado a su estado original: teclas, macros, luces y ajustes de los 3 perfiles.</p>
+</div>
+<button class="btn btn-danger" type="button" onClick="{{askFactory}}"><dc-import name="Icon" i="restaurar" s="16" hint-size="16px,16px"></dc-import>Restaurar de fábrica…</button>
+</section>
+</div>
+</main>
+<sc-if value="{{dlgOn}}" hint-placeholder-val="{{ false }}">
+<div class="scrim">
+<div class="dlg" role="alertdialog" aria-modal="true" aria-labelledby="dlg-f-t" aria-describedby="dlg-f-d">
+<div style="display: flex; gap: 12px; align-items: flex-start;">
+<div class="dlg-ic"><dc-import name="Icon" i="aviso" s="18" hint-size="18px,18px"></dc-import></div>
+<div style="display: flex; flex-direction: column; gap: 4px;">
+<h2 id="dlg-f-t" class="t-title" style="margin: 6px 0 0;">¿Restaurar de fábrica?</h2>
+<p id="dlg-f-d" class="t-body" style="margin: 0; color: var(--text-2);">Se borrarán las reasignaciones, las macros, las luces y los ajustes de los 3 perfiles. <strong style="color: var(--text-1);">No se puede deshacer.</strong></p>
+</div>
+</div>
+<label style="display: flex; flex-direction: column; gap: 6px;">
+<span class="lbl">Escribe <span class="mono" style="color: var(--error);">RESTAURAR</span> para confirmar</span>
+<input class="field mono" type="text" autocomplete="off" spellcheck="false" value="{{confirm}}" onChange="{{setConfirm}}" style="letter-spacing: 0.08em;">
+</label>
+<div class="dlg-f">
+<button class="btn btn-secondary" type="button" onClick="{{closeDlg}}">Cancelar</button>
+<button class="btn btn-danger-solid" type="button" disabled="{{confirmOff}}" onClick="{{factory}}">Restaurar de fábrica</button>
+</div>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{toastOn}}" hint-placeholder-val="{{ false }}">
+<div class="toasts" aria-live="polite">
+<div class="{{toastCls}}" role="status">
+<span class="ti"><dc-import name="Icon" i="{{toastIcon}}" s="18" hint-size="18px,18px"></dc-import></span>
+<span class="tx">{{toastText}}</span>
+<button class="btn btn-ghost btn-sm btn-icon" type="button" aria-label="Cerrar aviso" onClick="{{closeToast}}"><dc-import name="Icon" i="cerrar" s="14" hint-size="14px,14px"></dc-import></button>
+</div>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark","section":"Prototipo"},"conn":{"editor":"enum","options":["cable","bt","demo"],"default":"cable","section":"Prototipo"},"demo":{"editor":null},"$preview":{"width":1280,"height":800}}'>
+const INIT = { rate: 1000, deb: 1, sleep: 2, deep: 28, win: false, mac: false, wasd: false };
+const OPTS = [
+  ['win', 'candado', 'Bloquear tecla Windows', 'Evita abrir el menú Inicio en mitad de una partida.'],
+  ['mac', 'comando', 'Modo Mac', 'Distribución de modificadores para macOS (⌥ y ⌘).'],
+  ['wasd', 'intercambiar', 'Intercambiar WASD y flechas', 'WASD funcionan como flechas y las flechas como WASD.']
+];
+const CONN = { cable: 'Cable USB-C · 3151:4015', bt: 'Bluetooth · L75 BT5.0', demo: 'Simulada (modo demo)' };
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    const f = props.demo === 'fabrica';
+    this.state = { v: Object.assign({}, INIT), saved: Object.assign({}, INIT), dlg: f, confirm: f ? 'REST' : '', act: { k: 'idle' }, toast: null, profile: 1, profLoading: 0 };
+    this.timers = [];
+  }
+  componentWillUnmount() { this.timers.forEach((t) => clearTimeout(t)); }
+  set(key, val) { this.setState({ v: Object.assign({}, this.state.v, { [key]: val }) }); }
+  toast(kind, text) {
+    clearTimeout(this.toastT);
+    this.setState({ toast: { kind, text } });
+    this.toastT = setTimeout(() => this.setState({ toast: null }), 3600);
+    this.timers.push(this.toastT);
+  }
+  busy(text, ms, done) {
+    this.setState({ act: { k: 'busy', text, p: null } });
+    this.timers.push(setTimeout(() => { this.setState({ act: { k: 'idle' } }); if (done) done(); }, ms));
+  }
+  renderVals() {
+    const s = this.state; const v = s.v;
+    const theme = this.props.theme ?? 'dark';
+    const conn = this.props.conn ?? 'cable';
+    const changed = Object.keys(INIT).filter((k) => v[k] !== s.saved[k]).length;
+    const deepBad = v.sleep > 0 && v.deep <= v.sleep;
+    const deepDis = v.sleep === 0;
+    const t = s.toast;
+    return {
+      theme, conn, act: s.act, profile: s.profile, profLoading: s.profLoading,
+      setProfile: (n) => {
+        if (n === s.profile || s.profLoading) return;
+        this.setState({ profLoading: n });
+        this.busy('Cargando perfil ' + n + '…', 900, () => { this.setState({ profile: n, profLoading: 0 }); this.toast('info', 'Perfil ' + n + ' cargado'); });
+      },
+      dirty: changed > 0, dirtyText: changed === 1 ? '1 cambio sin aplicar' : changed + ' cambios sin aplicar',
+      applyOff: changed === 0 || deepBad, applyTip: deepBad ? 'Corrige el reposo profundo' : changed ? 'Enviar al teclado' : 'No hay cambios',
+      apply: () => this.busy('Aplicando ajustes…', 800, () => { this.setState({ saved: Object.assign({}, this.state.v) }); this.toast('ok', 'Ajustes aplicados en el perfil ' + s.profile); }),
+      read: () => this.busy('Leyendo ajustes…', 600, () => { this.setState({ v: Object.assign({}, this.state.saved) }); this.toast('ok', 'Ajustes leídos del teclado'); }),
+      rates: [125, 250, 500, 1000].map((r) => ({ label: r + ' Hz', on: v.rate === r, cls: 'seg-i' + (v.rate === r ? ' on' : ''), pick: () => this.set('rate', r) })),
+      deb: v.deb, debPct: v.deb * 2, setDeb: (e) => this.set('deb', clamp(Math.round(Number(e.target.value) || 0), 0, 50)),
+      sleep: v.sleep, sleepMin: v.sleep <= 0, sleepMax: v.sleep >= 60,
+      sleepDec: () => this.set('sleep', clamp(v.sleep - 1, 0, 60)), sleepInc: () => this.set('sleep', clamp(v.sleep + 1, 0, 60)),
+      setSleep: (e) => this.set('sleep', clamp(Math.round(Number(e.target.value) || 0), 0, 60)),
+      deep: v.deep, deepMin: deepDis || v.deep <= 10, deepMax: deepDis || v.deep >= 60, deepDis,
+      deepCls: 'num' + (deepBad ? ' is-error' : '') + (deepDis ? ' is-disabled' : ''),
+      deepHint: deepDis ? 'Sin efecto: el reposo está en «nunca»' : deepBad ? 'Debe ser mayor que el reposo (' + v.sleep + ' min)' : 'Entre 10 y 60 min',
+      deepHintCls: 'hint' + (deepBad ? ' err' : ''), deepTip: deepDis ? 'Activa el reposo para usar el reposo profundo' : '',
+      deepDec: () => this.set('deep', clamp(v.deep - 1, 10, 60)), deepInc: () => this.set('deep', clamp(v.deep + 1, 10, 60)),
+      setDeep: (e) => this.set('deep', clamp(Math.round(Number(e.target.value) || 10), 10, 60)),
+      options: OPTS.map((o) => ({ icon: o[1], title: o[2], desc: o[3], on: !!v[o[0]], cls: 'tg' + (v[o[0]] ? ' on' : ''), toggle: () => this.set(o[0], !v[o[0]]) })),
+      info: [
+        { l: 'Firmware', v: '1.17' }, { l: 'ID de modelo', v: '820' }, { l: 'Conexión', v: CONN[conn] || CONN.cable },
+        { l: 'Perfil activo', v: s.profile + ' de 3' }, { l: 'Batería', v: conn === 'cable' ? '87 % · cargando' : conn === 'bt' ? '64 % · descargando' : '87 % · simulada' },
+        { l: 'Versión de la app', v: 'L75 Config 0.2.0' }
+      ],
+      askFactory: () => this.setState({ dlg: true, confirm: '' }),
+      dlgOn: !!s.dlg, confirm: s.confirm, setConfirm: (e) => this.setState({ confirm: e.target.value }),
+      confirmOff: s.confirm.trim().toUpperCase() !== 'RESTAURAR',
+      closeDlg: () => this.setState({ dlg: false, confirm: '' }),
+      factory: () => { this.setState({ dlg: false, confirm: '' }); this.busy('Restaurando de fábrica…', 1500, () => { this.setState({ v: Object.assign({}, INIT), saved: Object.assign({}, INIT) }); this.toast('ok', 'Teclado restaurado de fábrica'); }); },
+      toastOn: !!t, toastCls: 'toast ' + (t ? t.kind : ''), toastText: t ? t.text : '',
+      toastIcon: t ? ({ ok: 'exito', err: 'error', warn: 'aviso', info: 'info' })[t.kind] : 'info',
+      closeToast: () => this.setState({ toast: null })
+    };
+  }
+}
+</script>
+</body>
+</html>

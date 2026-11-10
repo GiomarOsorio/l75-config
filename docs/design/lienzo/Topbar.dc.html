@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>L75 Config · Barra superior</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="l75.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<header class="l75" data-theme="{{theme}}" style="width: 100%; min-height: 56px; display: flex; align-items: center; gap: 12px; padding: 10px 24px; border-bottom: 1px solid var(--border); background: var(--bg); flex-wrap: wrap;">
+<div class="{{connCls}}" role="status" title="{{connTip}}">
+<sc-if value="{{searching}}" hint-placeholder-val="{{ false }}"><span class="ci"><span class="spin"></span></span></sc-if>
+<sc-if value="{{notSearching}}" hint-placeholder-val="{{ true }}"><span class="ci"><dc-import name="Icon" i="{{connIcon}}" s="16" hint-size="16px,16px"></dc-import></span></sc-if>
+<span class="cl">{{connLabel}}</span>
+<sc-if value="{{hasSub}}" hint-placeholder-val="{{ true }}"><span class="sep"></span><span class="cs">{{connSub}}</span></sc-if>
+</div>
+<sc-if value="{{isBt}}" hint-placeholder-val="{{ false }}"><span class="pill warn" title="Subir imágenes a la pantalla solo funciona por cable USB-C"><dc-import name="Icon" i="aviso" s="14" hint-size="14px,14px"></dc-import>Imágenes solo por cable</span></sc-if>
+<sc-if value="{{isNone}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; gap: 6px;">
+<button class="btn btn-secondary btn-sm" type="button" onClick="{{retry}}"><dc-import name="Icon" i="reintentar" s="14" hint-size="14px,14px"></dc-import>Reintentar</button>
+<button class="btn btn-ghost btn-sm" type="button" onClick="{{demo}}"><dc-import name="Icon" i="demo" s="14" hint-size="14px,14px"></dc-import>Probar en modo demo</button>
+</div>
+</sc-if>
+<sc-if value="{{isRf}}" hint-placeholder-val="{{ false }}"><span class="hint">Conéctalo por cable o por Bluetooth.</span></sc-if>
+<sc-if value="{{showAct}}" hint-placeholder-val="{{ true }}">
+<span class="divv" style="height: 20px; align-self: center;"></span>
+<div class="{{actCls}}" role="status" aria-live="polite">
+<sc-if value="{{actBusy}}" hint-placeholder-val="{{ false }}"><span class="spin"></span></sc-if>
+<sc-if value="{{actIdle}}" hint-placeholder-val="{{ true }}"><span style="display: inline-flex; color: var(--text-3);"><dc-import name="Icon" i="aplicar" s="14" hint-size="14px,14px"></dc-import></span></sc-if>
+<sc-if value="{{actErr}}" hint-placeholder-val="{{ false }}"><span style="display: inline-flex;"><dc-import name="Icon" i="error" s="14" hint-size="14px,14px"></dc-import></span></sc-if>
+<span>{{actText}}</span>
+<sc-if value="{{actHasP}}" hint-placeholder-val="{{ false }}">
+<div class="pg" style="width: 96px;"><div class="bar" style="width: {{actPct}}%;"></div></div>
+<span class="mono" style="font-size: 11.5px; color: var(--text-2);">{{actCount}}</span>
+</sc-if>
+<sc-if value="{{actErr}}" hint-placeholder-val="{{ false }}"><button class="btn btn-ghost btn-sm" type="button" onClick="{{retryAct}}">Reintentar</button></sc-if>
+</div>
+</sc-if>
+<div class="grow"></div>
+<div style="display: flex; align-items: center; gap: 8px;" title="{{profTip}}">
+<span class="hint">Perfil</span>
+<div style="display: flex; gap: 2px;" role="radiogroup" aria-label="Perfil">
+<sc-for list="{{chips}}" as="c" hint-placeholder-count="3">
+<button class="{{c.cls}}" type="button" role="radio" aria-checked="{{c.on}}" aria-label="{{c.aria}}" disabled="{{c.dis}}" onClick="{{c.pick}}">
+<sc-if value="{{c.loading}}" hint-placeholder-val="{{ false }}"><span class="spin" style="width: 12px; height: 12px;"></span></sc-if>
+<sc-if value="{{c.idle}}" hint-placeholder-val="{{ true }}"><span>{{c.n}}</span></sc-if>
+</button>
+</sc-for>
+</div>
+</div>
+<sc-if value="{{showBatt}}" hint-placeholder-val="{{ true }}">
+<span class="divv" style="height: 20px; align-self: center;"></span>
+<div class="batt" title="{{battTip}}">
+<span style="display: inline-flex; align-items: center;"><span class="batt-b"><span class="lvl" style="width: {{battW}}px; background: {{battColor}};"></span></span><span class="batt-t" style="margin-left: 1px;"></span></span>
+<span>{{battPct}}</span>
+<sc-if value="{{charging}}" hint-placeholder-val="{{ true }}"><span style="display: inline-flex; color: var(--success);"><dc-import name="Icon" i="rayo" s="14" hint-size="14px,14px"></dc-import></span></sc-if>
+</div>
+</sc-if>
+</header>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"conn":{"editor":"enum","options":["cable","bt","demo","none","search","rf"],"default":"cable"},"theme":{"editor":"enum","options":["dark","light"],"default":"dark"},"act":{"editor":null},"profile":{"editor":"int","default":1},"loading":{"editor":null},"onProfile":{"editor":null},"onRetry":{"editor":null},"onDemo":{"editor":null},"onRetryAct":{"editor":null},"$preview":{"width":1048,"height":56}}'>
+const CONN = {
+  cable: { cls: 'conn ok', icon: 'cable', label: 'Conectado por cable', sub: 'L75 · FW 1.17', tip: 'USB-C · 3151:4015' },
+  bt: { cls: 'conn bt', icon: 'inalambrico', label: 'Conectado por Bluetooth', sub: 'L75 BT5.0', tip: 'Por Bluetooth cada comando tarda unos 70 ms' },
+  demo: { cls: 'conn demo', icon: 'demo', label: 'Modo demo', sub: 'teclado simulado', tip: 'No envía nada al hardware' },
+  none: { cls: 'conn err', icon: 'desconectado', label: 'Teclado no encontrado', sub: '', tip: 'Ni por cable ni por Bluetooth' },
+  search: { cls: 'conn', icon: 'desconectado', label: 'Buscando teclado…', sub: '', tip: 'Buscando por cable y por Bluetooth' },
+  rf: { cls: 'conn rf', icon: 'receptor', label: 'Receptor 2.4 GHz detectado', sub: 'aún no compatible', tip: 'El receptor 2.4 GHz todavía no está soportado' }
+};
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { local: null }; }
+  componentWillUnmount() { clearTimeout(this.t); }
+  renderVals() {
+    const theme = this.props.theme === 'light' ? 'light' : 'dark';
+    const conn = this.state.local || this.props.conn || 'cable';
+    const c = CONN[conn] || CONN.cable;
+    const act = this.props.act || { k: 'idle' };
+    const online = conn === 'cable' || conn === 'bt' || conn === 'demo';
+    const profile = Number(this.props.profile || 1);
+    const loading = Number(this.props.loading || 0);
+    const chips = [1, 2, 3].map((n) => ({
+      n, on: n === profile, dis: !online, loading: loading === n, idle: loading !== n, aria: 'Perfil ' + n,
+      cls: 'chip' + (n === profile ? ' on' : ''),
+      pick: () => { if (this.props.onProfile) this.props.onProfile(n); }
+    }));
+    const pct = conn === 'bt' ? 64 : 87;
+    const charging = conn === 'cable';
+    const busy = act.k === 'busy';
+    return {
+      theme, connCls: c.cls, connIcon: c.icon, connLabel: c.label, connSub: c.sub, connTip: c.tip, hasSub: !!c.sub,
+      searching: conn === 'search', notSearching: conn !== 'search',
+      isBt: conn === 'bt', isNone: conn === 'none', isRf: conn === 'rf',
+      retry: () => {
+        if (this.props.onRetry) { this.props.onRetry(); return; }
+        this.setState({ local: 'search' });
+        clearTimeout(this.t);
+        this.t = setTimeout(() => this.setState({ local: null }), 1600);
+      },
+      demo: () => { if (this.props.onDemo) this.props.onDemo(); else this.setState({ local: 'demo' }); },
+      showAct: online, actCls: 'act' + (busy ? ' busy' : act.k === 'err' ? ' err' : ''),
+      actBusy: busy, actIdle: act.k === 'idle' || !act.k, actErr: act.k === 'err',
+      actText: act.text || 'Sincronizado', actHasP: busy && act.p !== null && act.p !== undefined,
+      actPct: Math.round((act.p || 0) * 100), actCount: act.count || (Math.round((act.p || 0) * 100) + ' %'),
+      retryAct: () => { if (this.props.onRetryAct) this.props.onRetryAct(); },
+      profTip: online ? 'Al cambiar de perfil se recargan teclas, luces y macros' : 'Conecta el teclado para cambiar de perfil',
+      chips, showBatt: online, charging,
+      battW: Math.max(2, Math.round(16 * pct / 100)), battPct: pct + ' %',
+      battColor: charging ? 'var(--success)' : pct <= 10 ? 'var(--error)' : pct <= 20 ? 'var(--warning)' : 'var(--text-2)',
+      battTip: charging ? 'Batería ' + pct + ' %, cargando' : conn === 'demo' ? 'Batería simulada' : 'Batería ' + pct + ' %, descargando'
+    };
+  }
+}
+</script>
+</body>
+</html>

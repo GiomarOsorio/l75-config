@@ -1,0 +1,4 @@
+Iconos de L75 Config · 24 × 24, trazo 1,75, extremos redondeados.
+Usan currentColor. En Qt, sustituye currentColor por el color del token al cargar el SVG
+(por ejemplo text-2 en reposo y accent en la sección activa) y genera el QIcon desde ahí.
+Tamaños de uso: 16, 20 y 24 px. alias.json lista los nombres alternativos que usa el lienzo.

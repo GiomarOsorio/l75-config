@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>L75 Config · Tokens</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="l75.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div class="l75" data-theme="{{theme}}" style="min-height: 100vh; background: var(--bg); color: var(--text-1); padding: 40px 48px 56px;">
+<span class="l75" data-theme="dark" ref="{{probeDark}}" aria-hidden="true" style="position: absolute; width: 0; height: 0; overflow: hidden;"></span>
+<span class="l75" data-theme="light" ref="{{probeLight}}" aria-hidden="true" style="position: absolute; width: 0; height: 0; overflow: hidden;"></span>
+<div style="max-width: 1184px; margin: 0 auto; display: flex; flex-direction: column; gap: 28px;">
+<header style="display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; flex-wrap: wrap;">
+<div style="max-width: 720px;">
+<h1 class="ph-t" style="font-size: 28px; line-height: 34px;">Tokens del sistema</h1>
+<p class="ph-s">Mismos nombres en tema oscuro (por defecto) y claro. Valores en px a escala 100 %; Qt los multiplica por el factor HiDPI. Todo está también en <span class="mono" style="color: var(--text-1);">l75-tokens.json</span>.</p>
+</div>
+<div style="display: flex; gap: 8px; flex-wrap: wrap;">
+<span class="pill acc">Inter · JetBrains Mono</span>
+<span class="pill">Rejilla de 4 px</span>
+<span class="pill">Contraste AA</span>
+</div>
+</header>
+<section class="card" style="padding: 20px 22px; display: flex; flex-direction: column; gap: 6px;" aria-labelledby="t-col">
+<div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 6px;">
+<h2 id="t-col" class="t-title" style="margin: 0;">Color</h2>
+<span class="hint">En QSS: <span class="mono" style="color: var(--text-1);">background: #121519;</span> · las transparencias con <span class="mono" style="color: var(--text-1);">rgba()</span></span>
+</div>
+<div class="scroll" style="overflow-x: auto;">
+<div style="min-width: 880px; display: flex; flex-direction: column;">
+<div style="display: grid; grid-template-columns: 190px 1fr 1fr 1.5fr; gap: 16px; padding: 8px 0; border-bottom: 1px solid var(--border-strong);">
+<span class="t-label">Token</span><span class="t-label">Oscuro</span><span class="t-label">Claro</span><span class="t-label">Uso</span>
+</div>
+<sc-for list="{{groups}}" as="g" hint-placeholder-count="6">
+<div style="padding: 14px 0 6px; font-size: 12px; font-weight: 600; color: var(--accent);">{{g.title}}</div>
+<sc-for list="{{g.rows}}" as="r" hint-placeholder-count="5">
+<div style="display: grid; grid-template-columns: 190px 1fr 1fr 1.5fr; gap: 16px; align-items: center; min-height: 34px; border-bottom: 1px solid var(--border);">
+<span class="mono" style="font-size: 12px; color: var(--text-1);">{{r.name}}</span>
+<span class="l75" data-theme="dark" style="display: flex; align-items: center; gap: 10px; padding: 4px 8px 4px 4px; margin: 3px 0; border-radius: 7px; background: var(--surface-1); border: 1px solid var(--border); min-width: 0;"><span style="width: 44px; height: 22px; border-radius: 5px; border: 1px solid rgba(128, 128, 128, 0.35); background: var({{r.var}}); flex: none;"></span><span class="mono" style="font-size: 11.5px; color: {{r.textColor}}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{r.dark}}</span></span>
+<span class="l75" data-theme="light" style="display: flex; align-items: center; gap: 10px; padding: 4px 8px 4px 4px; margin: 3px 0; border-radius: 7px; background: var(--surface-1); border: 1px solid var(--border); min-width: 0;"><span style="width: 44px; height: 22px; border-radius: 5px; border: 1px solid rgba(128, 128, 128, 0.35); background: var({{r.var}}); flex: none;"></span><span class="mono" style="font-size: 11.5px; color: {{r.textColor}}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{r.light}}</span></span>
+<span class="hint">{{r.use}}</span>
+</div>
+</sc-for>
+</sc-for>
+</div>
+</div>
+</section>
+<section class="card" style="padding: 20px 22px; display: flex; flex-direction: column; gap: 4px;" aria-labelledby="t-typo">
+<div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 8px;">
+<h2 id="t-typo" class="t-title" style="margin: 0;">Tipografía</h2>
+<span class="hint">Inter 400 · 500 · 600 y JetBrains Mono 500 · 600, TTF estáticos (OFL) empaquetados con la app</span>
+</div>
+<sc-for list="{{type}}" as="ty" hint-placeholder-count="8">
+<div style="display: flex; align-items: center; gap: 20px; min-height: 52px; border-bottom: 1px solid var(--border); flex-wrap: wrap; padding: 6px 0;">
+<span class="mono" style="width: 120px; font-size: 12px; color: var(--text-1); flex: none;">{{ty.name}}</span>
+<span class="{{ty.cls}}" style="flex: 1 1 320px; min-width: 0; color: var(--text-1);">{{ty.sample}}</span>
+<span class="mono" style="width: 190px; font-size: 11.5px; color: var(--text-2); flex: none;">{{ty.spec}}</span>
+<span class="hint" style="width: 200px; flex: none;">{{ty.use}}</span>
+</div>
+</sc-for>
+<p class="hint" style="margin: 10px 0 0;">QSS no tiene letter-spacing ni text-transform: la etiqueta en mayúsculas se aplica en código con <span class="mono" style="color: var(--text-1);">QFont.setCapitalization(QFont.AllUppercase)</span> y <span class="mono" style="color: var(--text-1);">setLetterSpacing(PercentageSpacing, 106)</span>. Así los textos siguen siendo traducibles.</p>
+</section>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(360px, 100%), 1fr)); gap: 16px;">
+<section class="card" style="padding: 20px 22px; display: flex; flex-direction: column; gap: 10px;" aria-labelledby="t-space">
+<h2 id="t-space" class="t-title" style="margin: 0 0 6px;">Espaciado</h2>
+<sc-for list="{{space}}" as="sp" hint-placeholder-count="10">
+<div style="display: flex; align-items: center; gap: 14px;">
+<span class="mono" style="width: 76px; font-size: 12px; color: var(--text-1);">{{sp.name}}</span>
+<span style="height: 10px; width: {{sp.px}}px; border-radius: 2px; background: var(--accent);"></span>
+<span class="mono" style="font-size: 11.5px; color: var(--text-2);">{{sp.px}} px</span>
+<span class="hint" style="margin-left: auto;">{{sp.use}}</span>
+</div>
+</sc-for>
+</section>
+<section class="card" style="padding: 20px 22px; display: flex; flex-direction: column; gap: 14px;" aria-labelledby="t-rad">
+<h2 id="t-rad" class="t-title" style="margin: 0;">Radios</h2>
+<div style="display: flex; gap: 14px; flex-wrap: wrap;">
+<sc-for list="{{radii}}" as="ra" hint-placeholder-count="6">
+<div style="display: flex; flex-direction: column; align-items: center; gap: 8px; width: 88px;">
+<span style="width: 64px; height: 48px; background: var(--surface-3); border: 1px solid var(--border-strong); border-radius: {{ra.px}}px;"></span>
+<span class="mono" style="font-size: 12px; color: var(--text-1);">{{ra.name}} · {{ra.label}}</span>
+<span class="hint" style="text-align: center;">{{ra.use}}</span>
+</div>
+</sc-for>
+</div>
+<h2 class="t-title" style="margin: 10px 0 0;">Sombras</h2>
+<div style="display: flex; gap: 16px; flex-wrap: wrap;">
+<div style="flex: 1 1 200px; padding: 14px; border-radius: 12px; background: var(--surface-3); border: 1px solid var(--border-strong); box-shadow: var(--shadow-1);">
+<div class="mono" style="font-size: 12px; color: var(--text-1);">sombra-1</div>
+<div class="hint">Menús, tooltips, selector de color. Qt: blur 24, offset (0, 8), negro 45 % (claro 14 %).</div>
+</div>
+<div style="flex: 1 1 200px; padding: 14px; border-radius: 16px; background: var(--surface-2); border: 1px solid var(--border-strong); box-shadow: var(--shadow-2);">
+<div class="mono" style="font-size: 12px; color: var(--text-1);">sombra-2</div>
+<div class="hint">Diálogos y toasts. Qt: blur 48, offset (0, 16), negro 55 % (claro 18 %).</div>
+</div>
+</div>
+<p class="hint" style="margin: 0;">Una sola QGraphicsDropShadowEffect por ventana flotante. Foco: borde de 2 px en <span class="mono" style="color: var(--text-1);">focus</span> (en QSS sube el borde a 2 px y resta 1 px de padding para que nada se mueva).</p>
+</section>
+</div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(360px, 100%), 1fr)); gap: 16px;">
+<section class="card" style="padding: 20px 22px; display: flex; flex-direction: column;" aria-labelledby="t-size">
+<h2 id="t-size" class="t-title" style="margin: 0 0 8px;">Medidas</h2>
+<sc-for list="{{sizes}}" as="sz" hint-placeholder-count="8"><div class="kv"><span class="kv-l">{{sz.l}}</span><span class="kv-v">{{sz.v}}</span></div></sc-for>
+</section>
+<section class="card" style="padding: 20px 22px; display: flex; flex-direction: column;" aria-labelledby="t-mot">
+<h2 id="t-mot" class="t-title" style="margin: 0 0 8px;">Movimiento</h2>
+<sc-for list="{{motion}}" as="mo" hint-placeholder-count="6"><div class="kv"><span class="kv-l">{{mo.l}}</span><span class="kv-v">{{mo.v}}</span></div></sc-for>
+<p class="hint" style="margin: 10px 0 0;">Animaciones con QPropertyAnimation (opacidad, color, posición) y QEasingCurve.OutCubic. Nada de desenfoques.</p>
+</section>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark"},"$preview":{"width":1280,"height":3400}}'>
+const GROUPS = [
+  ['Fondo y superficies', [['bg', 'Fondo de la ventana'], ['surface-1', 'Barra lateral, tarjetas'], ['surface-2', 'Campos, filas, tarjetas de modo'], ['surface-3', 'Botón secundario, menús, hover'], ['surface-4', 'Hover sobre superficie 3'], ['border', 'Bordes y divisores'], ['border-strong', 'Bordes de controles y menús']]],
+  ['Texto', [['text-1', 'Texto primario'], ['text-2', 'Texto secundario y ayudas'], ['text-3', 'Deshabilitado, marcas']]],
+  ['Acento', [['accent', 'Acción principal, selección'], ['accent-hover', 'Hover del acento'], ['accent-pressed', 'Pulsado'], ['on-accent', 'Texto sobre el acento'], ['accent-soft', 'Fondo de seleccionado (rgba)'], ['accent-line', 'Borde de seleccionado (rgba)'], ['focus', 'Anillo de foco']]],
+  ['Estados', [['success', 'Éxito, cable conectado'], ['success-soft', 'Fondo de éxito'], ['warning', 'Aviso, sin guardar'], ['warning-soft', 'Fondo de aviso'], ['error', 'Error, peligro'], ['error-soft', 'Fondo de error'], ['error-solid', 'Botón de peligro confirmado'], ['demo', 'Modo demo'], ['demo-soft', 'Fondo del modo demo']]],
+  ['Controles', [['track', 'Pista de slider y toggle'], ['knob', 'Mando de slider y toggle'], ['seg-on', 'Segmento activo'], ['tooltip-bg', 'Fondo del tooltip'], ['scrim', 'Velo de diálogo (sin desenfoque)']]],
+  ['Teclado y pantalla', [['deck', 'Carcasa del teclado'], ['key-skirt', 'Falda de la tecla'], ['key-edge', 'Borde de la tecla'], ['key-top-1', 'Cara: arriba del degradado'], ['key-top-2', 'Cara: abajo del degradado'], ['key-legend', 'Leyenda'], ['key-sub', 'Nombre original (reasignada)'], ['key-remap-1', 'Cara de tecla reasignada'], ['key-remap-edge', 'Borde de tecla reasignada'], ['key-off-top', 'Tecla desactivada / sin función'], ['lcd-bezel', 'Marco de la pantalla LCD'], ['preview-bg', 'Fondo de las vistas previas de luz']]],
+  ['Firma RGB', [['rgb', 'Degradado: marca, arcoíris, subida, brillo del teclado']]]
+];
+const TYPE = [
+  ['display', 't-display', 'Iluminación', '22 / 28 · 600 · −1 %', 'Título de sección'],
+  ['title', 't-title', 'Tecla seleccionada', '16 / 22 · 600', 'Paneles y diálogos'],
+  ['subtitle', 't-sub', 'Rendimiento', '14 / 20 · 600', 'Grupos y tarjetas'],
+  ['body', 't-body', 'Haz clic en una tecla para cambiar lo que hace.', '13 / 20 · 400', 'Texto general'],
+  ['body-strong', 't-strong', 'Conectado por cable', '13 / 20 · 500', 'Botones y etiquetas'],
+  ['caption', 't-cap', 'Súbelo solo si alguna tecla escribe dos veces.', '12 / 16 · 400', 'Ayudas y motivos'],
+  ['label', 't-label', 'Retardo entre cuadros', '11 / 14 · 600 · +6 %', 'Encabezados de grupo'],
+  ['mono', 't-mono', '#2BD2F0 · 80 ms · 22 / 248 B', 'JetBrains Mono 12 / 16 · 500', 'Valores, códigos, perfil']
+];
+const SPACE = [['space-0.5', 2, 'Ajustes finos'], ['space-1', 4, 'Icono ↔ texto pequeño'], ['space-2', 8, 'Entre botones'], ['space-3', 12, 'Dentro de filas'], ['space-4', 16, 'Entre tarjetas, padding'], ['space-5', 20, 'Padding de panel'], ['space-6', 24, 'Margen de ventana'], ['space-8', 32, 'Entre secciones'], ['space-10', 40, 'Vacíos'], ['space-12', 48, 'Página de sistema']];
+const RADII = [['xs', 4, '4 px', 'Casillas, barras'], ['sm', 6, '6 px', 'Muestras, segmentos'], ['md', 8, '8 px', 'Botones, campos'], ['lg', 12, '12 px', 'Tarjetas, toasts'], ['xl', 16, '16 px', 'Teclado, diálogos'], ['pill', 999, '999', 'Interruptores, chips']];
+const SIZES = [['Control pequeño / normal / grande', '28 / 32 / 40 px'], ['Barra lateral', '232 px · compacta 72 px'], ['Barra superior', '56 px'], ['Padding de contenido', '20 px arriba · 28 px lados'], ['Ventana mínima', '1000 × 640 px'], ['Iconos', '16 · 20 · 24 px'], ['Interruptor', '36 × 20 px · mando 16 px'], ['Pantalla LCD', '240 × 135 · vista 2× con marco 14 px']];
+const MOTION = [['rápido', '120 ms · hover, color'], ['base', '180 ms · interruptor, toast, diálogo'], ['lento', '280 ms · cambio de sección'], ['curva', 'OutCubic'], ['vistas previas de luz', '30 fps; solo animan la seleccionada y la del hover'], ['toast', 'Entra 8 px desde abajo; se va a los 3–4 s']];
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { vals: null };
+    this.probeDark = (el) => { this.pd = el; };
+    this.probeLight = (el) => { this.pl = el; };
+  }
+  componentDidMount() { this.read(); this.t = setTimeout(() => this.read(), 600); }
+  componentWillUnmount() { clearTimeout(this.t); }
+  read() {
+    if (!this.pd || !this.pl) return;
+    const cd = getComputedStyle(this.pd); const cl = getComputedStyle(this.pl);
+    const vals = { dark: {}, light: {} };
+    GROUPS.forEach((g) => g[1].forEach((r) => {
+      vals.dark[r[0]] = cd.getPropertyValue('--' + r[0]).trim();
+      vals.light[r[0]] = cl.getPropertyValue('--' + r[0]).trim();
+    }));
+    this.setState({ vals });
+  }
+  renderVals() {
+    const v = this.state.vals;
+    const fmt = (x) => (x && x.indexOf('gradient') >= 0 ? '#FF4D8D → #FFB547 → #3DF5A1 → #2BD2F0 → #8B7CFF' : (x || '…').toUpperCase().replace('RGBA', 'rgba'));
+    return {
+      theme: this.props.theme === 'light' ? 'light' : 'dark',
+      probeDark: this.probeDark, probeLight: this.probeLight,
+      groups: GROUPS.map((g) => ({ title: g[0], rows: g[1].map((r) => ({ name: r[0], var: '--' + r[0], use: r[1], dark: fmt(v && v.dark[r[0]]), light: fmt(v && v.light[r[0]]), textColor: 'var(--text-1)' })) })),
+      type: TYPE.map((t) => ({ name: t[0], cls: t[1], sample: t[2], spec: t[3], use: t[4] })),
+      space: SPACE.map((s) => ({ name: s[0], px: s[1], use: s[2] })),
+      radii: RADII.map((r) => ({ name: r[0], px: r[1], label: r[2], use: r[3] })),
+      sizes: SIZES.map((s) => ({ l: s[0], v: s[1] })),
+      motion: MOTION.map((m) => ({ l: m[0], v: m[1] }))
+    };
+  }
+}
+</script>
+</body>
+</html>

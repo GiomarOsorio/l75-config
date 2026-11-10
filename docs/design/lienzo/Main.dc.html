@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>L75 Config · Teclas</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="l75.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div class="l75" data-theme="{{theme}}" style="position: relative; min-height: 100vh; display: flex; flex-wrap: wrap; background: var(--bg); color: var(--text-1);">
+<dc-import name="Sidebar" active="teclas" theme="{{theme}}" hint-size="232px,800px"></dc-import>
+<main style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column;">
+<dc-import name="Topbar" theme="{{theme}}" conn="{{conn}}" act="{{act}}" profile="{{profile}}" loading="{{profLoading}}" on-profile="{{setProfile}}" hint-size="100%,56px"></dc-import>
+<div style="flex: 1; display: flex; flex-direction: column; gap: 16px; padding: 20px 28px 24px; min-width: 0;">
+<div class="ph">
+<div>
+<h1 class="ph-t">Teclas</h1>
+<p class="ph-s">Haz clic en una tecla para cambiar lo que hace. Se guarda en el perfil {{profile}}.</p>
+</div>
+<div style="display: flex; gap: 8px; flex-wrap: wrap;">
+<button class="btn btn-secondary" type="button" onClick="{{readAll}}"><dc-import name="Icon" i="leer" s="16" hint-size="16px,16px"></dc-import>Leer del teclado</button>
+<button class="btn btn-ghost" type="button" onClick="{{askRestore}}"><dc-import name="Icon" i="restaurar" s="16" hint-size="16px,16px"></dc-import>Restaurar todas…</button>
+</div>
+</div>
+<section class="deck" style="padding: 14px 20px 22px; display: flex; flex-direction: column; gap: 14px;" aria-label="Teclado L75">
+<div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
+<div class="seg" role="group" aria-label="Capa">
+<button class="{{segNormal}}" type="button" aria-pressed="{{isNormal}}" onClick="{{layerNormal}}">Normal</button>
+<button class="{{segFn}}" type="button" aria-pressed="{{isFn}}" onClick="{{layerFn}}"><dc-import name="Icon" i="capas" s="14" hint-size="14px,14px"></dc-import>Fn + tecla</button>
+</div>
+<span class="hint">{{layerHint}}</span>
+<div style="margin-left: auto; display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
+<span class="hint" style="display: inline-flex; align-items: center; gap: 6px;"><span class="mk remap"></span>{{nRemap}}</span>
+<sc-if value="{{showOff}}" hint-placeholder-val="{{ true }}"><span class="hint" style="display: inline-flex; align-items: center; gap: 6px;"><span class="mk off"></span>{{nOff}}</span></sc-if>
+</div>
+</div>
+<div style="width: 100%; max-width: 860px; margin: 0 auto;">
+<dc-import name="Teclado" theme="{{theme}}" mode="remap" labels="{{kbLabels}}" selected="{{sel}}" dimrest="{{isFn}}" on-key="{{pickKey}}" hint-size="100%,334px"></dc-import>
+</div>
+<div class="deck-glow"></div>
+</section>
+<section class="card" style="padding: 16px 20px; display: flex; gap: 20px; flex-wrap: wrap;" aria-label="Tecla seleccionada">
+<div style="flex: 0 0 172px; display: flex; flex-direction: column; gap: 10px;">
+<div style="height: 92px; display: flex; align-items: center; justify-content: center; border-radius: 10px; background: var(--deck); border: 1px solid var(--deck-edge);">
+<dc-import name="Tecla" theme="{{theme}}" label="{{pv.label}}" sub="{{pv.sub}}" icon="{{pv.icon}}" kind="{{pv.kind}}" w="{{pv.w}}" s="{{pv.s}}" hint-size="80px,80px"></dc-import>
+</div>
+<div>
+<div class="t-sub">{{selName}}</div>
+<div class="hint">{{layerName}}</div>
+</div>
+</div>
+<div class="divv"></div>
+<div style="flex: 1 1 520px; min-width: 0; display: flex; flex-direction: column; gap: 12px;">
+<div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; min-height: 22px;">
+<span class="hint" style="width: 92px; flex: none;">Acción actual</span>
+<span class="t-strong">{{curDesc}}</span>
+<sc-if value="{{dirty}}" hint-placeholder-val="{{ false }}">
+<span style="display: inline-flex; color: var(--text-3);"><dc-import name="Icon" i="flecha-derecha" s="14" hint-size="14px,14px"></dc-import></span>
+<span class="t-strong" style="color: var(--accent);">{{draftDesc}}</span>
+<span class="pill warn">Sin aplicar</span>
+</sc-if>
+</div>
+<div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+<span class="hint" style="width: 92px; flex: none;">Tipo</span>
+<div class="seg" role="radiogroup" aria-label="Tipo de acción" style="flex-wrap: wrap;">
+<sc-for list="{{types}}" as="ty" hint-placeholder-count="7">
+<button class="{{ty.cls}}" type="button" role="radio" aria-checked="{{ty.on}}" onClick="{{ty.pick}}"><dc-import name="Icon" i="{{ty.icon}}" s="14" hint-size="14px,14px"></dc-import>{{ty.label}}</button>
+</sc-for>
+</div>
+</div>
+<div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; min-height: 32px;">
+<span class="hint" style="width: 92px; flex: none;">{{ctlLabel}}</span>
+<sc-for list="{{selects}}" as="sd" hint-placeholder-count="1">
+<sc-if value="{{sd.plus}}" hint-placeholder-val="{{ false }}"><span style="color: var(--text-3); font-weight: 600;">+</span></sc-if>
+<div class="dd" style="width: {{sd.w}}px;">
+<button class="{{sd.cls}}" type="button" aria-haspopup="listbox" aria-expanded="{{sd.open}}" onClick="{{sd.toggle}}"><span class="v">{{sd.value}}</span><span class="chev"><dc-import name="Icon" i="chevron-abajo" s="16" hint-size="16px,16px"></dc-import></span></button>
+<sc-if value="{{sd.open}}" hint-placeholder-val="{{ false }}">
+<div class="menu up scroll" role="listbox" style="min-width: {{sd.mw}}px;">
+<sc-if value="{{sd.search}}" hint-placeholder-val="{{ false }}"><input class="field menu-search" type="text" placeholder="Buscar tecla…" aria-label="Buscar tecla" value="{{q}}" onChange="{{setQ}}"></sc-if>
+<sc-for list="{{sd.groups}}" as="g" hint-placeholder-count="1">
+<div class="menu-h">{{g.h}}</div>
+<sc-for list="{{g.items}}" as="it" hint-placeholder-count="3">
+<button class="{{it.cls}}" type="button" role="option" aria-selected="{{it.on}}" onClick="{{it.pick}}">{{it.label}}<span class="tail">{{it.tail}}</span></button>
+</sc-for>
+</sc-for>
+</div>
+</sc-if>
+</div>
+</sc-for>
+<sc-if value="{{isKey}}" hint-placeholder-val="{{ true }}">
+<button class="{{capCls}}" type="button" ref="{{capRef}}" onClick="{{startCap}}" onKeyDown="{{capKey}}" onBlur="{{stopCap}}"><dc-import name="Icon" i="teclado" s="16" hint-size="16px,16px"></dc-import>{{capText}}</button>
+</sc-if>
+<sc-if value="{{isMacro}}" hint-placeholder-val="{{ false }}">
+<div class="seg" role="radiogroup" aria-label="Modo de la macro">
+<sc-for list="{{mmodes}}" as="mm" hint-placeholder-count="3"><button class="{{mm.cls}}" type="button" role="radio" aria-checked="{{mm.on}}" onClick="{{mm.pick}}">{{mm.label}}</button></sc-for>
+</div>
+</sc-if>
+<sc-if value="{{infoOn}}" hint-placeholder-val="{{ false }}">
+<span class="hint" style="display: inline-flex; align-items: center; gap: 6px;"><dc-import name="Icon" i="info" s="16" hint-size="16px,16px"></dc-import>{{infoText}}</span>
+</sc-if>
+</div>
+<div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+<span class="hint">{{footHint}}</span>
+<div style="margin-left: auto; display: flex; gap: 8px;">
+<button class="btn btn-ghost" type="button" disabled="{{isDefault}}" onClick="{{restoreKey}}">Restaurar esta tecla</button>
+<button class="btn btn-primary" type="button" disabled="{{notDirty}}" onClick="{{apply}}"><dc-import name="Icon" i="aplicar" s="16" hint-size="16px,16px"></dc-import>Aplicar</button>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+<sc-if value="{{ddOpen}}" hint-placeholder-val="{{ false }}"><button type="button" tabindex="-1" aria-label="Cerrar menú" onClick="{{closeDD}}" style="position: fixed; inset: 0; z-index: 20; background: transparent; border: 0; cursor: default;"></button></sc-if>
+<sc-if value="{{toastOn}}" hint-placeholder-val="{{ false }}">
+<div class="toasts" aria-live="polite">
+<div class="{{toastCls}}" role="status">
+<span class="ti"><dc-import name="Icon" i="{{toastIcon}}" s="18" hint-size="18px,18px"></dc-import></span>
+<span class="tx">{{toastText}}</span>
+<button class="btn btn-ghost btn-sm btn-icon" type="button" aria-label="Cerrar aviso" onClick="{{closeToast}}"><dc-import name="Icon" i="cerrar" s="14" hint-size="14px,14px"></dc-import></button>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{dlgOn}}" hint-placeholder-val="{{ false }}">
+<div class="scrim">
+<div class="dlg" role="dialog" aria-modal="true" aria-labelledby="dlg-restore">
+<div style="display: flex; gap: 12px; align-items: flex-start;">
+<div class="dlg-ic"><dc-import name="Icon" i="restaurar" s="18" hint-size="18px,18px"></dc-import></div>
+<div style="display: flex; flex-direction: column; gap: 4px;">
+<h2 id="dlg-restore" class="t-title" style="margin: 6px 0 0;">¿Restaurar todas las teclas?</h2>
+<p class="t-body" style="margin: 0; color: var(--text-2);">{{dlgBody}}</p>
+</div>
+</div>
+<div class="dlg-f">
+<button class="btn btn-secondary" type="button" onClick="{{closeDlg}}">Cancelar</button>
+<button class="btn btn-danger-solid" type="button" onClick="{{confirmRestore}}">Restaurar todas</button>
+</div>
+</div>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark","section":"Prototipo"},"conn":{"editor":"enum","options":["cable","bt","demo"],"default":"cable","section":"Prototipo"},"demo":{"editor":null},"$preview":{"width":1280,"height":800}}'>
+const W = { Backspace: 59, Tab: 42, '\\': 42, CapsLock: 51, Enter: 69, Shift: 69, RShift: 51, Ctrl: 33, Win: 33, Alt: 33, Space: 207 };
+const DISP = { Up: '↑', Down: '↓', Left: '←', Right: '→', PageUp: 'PgUp', PageDown: 'PgDn', Insert: 'Ins', Delete: 'Del' };
+const FULL = { Up: 'Flecha arriba', Down: 'Flecha abajo', Left: 'Flecha izquierda', Right: 'Flecha derecha', Space: 'Espacio' };
+const MODS = { Ctrl: 'Ctrl', Shift: '⇧', Alt: 'Alt', Win: 'Win', RCtrl: 'RCtrl', RShift: 'R⇧', RAlt: 'RAlt', RWin: 'RWin' };
+const FUNCS = [
+  ['play', 'Reproducir/Pausa', 'Multimedia', 'Play'], ['stop', 'Detener', 'Multimedia', 'Stop'],
+  ['prev', 'Pista anterior', 'Multimedia', 'Ant.'], ['next', 'Pista siguiente', 'Multimedia', 'Sig.'],
+  ['mute', 'Silencio', 'Multimedia', 'Mute'], ['vol-', 'Volumen −', 'Multimedia', 'Vol−'],
+  ['vol+', 'Volumen +', 'Multimedia', 'Vol+'], ['player', 'Reproductor multimedia', 'Multimedia', 'Player'],
+  ['calc', 'Calculadora', 'Sistema', 'Calc'], ['mail', 'Correo', 'Sistema', 'Mail'],
+  ['mycomputer', 'Mi PC / Archivos', 'Sistema', 'PC'], ['search', 'Buscar', 'Sistema', 'Buscar'],
+  ['lock', 'Bloquear sesión (Win+L)', 'Sistema', 'Bloq.'], ['zoom-', 'Alejar (Win+−)', 'Sistema', 'Zoom−'],
+  ['zoom+', 'Acercar (Win+=)', 'Sistema', 'Zoom+'], ['ime', 'Cambiar idioma (Ctrl+Espacio)', 'Sistema', 'Idioma'],
+  ['bright-', 'Brillo de pantalla −', 'Sistema', 'Brillo−'], ['bright+', 'Brillo de pantalla +', 'Sistema', 'Brillo+'],
+  ['home', 'Inicio del navegador', 'Navegador', 'Inicio'], ['back', 'Atrás en el navegador', 'Navegador', 'Atrás'],
+  ['refresh', 'Recargar', 'Navegador', 'Recarg.'],
+  ['(', 'Paréntesis (', 'Símbolos', '('], [')', 'Paréntesis )', 'Símbolos', ')'],
+  ['{', 'Llave {', 'Símbolos', '{'], ['}', 'Llave }', 'Símbolos', '}']
+];
+const FUNC = {};
+FUNCS.forEach((f) => { FUNC[f[0]] = { label: f[1], group: f[2], short: f[3] }; });
+const MOUSE = [['left', 'Clic izquierdo', 'Clic I'], ['right', 'Clic derecho', 'Clic D'], ['middle', 'Clic central', 'Clic C'], ['forward', 'Adelante', 'Adel.'], ['back', 'Atrás', 'Atrás'], ['wheelup', 'Rueda arriba', 'Rueda↑'], ['wheeldown', 'Rueda abajo', 'Rueda↓']];
+const MOUSE_ = {};
+MOUSE.forEach((m) => { MOUSE_[m[0]] = { label: m[1], short: m[2] }; });
+const MMODES = [['times', 'Repetir N veces'], ['hold', 'Mientras se mantiene'], ['toggle', 'On/Off']];
+const MACROS = { 0: 'Ctrl+C, 50 ms, Enter', 3: 'Ctrl+C, 80 ms, Ctrl+V', 5: 'Win+Shift+S', 12: 'Clic izq. ×10', 21: 'Q, 120 ms, E, 90 ms, R' };
+const FK = [];
+for (let i = 1; i <= 24; i++) FK.push('F' + i);
+const KP = ['NumLock', 'KP/', 'KP*', 'KP-', 'KP+', 'KPEnter', 'KP.'];
+for (let i = 0; i <= 9; i++) KP.push('KP' + i);
+const PICK = [
+  ['Letras', 'A B C D E F G H I J K L M N O P Q R S T U V W X Y Z'.split(' ')],
+  ['Números', '1 2 3 4 5 6 7 8 9 0'.split(' ')],
+  ['Función', FK],
+  ['Edición', ['Esc', 'Enter', 'Backspace', 'Tab', 'Space', 'CapsLock', 'Insert', 'Delete', 'Home', 'End', 'PageUp', 'PageDown', 'PrintScreen', 'ScrollLock', 'Pause', 'Menu']],
+  ['Flechas', ['Up', 'Down', 'Left', 'Right']],
+  ['Modificadores', ['Ctrl', 'Shift', 'Alt', 'Win', 'RCtrl', 'RShift', 'RAlt', 'RWin']],
+  ['Símbolos', ['-', '=', '[', ']', '\\', ';', "'", '`', ',', '.', '/']],
+  ['Teclado numérico', KP]
+];
+const TYPES = [['key', 'Tecla', 'tecla'], ['combo', 'Combinación', 'combinacion'], ['media', 'Multimedia', 'multimedia'], ['mouse', 'Ratón', 'raton'], ['macro', 'Macro', 'macros'], ['off', 'Desactivada', 'desactivada'], ['default', 'Por defecto', 'restaurar']];
+const PROFILES = {
+  1: {
+    normal: { CapsLock: { t: 'key', k: 'Esc' }, F1: { t: 'combo', ks: ['Ctrl', 'Shift', 'T'] }, RAlt: { t: 'media', f: 'play' }, F12: { t: 'macro', n: 0, mode: 'times' }, Ins: { t: 'off' } },
+    fn: { W: { t: 'key', k: 'Up' }, A: { t: 'key', k: 'Left' }, S: { t: 'key', k: 'Down' }, D: { t: 'key', k: 'Right' }, Ins: { t: 'media', f: 'vol+' }, Del: { t: 'media', f: 'vol-' }, '1': { t: 'macro', n: 5, mode: 'times' }, F7: { t: 'media', f: 'prev' }, F8: { t: 'media', f: 'play' }, F9: { t: 'media', f: 'next' }, F10: { t: 'media', f: 'mute' } }
+  },
+  2: { normal: {}, fn: {} },
+  3: { normal: { CapsLock: { t: 'key', k: 'Ctrl' }, Win: { t: 'off' }, '`': { t: 'key', k: 'Esc' } }, fn: { W: { t: 'key', k: 'Up' }, A: { t: 'key', k: 'Left' }, S: { t: 'key', k: 'Down' }, D: { t: 'key', k: 'Right' } } }
+};
+const CODES = { ControlLeft: 'Ctrl', ControlRight: 'RCtrl', ShiftLeft: 'Shift', ShiftRight: 'RShift', AltLeft: 'Alt', AltRight: 'RAlt', MetaLeft: 'Win', MetaRight: 'RWin', OSLeft: 'Win', OSRight: 'RWin', Space: 'Space', Enter: 'Enter', NumpadEnter: 'KPEnter', Escape: 'Esc', Backspace: 'Backspace', Tab: 'Tab', CapsLock: 'CapsLock', ArrowUp: 'Up', ArrowDown: 'Down', ArrowLeft: 'Left', ArrowRight: 'Right', Insert: 'Insert', Delete: 'Delete', Home: 'Home', End: 'End', PageUp: 'PageUp', PageDown: 'PageDown', Minus: '-', Equal: '=', BracketLeft: '[', BracketRight: ']', Backslash: '\\', Semicolon: ';', Quote: "'", Backquote: '`', Comma: ',', Period: '.', Slash: '/', PrintScreen: 'PrintScreen', ScrollLock: 'ScrollLock', Pause: 'Pause', ContextMenu: 'Menu', NumLock: 'NumLock', NumpadDivide: 'KP/', NumpadMultiply: 'KP*', NumpadSubtract: 'KP-', NumpadAdd: 'KP+', NumpadDecimal: 'KP.' };
+
+function codeToKey(code) {
+  if (/^Key[A-Z]$/.test(code)) return code.slice(3);
+  if (/^Digit[0-9]$/.test(code)) return code.slice(5);
+  if (/^F[0-9]{1,2}$/.test(code)) return code;
+  if (/^Numpad[0-9]$/.test(code)) return 'KP' + code.slice(6);
+  return CODES[code] || null;
+}
+function keyFull(k) { return FULL[k] || k; }
+function shortOf(a) {
+  if (a.t === 'key') return { l: DISP[a.k] || a.k };
+  if (a.t === 'combo') { const ks = a.ks; const last = ks[ks.length - 1]; return { l: ks.slice(0, -1).map((m) => MODS[m] || m).join('+') + '\n' + (DISP[last] || last) }; }
+  if (a.t === 'media') return a.f === 'play' ? { ic: 'play' } : { l: FUNC[a.f].short };
+  if (a.t === 'mouse') return { l: MOUSE_[a.m].short };
+  if (a.t === 'macro') return { l: 'M' + a.n };
+  if (a.t === 'off') return { ic: 'desactivada' };
+  return { l: '' };
+}
+function descOf(a, key) {
+  if (a.t === 'key') return keyFull(a.k);
+  if (a.t === 'combo') return a.ks.join(' + ');
+  if (a.t === 'media') return FUNC[a.f].label;
+  if (a.t === 'mouse') return 'Ratón: ' + MOUSE_[a.m].label.toLowerCase();
+  if (a.t === 'macro') return 'Macro ' + a.n + ' · ' + MMODES.find((m) => m[0] === a.mode)[1].toLowerCase();
+  if (a.t === 'off') return 'Desactivada';
+  return 'De fábrica (' + key + ')';
+}
+function shortDesc(a) {
+  if (a.t === 'key') return keyFull(a.k);
+  if (a.t === 'combo') return a.ks.join('+');
+  if (a.t === 'media') return FUNC[a.f].label;
+  if (a.t === 'mouse') return MOUSE_[a.m].label;
+  if (a.t === 'macro') return 'Macro ' + a.n;
+  if (a.t === 'off') return 'desactivada';
+  return 'función de fábrica';
+}
+function same(a, b) { return JSON.stringify(a) === JSON.stringify(b); }
+function scaleFor(w) { const s = 150 / (w + 7); return s >= 2.4 ? 2.4 : s >= 2 ? 2 : s >= 1.6 ? 1.6 : s >= 1.2 ? 1.2 : 0.9; }
+
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    const demo = props.demo === 'dialogo';
+    this.state = {
+      profile: 1, profLoading: 0, maps: JSON.parse(JSON.stringify(PROFILES)),
+      layer: 'normal', sel: 'CapsLock', draft: null, dd: null, q: '', cap: false,
+      act: { k: 'idle' },
+      toast: demo ? { kind: 'ok', text: 'CapsLock → Esc', keep: true } : null,
+      dlg: demo
+    };
+    this.timers = [];
+    this.capRef = (el) => { this.capEl = el; };
+  }
+  componentWillUnmount() { this.timers.forEach((t) => { clearTimeout(t); clearInterval(t); }); }
+  componentDidUpdate(pp, ps) { if (this.state.cap && !ps.cap && this.capEl) this.capEl.focus(); }
+  cur() { return this.state.maps[this.state.profile][this.state.layer][this.state.sel] || { t: 'default' }; }
+  draft() { return this.state.draft || this.cur(); }
+  toast(kind, text) {
+    clearTimeout(this.toastT);
+    this.setState({ toast: { kind, text } });
+    this.toastT = setTimeout(() => this.setState({ toast: null }), 3400);
+    this.timers.push(this.toastT);
+  }
+  run(text, ms, steps, done) {
+    this.setState({ act: { k: 'busy', text, p: steps ? 0 : null } });
+    if (!steps) { this.timers.push(setTimeout(() => { this.setState({ act: { k: 'idle' } }); if (done) done(); }, ms)); return; }
+    let i = 0;
+    const iv = setInterval(() => {
+      i += 1;
+      if (i >= steps) { clearInterval(iv); this.setState({ act: { k: 'idle' } }); if (done) done(); }
+      else this.setState({ act: { k: 'busy', text, p: i / steps, count: i + '/' + steps } });
+    }, ms / steps);
+    this.timers.push(iv);
+  }
+  setDraft(d) { this.setState({ draft: d, dd: null, q: '' }); }
+  setType(t) {
+    const c = this.draft();
+    let d = { t };
+    if (t === 'key') d = { t, k: c.t === 'key' ? c.k : 'Esc' };
+    if (t === 'combo') d = { t, ks: c.t === 'combo' ? c.ks.slice() : ['Ctrl', 'C'] };
+    if (t === 'media') d = { t, f: c.t === 'media' ? c.f : 'play' };
+    if (t === 'mouse') d = { t, m: c.t === 'mouse' ? c.m : 'left' };
+    if (t === 'macro') d = { t, n: c.t === 'macro' ? c.n : 3, mode: c.t === 'macro' ? c.mode : 'times' };
+    this.setState({ draft: d, dd: null, cap: false });
+  }
+  commit(map, label, toastText) {
+    const s = this.state;
+    const maps = JSON.parse(JSON.stringify(s.maps));
+    maps[s.profile][s.layer] = map(maps[s.profile][s.layer]);
+    this.run(label, 450, 0, () => { this.setState({ maps, draft: null }); this.toast('ok', toastText); });
+  }
+  keyGroups(current, onPick, withNone) {
+    const q = this.state.q.trim().toLowerCase();
+    const groups = PICK.map((g) => ({
+      h: g[0],
+      items: g[1].filter((k) => !q || k.toLowerCase().indexOf(q) >= 0).map((k) => ({
+        label: k, tail: DISP[k] && DISP[k].length === 1 ? DISP[k] : '', on: k === current,
+        cls: 'menu-i' + (k === current ? ' sel' : ''), pick: () => onPick(k)
+      }))
+    })).filter((g) => g.items.length);
+    if (withNone) groups.unshift({ h: 'Opcional', items: [{ label: '— Ninguna', tail: '', on: !current, cls: 'menu-i' + (!current ? ' sel' : ''), pick: () => onPick(null) }] });
+    return groups;
+  }
+  renderVals() {
+    const s = this.state;
+    const theme = this.props.theme ?? 'dark';
+    const conn = this.props.conn ?? 'cable';
+    const map = s.maps[s.profile][s.layer];
+    const isFn = s.layer === 'fn';
+    const cur = this.cur();
+    const draft = this.draft();
+    const dirty = !same(draft, cur);
+    const labels = {};
+    let nRemap = 0; let nOff = 0;
+    Object.keys(map).forEach((k) => {
+      const a = map[k];
+      const sh = shortOf(a);
+      if (a.t === 'off') nOff += 1; else nRemap += 1;
+      labels[k] = { cls: a.t === 'off' ? 'off' : 'remap', l: sh.l || '', ic: sh.ic || '', sub: k, tip: (isFn ? 'Fn + ' : '') + k + ' → ' + descOf(a, k) };
+    });
+    labels.Fn = isFn ? { cls: 'held', l: 'Fn', tip: 'Capa Fn: mantén Fn y pulsa la tecla' } : { cls: 'locked', l: 'Fn', tip: 'Fn activa la capa Fn y no se puede reasignar' };
+    const pvA = draft;
+    const pvS = shortOf(pvA);
+    const pv = {
+      w: W[s.sel] || 25, s: scaleFor(W[s.sel] || 25),
+      kind: pvA.t === 'default' ? 'normal' : pvA.t === 'off' ? 'off' : 'remap',
+      label: pvA.t === 'default' ? s.sel : (pvS.l || ''), icon: pvA.t === 'default' ? '' : (pvS.ic || ''),
+      sub: pvA.t === 'default' ? '' : s.sel
+    };
+    const open = (id) => s.dd === id;
+    const toggle = (id) => () => this.setState({ dd: s.dd === id ? null : id, q: '', cap: false });
+    let selects = [];
+    let ctlLabel = '';
+    if (draft.t === 'key') {
+      ctlLabel = 'Tecla';
+      selects = [{ w: 200, mw: 240, plus: false, search: true, value: keyFull(draft.k), open: open('key'), toggle: toggle('key'), groups: open('key') ? this.keyGroups(draft.k, (k) => this.setDraft({ t: 'key', k })) : [] }];
+    } else if (draft.t === 'combo') {
+      ctlLabel = 'Teclas';
+      selects = [0, 1, 2].map((i) => ({
+        w: 132, mw: 200, plus: i > 0, search: true, value: draft.ks[i] || '— Ninguna', open: open('c' + i), toggle: toggle('c' + i),
+        groups: open('c' + i) ? this.keyGroups(draft.ks[i], (k) => {
+          const ks = draft.ks.slice();
+          if (k) ks[i] = k; else ks.splice(i, 1);
+          this.setDraft({ t: 'combo', ks: ks.filter(Boolean) });
+        }, i === 2) : []
+      }));
+    } else if (draft.t === 'media') {
+      ctlLabel = 'Función';
+      const gs = ['Multimedia', 'Sistema', 'Navegador', 'Símbolos'].map((g) => ({ h: g, items: FUNCS.filter((f) => f[2] === g).map((f) => ({ label: f[1], tail: '', on: f[0] === draft.f, cls: 'menu-i' + (f[0] === draft.f ? ' sel' : ''), pick: () => this.setDraft({ t: 'media', f: f[0] }) })) }));
+      selects = [{ w: 260, mw: 300, plus: false, search: false, value: FUNC[draft.f].label, open: open('media'), toggle: toggle('media'), groups: open('media') ? gs : [] }];
+    } else if (draft.t === 'mouse') {
+      ctlLabel = 'Botón';
+      const gs = [{ h: 'Ratón', items: MOUSE.map((m) => ({ label: m[1], tail: '', on: m[0] === draft.m, cls: 'menu-i' + (m[0] === draft.m ? ' sel' : ''), pick: () => this.setDraft({ t: 'mouse', m: m[0] }) })) }];
+      selects = [{ w: 200, mw: 220, plus: false, search: false, value: MOUSE_[draft.m].label, open: open('mouse'), toggle: toggle('mouse'), groups: open('mouse') ? gs : [] }];
+    } else if (draft.t === 'macro') {
+      ctlLabel = 'Macro';
+      const mk = (n) => ({ label: 'Macro ' + n, tail: MACROS[n] || 'vacía', on: n === draft.n, cls: 'menu-i' + (n === draft.n ? ' sel' : ''), pick: () => this.setDraft({ t: 'macro', n, mode: draft.mode }) });
+      const all = []; for (let n = 0; n < 50; n++) all.push(n);
+      const gs = [{ h: 'Usadas', items: all.filter((n) => MACROS[n]).map(mk) }, { h: 'Vacías', items: all.filter((n) => !MACROS[n]).map(mk) }];
+      selects = [{ w: 250, mw: 320, plus: false, search: false, value: 'Macro ' + draft.n + ' · ' + (MACROS[draft.n] || 'vacía'), open: open('macro'), toggle: toggle('macro'), groups: open('macro') ? gs : [] }];
+    }
+    selects.forEach((sd) => { sd.cls = 'select' + (sd.open ? ' open' : ''); });
+    const types = TYPES.map((t) => ({ label: t[1], icon: t[2], on: draft.t === t[0], cls: 'seg-i' + (draft.t === t[0] ? ' on' : ''), pick: () => this.setType(t[0]) }));
+    const mmodes = MMODES.map((m) => ({ label: m[1], on: draft.mode === m[0], cls: 'seg-i' + (draft.mode === m[0] ? ' on' : ''), pick: () => this.setState({ draft: Object.assign({}, draft, { mode: m[0] }) }) }));
+    const layerName = isFn ? 'Capa Fn · Fn + ' + s.sel : 'Capa normal';
+    let footHint = '';
+    if (draft.t === 'macro' && draft.mode === 'times') footHint = 'Se repite las veces que marque «Repeticiones» en Macros.';
+    if (draft.t === 'macro' && draft.mode === 'hold') footHint = 'Se repite mientras mantienes la tecla.';
+    if (draft.t === 'macro' && draft.mode === 'toggle') footHint = 'Una pulsación la inicia y otra la detiene.';
+    if (dirty && !footHint) footHint = 'Pulsa Aplicar para enviarlo al teclado.';
+    const t = s.toast;
+    return {
+      theme, conn, profile: s.profile, profLoading: s.profLoading, act: s.act,
+      setProfile: (n) => {
+        if (n === s.profile || s.profLoading) return;
+        this.setState({ profLoading: n });
+        this.run('Cargando perfil ' + n + '…', 900, 4, () => { this.setState({ profile: n, profLoading: 0, draft: null }); this.toast('info', 'Perfil ' + n + ' cargado'); });
+      },
+      readAll: () => this.run('Leyendo teclas…', 1400, 8, () => this.toast('ok', 'Teclas leídas del perfil ' + s.profile)),
+      askRestore: () => this.setState({ dlg: true, dd: null }),
+      closeDlg: () => this.setState({ dlg: false }),
+      confirmRestore: () => { this.setState({ dlg: false }); this.commit(() => ({}), 'Restaurando teclas…', (isFn ? 'Capa Fn' : 'Capa normal') + ' restaurada en el perfil ' + s.profile); },
+      dlgBody: 'Todas las teclas de la ' + (isFn ? 'capa Fn' : 'capa normal') + ' del perfil ' + s.profile + ' volverán a su función de fábrica. Las macros no cambian.',
+      dlgOn: !!s.dlg,
+      segNormal: 'seg-i' + (isFn ? '' : ' on'), segFn: 'seg-i' + (isFn ? ' on' : ''), isNormal: !isFn, isFn,
+      layerNormal: () => this.setState({ layer: 'normal', draft: null, dd: null, cap: false }),
+      layerFn: () => this.setState({ layer: 'fn', draft: null, dd: null, cap: false }),
+      layerHint: isFn ? 'Lo que hace cada tecla mientras mantienes Fn.' : 'Lo que hace cada tecla al pulsarla.',
+      nRemap: isFn ? nRemap + ' funciones con Fn' : nRemap + (nRemap === 1 ? ' reasignada' : ' reasignadas'),
+      nOff: nOff + (nOff === 1 ? ' desactivada' : ' desactivadas'), showOff: nOff > 0,
+      kbLabels: labels, sel: s.sel,
+      pickKey: (k) => {
+        if (k === 'Fn') { this.toast('info', 'Fn activa la capa Fn y no se puede reasignar'); return; }
+        this.setState({ sel: k, draft: null, dd: null, cap: false });
+      },
+      pv, selName: s.sel, layerName,
+      curDesc: descOf(cur, s.sel), draftDesc: descOf(draft, s.sel), dirty, notDirty: !dirty,
+      isDefault: cur.t === 'default' && !dirty,
+      types, ctlLabel, selects, q: s.q,
+      setQ: (e) => this.setState({ q: e.target.value }),
+      isKey: draft.t === 'key', isMacro: draft.t === 'macro', mmodes,
+      infoOn: draft.t === 'off' || draft.t === 'default',
+      infoText: draft.t === 'off' ? 'La tecla no enviará nada. Útil contra pulsaciones accidentales.' : 'Vuelve a su función de fábrica: ' + s.sel + '.',
+      capRef: this.capRef,
+      capCls: s.cap ? 'btn btn-secondary is-focus' : 'btn btn-ghost',
+      capText: s.cap ? 'Pulsa una tecla…' : 'Capturar',
+      startCap: () => this.setState({ cap: !s.cap, dd: null }),
+      stopCap: () => { if (s.cap) this.setState({ cap: false }); },
+      capKey: (e) => {
+        if (!this.state.cap) return;
+        e.preventDefault();
+        const k = codeToKey(e.code);
+        if (k) this.setState({ draft: { t: 'key', k }, cap: false });
+      },
+      footHint,
+      restoreKey: () => this.commit((m) => { delete m[s.sel]; return m; }, 'Restaurando ' + s.sel + '…', s.sel + ' vuelve a su función de fábrica'),
+      apply: () => {
+        if (!dirty) return;
+        const d = draft;
+        this.commit((m) => { if (d.t === 'default') delete m[s.sel]; else m[s.sel] = d; return m; }, 'Asignando ' + s.sel + '…', (isFn ? 'Fn + ' : '') + s.sel + ' → ' + shortDesc(d));
+      },
+      ddOpen: !!s.dd, closeDD: () => this.setState({ dd: null }),
+      toastOn: !!t, toastCls: 'toast ' + (t ? t.kind : ''), toastText: t ? t.text : '',
+      toastIcon: t ? ({ ok: 'exito', err: 'error', warn: 'aviso', info: 'info' })[t.kind] : 'info',
+      closeToast: () => this.setState({ toast: null })
+    };
+  }
+}
+</script>
+</body>
+</html>

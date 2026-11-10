@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>L75 Config · Pantalla</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="l75.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div class="l75" data-theme="{{theme}}" style="position: relative; min-height: 100vh; display: flex; flex-wrap: wrap; background: var(--bg); color: var(--text-1);">
+<dc-import name="Sidebar" active="pantalla" theme="{{theme}}" hint-size="232px,800px"></dc-import>
+<main style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column;">
+<dc-import name="Topbar" theme="{{theme}}" conn="{{conn}}" act="{{act}}" profile="{{profile}}" loading="{{profLoading}}" on-profile="{{setProfile}}" hint-size="100%,56px"></dc-import>
+<div style="flex: 1; display: flex; flex-direction: column; gap: 16px; padding: 20px 28px 24px; min-width: 0;">
+<div class="ph">
+<div>
+<h1 class="ph-t">Pantalla</h1>
+<p class="ph-s">Pon tu imagen o GIF en la pantalla de 240 × 135 px del teclado.</p>
+</div>
+<button class="btn btn-secondary" type="button" title="Funciona por cable y por Bluetooth" onClick="{{syncTime}}"><dc-import name="Icon" i="reloj" s="16" hint-size="16px,16px"></dc-import>Sincronizar fecha y hora</button>
+</div>
+<div style="flex: 1; display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-start;">
+<section class="card" style="flex: 1 1 540px; min-width: 0; padding: 16px 18px 18px; display: flex; flex-direction: column; gap: 14px;" aria-label="Vista previa" onDragOver="{{dragOver}}" onDragLeave="{{dragLeave}}" onDrop="{{drop}}">
+<div class="card-h">
+<h2 class="t-sub" style="margin: 0;">Vista previa</h2>
+<span class="hint">a 2× · 480 × 270</span>
+<label style="margin-left: auto; display: inline-flex; align-items: center; gap: 8px; cursor: pointer;" title="Simula los 65 536 colores (RGB565) de la pantalla">
+<span class="hint">Píxeles reales (RGB565)</span>
+<button class="{{rgbCls}}" type="button" role="switch" aria-checked="{{rgb565}}" aria-label="Píxeles reales" onClick="{{toggle565}}"><span class="kn"></span></button>
+</label>
+</div>
+<div style="display: flex; justify-content: center; padding: 6px 0 2px;">
+<sc-if value="{{hasImage}}" hint-placeholder-val="{{ true }}">
+<div class="lcd">
+<canvas width="240" height="135" ref="{{lcdRef}}" role="img" aria-label="{{lcdAria}}"></canvas>
+<div class="lcd-glass"></div>
+<sc-if value="{{dragging}}" hint-placeholder-val="{{ false }}"><div class="drop over" style="position: absolute; inset: 14px; border-radius: 4px;"><dc-import name="Icon" i="subir" s="24" hint-size="24px,24px"></dc-import><span class="t-strong">Suelta para cargar la imagen</span></div></sc-if>
+</div>
+</sc-if>
+<sc-if value="{{noImage}}" hint-placeholder-val="{{ false }}">
+<div class="{{dropCls}}" style="width: 100%; max-width: 508px; aspect-ratio: 508 / 298; padding: 20px;">
+<span style="display: inline-flex; color: var(--text-2);"><dc-import name="Icon" i="imagen" s="32" hint-size="32px,32px"></dc-import></span>
+<span class="t-sub">Arrastra aquí una imagen o un GIF</span>
+<span class="hint">PNG, JPG, GIF o WebP · se adapta a 240 × 135 px</span>
+<label class="btn btn-secondary" style="margin-top: 6px;"><input class="sr" type="file" accept="image/*" onChange="{{pickFile}}">Elegir archivo…</label>
+</div>
+</sc-if>
+</div>
+<div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+<button class="btn btn-ghost btn-sm btn-icon" type="button" aria-label="{{playLabel}}" title="{{playLabel}}" disabled="{{noAnim}}" onClick="{{togglePlay}}"><dc-import name="Icon" i="{{playIcon}}" s="16" hint-size="16px,16px"></dc-import></button>
+<span class="mono" style="font-size: 12px; color: var(--text-2);">{{frameText}}</span>
+<div class="pg" style="flex: 1; min-width: 80px; max-width: 260px;"><div class="bar" style="width: {{framePct}}%; background: var(--text-3);"></div></div>
+<span class="hint" style="margin-left: auto; display: inline-flex; align-items: center; gap: 6px;">En el teclado, <span class="kbd">Fn</span>+<span class="kbd">Ctrl</span> alterna entre tu imagen y la pantalla por defecto (hora y batería).</span>
+</div>
+</section>
+<section class="card" style="flex: 0 1 330px; min-width: 290px; padding: 16px; display: flex; flex-direction: column; gap: 16px;" aria-label="Imagen y subida">
+<div style="display: flex; flex-direction: column; gap: 10px;">
+<span class="t-label">Archivo</span>
+<sc-if value="{{hasImage}}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; align-items: center; gap: 10px;">
+<canvas width="64" height="36" ref="{{thumbRef}}" aria-hidden="true" style="width: 64px; height: 36px; border-radius: 6px; background: #000; flex: none; border: 1px solid var(--border);"></canvas>
+<div style="flex: 1; min-width: 0;">
+<div class="t-strong" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{fileName}}</div>
+<div class="hint">{{fileMeta}}</div>
+</div>
+</div>
+<div style="display: flex; gap: 8px;">
+<label class="{{changeCls}}" title="{{lockTip}}"><input class="sr" type="file" accept="image/*" disabled="{{uploading}}" onChange="{{pickFile}}"><dc-import name="Icon" i="imagen" s="14" hint-size="14px,14px"></dc-import>Cambiar…</label>
+<button class="btn btn-ghost btn-sm" type="button" disabled="{{uploading}}" onClick="{{removeImage}}">Quitar</button>
+</div>
+</sc-if>
+<sc-if value="{{noImage}}" hint-placeholder-val="{{ false }}"><span class="hint">Sin imagen. Arrástrala al recuadro o elige un archivo.</span></sc-if>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px;" title="{{lockTip}}">
+<span class="t-label">Ajuste</span>
+<div class="seg block" role="radiogroup" aria-label="Ajuste a la pantalla">
+<sc-for list="{{fits}}" as="f" hint-placeholder-count="3"><button class="{{f.cls}}" type="button" role="radio" aria-checked="{{f.on}}" disabled="{{f.dis}}" title="{{f.tip}}" onClick="{{f.pick}}"><dc-import name="Icon" i="{{f.icon}}" s="14" hint-size="14px,14px"></dc-import>{{f.label}}</button></sc-for>
+</div>
+<span class="hint">{{fitHint}}</span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px;" title="{{delayTip}}">
+<div style="display: flex; align-items: center; justify-content: space-between;"><span class="t-label">Retardo entre cuadros</span><span class="mono" style="font-size: 12px; color: var(--text-2);">{{fps}}</span></div>
+<div style="display: flex; align-items: center; gap: 12px;">
+<div class="{{delaySlCls}}" style="flex: 1;">
+<div class="sl-track"><div class="sl-fill" style="width: {{delayPct}}%;"></div></div>
+<span class="sl-knob" style="left: {{delayPct}}%;"></span>
+<input class="sl-in" type="range" min="20" max="255" step="1" value="{{delay}}" disabled="{{delayDis}}" aria-label="Retardo entre cuadros" onChange="{{setDelay}}">
+</div>
+<span class="{{delayNumCls}}"><input type="number" min="20" max="255" value="{{delay}}" disabled="{{delayDis}}" aria-label="Retardo en milisegundos" onChange="{{setDelay}}"><span class="u">ms</span></span>
+</div>
+</div>
+<div style="display: flex; flex-direction: column;">
+<div class="kv"><span class="kv-l">Cuadros</span><span class="kv-v" style="display: inline-flex; align-items: center; gap: 8px;"><span class="pg" style="width: 56px;"><span class="bar" style="width: {{framesPct}}%;"></span></span>{{framesText}}</span></div>
+<div class="kv"><span class="kv-l">Área usada</span><span class="kv-v">{{area}}</span></div>
+<div class="kv"><span class="kv-l">Subida estimada</span><span class="kv-v">{{eta}}</span></div>
+</div>
+<sc-if value="{{canUpload}}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; flex-direction: column; gap: 8px;">
+<span title="{{uploadTip}}" style="display: flex;"><button class="btn btn-primary btn-lg" type="button" style="width: 100%;" disabled="{{uploadOff}}" onClick="{{startUpload}}"><dc-import name="Icon" i="subir" s="18" hint-size="18px,18px"></dc-import>Subir a la pantalla</button></span>
+<span class="hint">Mantén el cable conectado durante la subida.</span>
+</div>
+</sc-if>
+<sc-if value="{{uploading}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; gap: 10px; padding: 12px; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--border);" role="status" aria-live="polite">
+<div style="display: flex; align-items: center; gap: 8px;"><span class="spin" style="color: var(--accent);"></span><span class="t-strong">Subiendo cuadro {{upFrame}} de {{frames}}</span></div>
+<div class="pg lg rgb"><div class="bar"></div><div class="cover" style="width: {{upRest}}%;"></div></div>
+<div style="display: flex; align-items: center; gap: 10px;">
+<span class="mono" style="font-size: 12px;">{{upPct}} %</span>
+<span class="hint">{{upLeft}}</span>
+<button class="btn btn-secondary btn-sm" type="button" style="margin-left: auto;" onClick="{{cancelUpload}}">Cancelar</button>
+</div>
+<span class="hint">No desconectes el cable ni cierres la app.</span>
+</div>
+</sc-if>
+<sc-if value="{{btBlocked}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; gap: 10px; padding: 12px; border-radius: 10px; background: var(--surface-2); border: 1px dashed var(--border-strong);">
+<div style="display: flex; align-items: center; gap: 8px;"><span style="display: inline-flex; color: var(--warning);"><dc-import name="Icon" i="inalambrico" s="18" hint-size="18px,18px"></dc-import></span><span class="t-strong">La subida solo funciona por cable</span></div>
+<span class="hint">Conecta el L75 con el cable USB-C para subir imágenes. La fecha y la hora sí se sincronizan por Bluetooth.</span>
+<span title="Solo por cable USB-C" style="display: flex;"><button class="btn btn-primary btn-lg" type="button" style="width: 100%;" disabled="{{yes}}"><dc-import name="Icon" i="candado" s="16" hint-size="16px,16px"></dc-import>Subir a la pantalla</button></span>
+</div>
+</sc-if>
+</section>
+</div>
+</div>
+</main>
+<sc-if value="{{toastOn}}" hint-placeholder-val="{{ false }}">
+<div class="toasts" aria-live="polite">
+<div class="{{toastCls}}" role="status">
+<span class="ti"><dc-import name="Icon" i="{{toastIcon}}" s="18" hint-size="18px,18px"></dc-import></span>
+<span class="tx">{{toastText}}</span>
+<button class="btn btn-ghost btn-sm btn-icon" type="button" aria-label="Cerrar aviso" onClick="{{closeToast}}"><dc-import name="Icon" i="cerrar" s="14" hint-size="14px,14px"></dc-import></button>
+</div>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark","section":"Prototipo"},"conn":{"editor":"enum","options":["cable","bt","demo"],"default":"cable","section":"Prototipo"},"demo":{"editor":null},"$preview":{"width":1280,"height":800}}'>
+const FRAMES = 48;
+const MAXF = 122;
+const FITS = [['contain', 'Ajustar', 'ajustar', 'Se ve entera, con bandas negras arriba y abajo.'], ['cover', 'Rellenar', 'rellenar', 'Llena la pantalla recortando los bordes que sobran.'], ['stretch', 'Estirar', 'estirar', 'Llena la pantalla deformando la imagen.']];
+function hash(n) { const x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); }
+function fmtTime(s) { const m = Math.floor(s / 60); const r = Math.round(s - m * 60); return m ? m + ' min ' + r + ' s' : r + ' s'; }
+function fmtClock(s) { const m = Math.floor(s / 60); const r = Math.round(s - m * 60); return m + ':' + (r < 10 ? '0' : '') + r; }
+const MOUNTAINS_L = [[0, 138], [0, 104], [26, 96], [52, 110], [86, 86], [120, 112], [150, 100], [182, 138]];
+const MOUNTAINS_R = [[300, 138], [330, 104], [362, 118], [396, 88], [430, 108], [456, 98], [480, 106], [480, 138]];
+function drawScene(ctx, f) {
+  const W = 480; const H = 240; const u = f / FRAMES; const hor = 138;
+  const sky = ctx.createLinearGradient(0, 0, 0, hor);
+  sky.addColorStop(0, '#120428'); sky.addColorStop(0.55, '#3A0B55'); sky.addColorStop(1, '#B3265E');
+  ctx.fillStyle = sky; ctx.fillRect(0, 0, W, hor);
+  for (let i = 0; i < 46; i++) {
+    const tw = 0.35 + 0.65 * Math.abs(Math.sin(u * 6.283 * 2 + i * 1.7));
+    ctx.fillStyle = 'rgba(255,255,255,' + (0.15 + 0.6 * tw * hash(i + 9)).toFixed(3) + ')';
+    ctx.fillRect(Math.floor(hash(i) * W), Math.floor(hash(i + 50) * (hor - 48)), 2, 2);
+  }
+  const cx = 240; const cy = hor - 4; const r = 64;
+  const sun = ctx.createLinearGradient(0, cy - r, 0, cy);
+  sun.addColorStop(0, '#FFE45C'); sun.addColorStop(0.55, '#FF8A3D'); sun.addColorStop(1, '#FF3D8B');
+  ctx.save(); ctx.beginPath(); ctx.arc(cx, cy, r, Math.PI, 0); ctx.closePath(); ctx.clip();
+  ctx.fillStyle = sun; ctx.fillRect(cx - r, cy - r, 2 * r, r);
+  ctx.fillStyle = sky;
+  for (let i = 0; i < 6; i++) { const y = cy - r * 0.52 + i * 10 + u * 10; ctx.fillRect(cx - r, y, 2 * r, 1.4 + i * 1.3); }
+  ctx.restore();
+  ctx.fillStyle = '#1B0633';
+  [MOUNTAINS_L, MOUNTAINS_R].forEach((pts) => { ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]); pts.slice(1).forEach((p) => ctx.lineTo(p[0], p[1])); ctx.closePath(); ctx.fill(); });
+  const ground = ctx.createLinearGradient(0, hor, 0, H);
+  ground.addColorStop(0, '#2A0838'); ground.addColorStop(1, '#07020F');
+  ctx.fillStyle = ground; ctx.fillRect(0, hor, W, H - hor);
+  ctx.lineWidth = 1.5;
+  ctx.strokeStyle = 'rgba(255, 61, 165, 0.75)';
+  for (let i = -13; i <= 13; i++) { ctx.beginPath(); ctx.moveTo(cx + i * 8, hor); ctx.lineTo(cx + i * 70, H); ctx.stroke(); }
+  for (let j = 0; j < 9; j++) {
+    const z = (j + u) / 9; const y = hor + Math.pow(z, 2.2) * (H - hor);
+    ctx.strokeStyle = 'rgba(43, 210, 240, ' + (0.2 + 0.65 * z).toFixed(3) + ')';
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+  }
+  ctx.fillStyle = 'rgba(255, 140, 210, 0.85)'; ctx.fillRect(0, hor - 1, W, 2);
+}
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    const up = props.demo === 'subiendo';
+    this.state = {
+      fit: 'contain', delay: 80, playing: true, rgb565: false, hasImage: true, user: null, fileName: 'neon-sunset.gif',
+      uploading: up, prog: up ? 0.64 : 0, frame: 0, dragging: false,
+      act: up ? { k: 'busy', text: 'Subiendo imagen…', p: 0.64, count: '31/48' } : { k: 'idle' }, toast: null, profile: 1, profLoading: 0
+    };
+    this.timers = [];
+    this.lcdRef = (el) => { this.lcd = el; this.dirty = true; };
+    this.thumbRef = (el) => { this.thumb = el; this.dirty = true; };
+    this.tick = this.tick.bind(this);
+  }
+  componentDidMount() {
+    this.src = document.createElement('canvas');
+    this.src.width = 480; this.src.height = 240;
+    this.acc = 0; this.last = performance.now(); this.drawn = -1; this.dirty = true;
+    this.raf = requestAnimationFrame(this.tick);
+  }
+  componentDidUpdate() {
+    const s = this.state;
+    const key = [s.fit, s.rgb565, s.user, s.hasImage].join('|');
+    if (key !== this.drawKey) { this.drawKey = key; this.dirty = true; }
+  }
+  componentWillUnmount() { cancelAnimationFrame(this.raf); clearInterval(this.upIv); this.timers.forEach((t) => clearTimeout(t)); }
+  frames() { return this.state.user ? 1 : FRAMES; }
+  tick(now) {
+    this.raf = requestAnimationFrame(this.tick);
+    const s = this.state;
+    const dt = now - this.last; this.last = now;
+    if (s.playing && this.frames() > 1) {
+      this.acc += dt;
+      if (this.acc >= s.delay) { this.acc = this.acc % s.delay; this.setState({ frame: (s.frame + 1) % FRAMES }); }
+    }
+    if (this.drawn !== this.state.frame || this.dirty) { this.render2(); this.drawn = this.state.frame; this.dirty = false; }
+  }
+  render2() {
+    if (!this.lcd || !this.src) return;
+    const s = this.state;
+    const sctx = this.src.getContext('2d');
+    let img = this.src; let iw = 480; let ih = 240;
+    if (s.user) { img = s.user; iw = s.user.naturalWidth || 1; ih = s.user.naturalHeight || 1; }
+    else drawScene(sctx, s.frame);
+    const ctx = this.lcd.getContext('2d');
+    ctx.fillStyle = '#000'; ctx.fillRect(0, 0, 240, 135);
+    ctx.imageSmoothingEnabled = true;
+    if (s.fit === 'stretch') ctx.drawImage(img, 0, 0, 240, 135);
+    else {
+      const k = (s.fit === 'contain' ? Math.min : Math.max)(240 / iw, 135 / ih);
+      const dw = Math.round(iw * k); const dh = Math.round(ih * k);
+      ctx.drawImage(img, Math.floor((240 - dw) / 2), Math.floor((135 - dh) / 2), dw, dh);
+    }
+    if (s.rgb565) {
+      const d = ctx.getImageData(0, 0, 240, 135); const a = d.data;
+      for (let i = 0; i < a.length; i += 4) { a[i] = (a[i] & 0xF8) | (a[i] >> 5); a[i + 1] = (a[i + 1] & 0xFC) | (a[i + 1] >> 6); a[i + 2] = (a[i + 2] & 0xF8) | (a[i + 2] >> 5); }
+      ctx.putImageData(d, 0, 0);
+    }
+    if (this.thumb) { const t = this.thumb.getContext('2d'); t.fillStyle = '#000'; t.fillRect(0, 0, 64, 36); t.drawImage(this.lcd, 0, 0, 64, 36); }
+  }
+  area() {
+    const s = this.state;
+    if (s.fit !== 'contain') return [240, 135];
+    const iw = s.user ? s.user.naturalWidth || 240 : 480; const ih = s.user ? s.user.naturalHeight || 135 : 240;
+    const k = Math.min(240 / iw, 135 / ih);
+    return [Math.round(iw * k), Math.round(ih * k)];
+  }
+  seconds() { const a = this.area(); return Math.ceil(a[0] * a[1] * 2 / 56) * this.frames() * 2.5 / 1000; }
+  toast(kind, text) {
+    clearTimeout(this.toastT);
+    this.setState({ toast: { kind, text } });
+    this.toastT = setTimeout(() => this.setState({ toast: null }), 4200);
+    this.timers.push(this.toastT);
+  }
+  runUpload() {
+    clearInterval(this.upIv);
+    const total = this.seconds();
+    const n = this.frames();
+    this.upIv = setInterval(() => {
+      const p = Math.min(1, this.state.prog + 0.012);
+      const fr = Math.min(n, Math.floor(p * n) + 1);
+      if (p >= 1) {
+        clearInterval(this.upIv);
+        this.setState({ uploading: false, prog: 0, act: { k: 'idle' } });
+        this.toast('ok', 'Imagen subida en ' + fmtTime(total) + '. Si no la ves, pulsa Fn + Ctrl.');
+        return;
+      }
+      this.setState({ prog: p, act: { k: 'busy', text: 'Subiendo imagen…', p, count: fr + '/' + n } });
+    }, 110);
+  }
+  loadFile(file) {
+    if (!file || !/^image\//.test(file.type)) { this.toast('warn', 'Ese archivo no es una imagen'); return; }
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      const gif = /gif$/i.test(file.type);
+      this.setState({ user: img, hasImage: true, fileName: file.name, fileW: img.naturalWidth, fileH: img.naturalHeight, frame: 0 });
+      this.toast(gif ? 'info' : 'ok', gif ? 'Vista previa con el primer cuadro; la app real usa todos los cuadros del GIF' : 'Imagen cargada: ' + file.name);
+    };
+    img.src = url;
+  }
+  renderVals() {
+    const s = this.state;
+    const theme = this.props.theme ?? 'dark';
+    const conn = this.props.conn ?? 'cable';
+    const bt = conn === 'bt';
+    const n = this.frames();
+    const a = this.area();
+    const secs = this.seconds();
+    const lockTip = s.uploading ? 'Durante la subida no se puede cambiar la imagen' : '';
+    const t = s.toast;
+    return {
+      theme, conn, act: s.act, profile: s.profile, profLoading: s.profLoading, yes: true,
+      setProfile: (p) => {
+        if (p === s.profile || s.profLoading || s.uploading) return;
+        this.setState({ profLoading: p, act: { k: 'busy', text: 'Cargando perfil ' + p + '…', p: null } });
+        this.timers.push(setTimeout(() => { this.setState({ profile: p, profLoading: 0, act: { k: 'idle' } }); this.toast('info', 'Perfil ' + p + ' cargado'); }, 900));
+      },
+      syncTime: () => {
+        this.setState({ act: { k: 'busy', text: 'Sincronizando fecha y hora…', p: null } });
+        this.timers.push(setTimeout(() => {
+          const d = new Date();
+          this.setState({ act: { k: 'idle' } });
+          this.toast('ok', 'Fecha y hora sincronizadas: ' + d.toLocaleDateString('es-ES') + ' ' + d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }));
+        }, 650));
+      },
+      rgb565: s.rgb565, rgbCls: 'tg' + (s.rgb565 ? ' on' : ''), toggle565: () => this.setState({ rgb565: !s.rgb565 }),
+      hasImage: s.hasImage, noImage: !s.hasImage, lcdRef: this.lcdRef, thumbRef: this.thumbRef,
+      lcdAria: 'Vista previa de ' + s.fileName + ' en la pantalla del teclado',
+      dragging: s.dragging, dropCls: 'drop' + (s.dragging ? ' over' : ''),
+      dragOver: (e) => { e.preventDefault(); if (!this.state.dragging && !this.state.uploading) this.setState({ dragging: true }); },
+      dragLeave: (e) => { if (e.currentTarget.contains(e.relatedTarget)) return; this.setState({ dragging: false }); },
+      drop: (e) => { e.preventDefault(); this.setState({ dragging: false }); if (this.state.uploading) return; const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]; if (f) this.loadFile(f); },
+      pickFile: (e) => { const f = e.target.files && e.target.files[0]; if (f) this.loadFile(f); e.target.value = ''; },
+      removeImage: () => this.setState({ hasImage: false, user: null, playing: true }),
+      noAnim: n < 2, playing: s.playing, playIcon: s.playing ? 'pausa' : 'play', playLabel: s.playing ? 'Pausar' : 'Reproducir',
+      togglePlay: () => this.setState({ playing: !s.playing }),
+      frameText: n > 1 ? 'Cuadro ' + (s.frame + 1) + ' / ' + n : 'Imagen fija', framePct: n > 1 ? Math.round((s.frame + 1) / n * 100) : 100,
+      fileName: s.fileName, fileMeta: s.user ? n + ' cuadro · ' + s.fileW + ' × ' + s.fileH : FRAMES + ' cuadros · 480 × 240 · 1,2 MB',
+      changeCls: 'btn btn-secondary btn-sm' + (s.uploading ? ' is-disabled' : ''), lockTip,
+      fits: FITS.map((f) => ({ label: f[1], icon: f[2], tip: f[3], on: s.fit === f[0], dis: s.uploading, cls: 'seg-i' + (s.fit === f[0] ? ' on' : ''), pick: () => this.setState({ fit: f[0] }) })),
+      fitHint: FITS.find((f) => f[0] === s.fit)[3],
+      delay: s.delay, delayPct: Math.round((s.delay - 20) / 235 * 1000) / 10, delayDis: s.uploading || n < 2,
+      delaySlCls: 'sl' + (s.uploading || n < 2 ? ' is-disabled' : ''), delayNumCls: 'num sm' + (s.uploading || n < 2 ? ' is-disabled' : ''),
+      delayTip: n < 2 ? 'Una imagen fija no tiene retardo' : lockTip,
+      setDelay: (e) => { const v = Math.max(20, Math.min(255, Math.round(Number(e.target.value) || 20))); this.setState({ delay: v }); },
+      fps: n > 1 ? (1000 / s.delay).toFixed(1).replace('.', ',') + ' fps' : '—',
+      framesText: n + ' / ' + MAXF, framesPct: Math.round(n / MAXF * 100), frames: n,
+      area: a[0] + ' × ' + a[1] + ' px', eta: '≈ ' + fmtTime(secs),
+      canUpload: !s.uploading && !bt, btBlocked: bt && !s.uploading, uploading: s.uploading,
+      uploadOff: !s.hasImage, uploadTip: s.hasImage ? 'Unos ' + fmtTime(secs) + ' por cable' : 'Elige una imagen primero',
+      startUpload: () => { this.setState({ uploading: true, prog: 0, act: { k: 'busy', text: 'Subiendo imagen…', p: 0, count: '1/' + n } }); this.timers.push(setTimeout(() => this.runUpload(), 50)); },
+      cancelUpload: () => {
+        clearInterval(this.upIv);
+        const fr = Math.min(n, Math.floor(this.state.prog * n) + 1);
+        this.setState({ uploading: false, prog: 0, act: { k: 'idle' } });
+        this.toast('warn', 'Subida cancelada en el cuadro ' + fr + ' de ' + n);
+      },
+      upFrame: Math.min(n, Math.floor(s.prog * n) + 1), upPct: Math.round(s.prog * 100), upRest: Math.round((1 - s.prog) * 1000) / 10,
+      upLeft: '≈ ' + fmtClock((1 - s.prog) * secs) + ' restantes',
+      toastOn: !!t, toastCls: 'toast ' + (t ? t.kind : ''), toastText: t ? t.text : '',
+      toastIcon: t ? ({ ok: 'exito', err: 'error', warn: 'aviso', info: 'info' })[t.kind] : 'info',
+      closeToast: () => this.setState({ toast: null })
+    };
+  }
+}
+</script>
+</body>
+</html>

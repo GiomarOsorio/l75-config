@@ -253,6 +253,27 @@ class FakeBleDev:
         return self.incoming.pop(0) if self.incoming else b""
 
 
+class SystemFunctionTest(unittest.TestCase):
+    def test_fn_layer_names(self):
+        from l75ctl.keymap import Action, is_system
+        self.assertEqual(Action((10, 5, 2, 0)).kind, "system")
+        self.assertEqual(Action((10, 5, 2, 0)).short(), "iOS")
+        self.assertEqual(Action((14, 0, 0, 0)).short(), "BT1")
+        self.assertIn("brillo", Action((13, 2, 1, 0)).describe())
+        self.assertTrue(is_system((13, 9, 9, 0)))
+        self.assertFalse(is_system((3, 0, 205, 0)))      # multimedia: se puede cambiar
+        self.assertFalse(is_system((0, 0, 227, 43)))     # Win+Tab: se puede cambiar
+        self.assertEqual(Action((10, 1, 0, 0)).describe(), "Fn")
+
+    def test_demo_fn_layer(self):
+        from l75ctl.keyboard import L75
+        from l75ctl.keymap import find_key
+        with L75.open(demo=True) as kb:
+            acts = kb.read_matrix(fn=True)
+        self.assertEqual(acts[find_key("I").slot].short(), "iOS")
+        self.assertEqual(acts[find_key("Q").slot].short(), "BT1")
+
+
 class BleTransportTest(unittest.TestCase):
     def make(self, incoming, replies=()):
         from l75ctl.transport import BleTransport

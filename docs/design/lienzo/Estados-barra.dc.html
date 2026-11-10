@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>L75 Config · Estados de la barra superior</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="l75.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div class="l75" data-theme="{{theme}}" style="min-height: 100vh; background: var(--bg); color: var(--text-1); padding: 40px 48px 56px;">
+<div style="max-width: 1184px; margin: 0 auto; display: flex; flex-direction: column; gap: 28px;">
+<header style="max-width: 760px;">
+<h1 class="ph-t" style="font-size: 28px; line-height: 34px;">Barra superior</h1>
+<p class="ph-s">Siempre visible. A la izquierda, cómo está conectado el teclado y qué está haciendo la app; a la derecha, el perfil y la batería. Nada de esto bloquea la ventana.</p>
+</header>
+<section style="display: flex; flex-direction: column; gap: 12px;" aria-labelledby="e-con">
+<h2 id="e-con" class="t-title" style="margin: 0;">Conexión</h2>
+<sc-for list="{{conns}}" as="c" hint-placeholder-count="6">
+<div style="display: flex; gap: 20px; align-items: center; flex-wrap: wrap;">
+<div style="width: 190px; flex: none;"><div class="lbl">{{c.title}}</div><div class="hint">{{c.note}}</div></div>
+<div style="flex: 1 1 760px; min-width: 0; border-radius: 12px; overflow: hidden; border: 1px solid var(--border);">
+<dc-import name="Topbar" theme="{{theme}}" conn="{{c.conn}}" act="{{idle}}" profile="1" hint-size="100%,56px"></dc-import>
+</div>
+</div>
+</sc-for>
+</section>
+<section style="display: flex; flex-direction: column; gap: 12px;" aria-labelledby="e-act">
+<h2 id="e-act" class="t-title" style="margin: 0;">Actividad (no bloqueante)</h2>
+<sc-for list="{{acts}}" as="a" hint-placeholder-count="5">
+<div style="display: flex; gap: 20px; align-items: center; flex-wrap: wrap;">
+<div style="width: 190px; flex: none;"><div class="lbl">{{a.title}}</div><div class="hint">{{a.note}}</div></div>
+<div style="flex: 1 1 760px; min-width: 0; border-radius: 12px; overflow: hidden; border: 1px solid var(--border);">
+<dc-import name="Topbar" theme="{{theme}}" conn="cable" act="{{a.act}}" profile="{{a.profile}}" loading="{{a.loading}}" hint-size="100%,56px"></dc-import>
+</div>
+</div>
+</sc-for>
+</section>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(520px, 100%), 1fr)); gap: 20px;">
+<section class="card" style="padding: 20px 22px; display: flex; flex-direction: column; gap: 10px;" aria-labelledby="e-toast">
+<h2 id="e-toast" class="t-title" style="margin: 0 0 4px;">Avisos breves (toast)</h2>
+<p class="hint" style="margin: 0 0 6px;">Abajo, centrados en el área de contenido. Éxito e información se van solos a los 3 s; los errores esperan a que los cierres.</p>
+<sc-for list="{{toasts}}" as="t" hint-placeholder-count="5">
+<div class="{{t.cls}}" style="animation: none; max-width: 100%;">
+<span class="ti"><dc-import name="Icon" i="{{t.icon}}" s="18" hint-size="18px,18px"></dc-import></span>
+<span class="tx">{{t.text}}</span>
+<sc-if value="{{t.hasAct}}" hint-placeholder-val="{{ false }}"><button class="btn btn-secondary btn-sm" type="button">{{t.act}}</button></sc-if>
+<button class="btn btn-ghost btn-sm btn-icon" type="button" aria-label="Cerrar aviso"><dc-import name="Icon" i="cerrar" s="14" hint-size="14px,14px"></dc-import></button>
+</div>
+</sc-for>
+</section>
+<section class="card" style="padding: 20px 22px; display: flex; flex-direction: column; gap: 16px;" aria-labelledby="e-dis">
+<h2 id="e-dis" class="t-title" style="margin: 0;">Deshabilitado, siempre con motivo</h2>
+<p class="hint" style="margin: -8px 0 0;">El motivo va en un tooltip al pasar el ratón y, si cabe, en una línea de texto debajo del control.</p>
+<sc-for list="{{reasons}}" as="r" hint-placeholder-count="4">
+<div style="display: flex; flex-direction: column; gap: 6px;">
+<span class="t-label">{{r.where}}</span>
+<div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+<button class="{{r.cls}}" type="button" disabled="{{yes}}"><sc-if value="{{r.hasIc}}" hint-placeholder-val="{{ true }}"><dc-import name="Icon" i="{{r.icon}}" s="16" hint-size="16px,16px"></dc-import></sc-if>{{r.label}}</button>
+<span class="tip">{{r.tip}}</span>
+</div>
+</div>
+</sc-for>
+</section>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark"},"$preview":{"width":1280,"height":1500}}'>
+const CONNS = [
+  ['search', 'Buscando', 'Al abrir la app o al reintentar'],
+  ['cable', 'Conectado por cable', 'Todo disponible; carga la batería'],
+  ['bt', 'Conectado por Bluetooth', 'Todo menos subir imágenes'],
+  ['demo', 'Modo demo', 'Teclado simulado, no toca el hardware'],
+  ['none', 'Teclado no encontrado', 'Con las dos salidas a mano'],
+  ['rf', 'Receptor 2.4 GHz', 'Detectado pero aún no compatible']
+];
+const ACTS = [
+  ['En reposo', 'Todo enviado al teclado', { k: 'idle' }, 1, 0],
+  ['Con progreso', 'Leer las 81 teclas por BT tarda 1–2 s', { k: 'busy', text: 'Leyendo teclas…', p: 0.375, count: '3/8' }, 1, 0],
+  ['Sin progreso', 'Operaciones cortas', { k: 'busy', text: 'Aplicando luz…', p: null }, 1, 0],
+  ['Cambiando de perfil', 'El chip muestra la carga', { k: 'busy', text: 'Cargando perfil 2…', p: 0.5, count: '2/4' }, 1, 2],
+  ['Subida larga', 'Sigue visible en todas las secciones', { k: 'busy', text: 'Subiendo imagen…', p: 0.64, count: '31/48' }, 1, 0],
+  ['Error', 'Con acción para reintentar', { k: 'err', text: 'El teclado no respondió' }, 1, 0]
+];
+const TOASTS = [
+  ['toast ok', 'exito', 'CapsLock → Esc', ''],
+  ['toast ok', 'exito', 'Macro 3 guardada', ''],
+  ['toast info', 'info', 'Perfil 2 cargado', ''],
+  ['toast warn', 'aviso', 'Por Bluetooth no se pueden subir imágenes. Conecta el cable.', ''],
+  ['toast err', 'error', 'El teclado no respondió al aplicar la luz.', 'Reintentar']
+];
+const REASONS = [
+  ['Pantalla · por Bluetooth', 'btn btn-primary', 'candado', 'Subir a la pantalla', 'Solo por cable USB-C'],
+  ['Iluminación · modo Fijo', 'btn btn-secondary', 'velocidad', 'Velocidad', 'Fijo no usa velocidad'],
+  ['Iluminación · aplicar en vivo', 'btn btn-primary', 'aplicar', 'Aplicar', 'Con «Aplicar en vivo» cada cambio se envía al momento'],
+  ['Macros · demasiado larga', 'btn btn-primary', 'guardar', 'Guardar en el teclado', 'Se pasa por 12 bytes: quita eventos o esperas'],
+  ['Barra superior · sin teclado', 'chip', '', '2', 'Conecta el teclado para cambiar de perfil']
+];
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      theme: this.props.theme === 'light' ? 'light' : 'dark', yes: true, idle: { k: 'idle' },
+      conns: CONNS.map((c) => ({ conn: c[0], title: c[1], note: c[2] })),
+      acts: ACTS.map((a) => ({ title: a[0], note: a[1], act: a[2], profile: a[3], loading: a[4] })),
+      toasts: TOASTS.map((t) => ({ cls: t[0], icon: t[1], text: t[2], act: t[3], hasAct: !!t[3] })),
+      reasons: REASONS.map((r) => ({ where: r[0], cls: r[1], icon: r[2], hasIc: !!r[2], label: r[3], tip: r[4] }))
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>L75 Config · Colores por tecla</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="l75.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div class="l75" data-theme="{{theme}}" style="position: relative; min-height: 100vh; display: flex; flex-wrap: wrap; background: var(--bg); color: var(--text-1);">
+<dc-import name="Sidebar" active="colores" theme="{{theme}}" hint-size="232px,800px"></dc-import>
+<main style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column;">
+<dc-import name="Topbar" theme="{{theme}}" conn="{{conn}}" act="{{act}}" profile="{{profile}}" loading="{{profLoading}}" on-profile="{{setProfile}}" hint-size="100%,56px"></dc-import>
+<div style="flex: 1; display: flex; flex-direction: column; gap: 16px; padding: 20px 28px 24px; min-width: 0;">
+<div class="ph">
+<div>
+<h1 class="ph-t">Colores por tecla</h1>
+<p class="ph-s">Pinta cada tecla con su color. Cada clic se envía al teclado al instante.</p>
+</div>
+<div style="display: flex; gap: 8px; flex-wrap: wrap;">
+<button class="btn btn-secondary" type="button" onClick="{{readColors}}"><dc-import name="Icon" i="leer" s="16" hint-size="16px,16px"></dc-import>Leer colores</button>
+<button class="btn btn-secondary" type="button" onClick="{{paintAll}}"><dc-import name="Icon" i="pintar-todas" s="16" hint-size="16px,16px"></dc-import>Pintar todas</button>
+</div>
+</div>
+<sc-if value="{{needMode}}" hint-placeholder-val="{{ true }}">
+<div class="banner" role="note">
+<span class="bi"><dc-import name="Icon" i="info" s="18" hint-size="18px,18px"></dc-import></span>
+<span style="flex: 1; min-width: 0;">La luz actual es <strong>Lluvia</strong>. Estos colores solo se ven con el modo <strong>Imagen de usuario</strong>.</span>
+<button class="btn btn-primary btn-sm" type="button" onClick="{{activate}}">Activar modo Imagen de usuario</button>
+</div>
+</sc-if>
+<sc-if value="{{modeOn}}" hint-placeholder-val="{{ false }}">
+<div class="banner ok" role="note">
+<span class="bi"><dc-import name="Icon" i="exito" s="18" hint-size="18px,18px"></dc-import></span>
+<span style="flex: 1; min-width: 0;">Modo <strong>Imagen de usuario</strong> activo: el teclado muestra la imagen {{img}}.</span>
+<a class="btn btn-ghost btn-sm" href="{{lightHref}}">Ajustar brillo en Iluminación<dc-import name="Icon" i="chevron-derecha" s="14" hint-size="14px,14px"></dc-import></a>
+</div>
+</sc-if>
+<section class="deck" style="padding: 14px 20px 18px; display: flex; flex-direction: column; gap: 14px;" aria-label="Lienzo de colores">
+<div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap; position: relative;">
+<span class="lbl">Pincel</span>
+<button class="colorbtn" type="button" aria-expanded="{{pickerOpen}}" aria-label="Color del pincel" onClick="{{togglePicker}}"><span class="cb" style="background: {{brush}};"></span><span class="mono" style="font-size: 12.5px;">{{brush}}</span><span style="display: inline-flex; color: var(--text-2);"><dc-import name="Icon" i="chevron-abajo" s="14" hint-size="14px,14px"></dc-import></span></button>
+<div style="display: flex; gap: 6px; flex-wrap: wrap;" role="radiogroup" aria-label="Paleta rápida">
+<sc-for list="{{palette}}" as="p" hint-placeholder-count="11"><button class="{{p.cls}}" type="button" role="radio" aria-checked="{{p.on}}" title="{{p.name}}" aria-label="{{p.name}}" style="background: {{p.hex}};" onClick="{{p.pick}}"></button></sc-for>
+</div>
+<div class="seg" role="radiogroup" aria-label="Herramienta">
+<button class="{{brushCls}}" type="button" role="radio" aria-checked="{{isBrush}}" onClick="{{useBrush}}"><dc-import name="Icon" i="colores" s="14" hint-size="14px,14px"></dc-import>Pincel</button>
+<button class="{{pickCls}}" type="button" role="radio" aria-checked="{{isPick}}" onClick="{{usePick}}"><dc-import name="Icon" i="cuentagotas" s="14" hint-size="14px,14px"></dc-import>Cuentagotas</button>
+</div>
+<div style="margin-left: auto; display: flex; align-items: center; gap: 8px;" title="El teclado guarda hasta 5 imágenes de colores">
+<span class="hint">Imagen</span>
+<div style="display: flex; gap: 2px;" role="radiogroup" aria-label="Imagen de usuario">
+<sc-for list="{{imgs}}" as="im" hint-placeholder-count="5"><button class="{{im.cls}}" type="button" role="radio" aria-checked="{{im.on}}" aria-label="{{im.aria}}" onClick="{{im.pick}}">{{im.n}}</button></sc-for>
+</div>
+</div>
+<sc-if value="{{pickerOpen}}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; left: 52px; top: 40px; z-index: 30;">
+<dc-import name="Color" value="{{brush}}" theme="{{theme}}" embedded="{{yes}}" on-change="{{setBrush}}" hint-size="296px,330px"></dc-import>
+</div>
+</sc-if>
+</div>
+<div style="width: 100%; max-width: 920px; margin: 0 auto;">
+<dc-import name="Teclado" theme="{{theme}}" mode="paint" colors="{{colors}}" pick="{{isPick}}" on-paint="{{paintKey}}" hint-size="100%,358px"></dc-import>
+</div>
+<div style="display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap;" class="hint">
+<span>{{toolHint}}</span>
+<span style="color: var(--text-3);">·</span>
+<span>Negro = tecla apagada</span>
+</div>
+<div class="deck-glow"></div>
+</section>
+</div>
+</main>
+<sc-if value="{{pickerOpen}}" hint-placeholder-val="{{ false }}"><button type="button" tabindex="-1" aria-label="Cerrar selector de color" onClick="{{togglePicker}}" style="position: fixed; inset: 0; z-index: 20; background: transparent; border: 0; cursor: default;"></button></sc-if>
+<sc-if value="{{toastOn}}" hint-placeholder-val="{{ false }}">
+<div class="toasts" aria-live="polite">
+<div class="{{toastCls}}" role="status">
+<span class="ti"><dc-import name="Icon" i="{{toastIcon}}" s="18" hint-size="18px,18px"></dc-import></span>
+<span class="tx">{{toastText}}</span>
+<sc-if value="{{toastUndo}}" hint-placeholder-val="{{ false }}"><button class="btn btn-secondary btn-sm" type="button" onClick="{{undo}}"><dc-import name="Icon" i="restaurar" s="14" hint-size="14px,14px"></dc-import>Deshacer</button></sc-if>
+<button class="btn btn-ghost btn-sm btn-icon" type="button" aria-label="Cerrar aviso" onClick="{{closeToast}}"><dc-import name="Icon" i="cerrar" s="14" hint-size="14px,14px"></dc-import></button>
+</div>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark","section":"Prototipo"},"conn":{"editor":"enum","options":["cable","bt","demo"],"default":"cable","section":"Prototipo"},"$preview":{"width":1280,"height":800}}'>
+const KEYS = [['Esc', 0, 25], ['F1', 60, 25], ['F2', 96, 25], ['F3', 131, 25], ['F4', 166, 25], ['F5', 213, 25], ['F6', 249, 25], ['F7', 284, 25], ['F8', 319, 25], ['F9', 366, 25], ['F10', 402, 25], ['F11', 437, 25], ['F12', 472, 25],
+  ['`', 0, 25], ['1', 35, 25], ['2', 71, 25], ['3', 106, 25], ['4', 142, 25], ['5', 177, 25], ['6', 213, 25], ['7', 248, 25], ['8', 284, 25], ['9', 319, 25], ['0', 355, 25], ['-', 390, 25], ['=', 426, 25], ['Backspace', 462, 59], ['Ins', 547, 25],
+  ['Tab', 0, 42], ['Q', 53, 25], ['W', 89, 25], ['E', 124, 25], ['R', 160, 25], ['T', 195, 25], ['Y', 231, 25], ['U', 266, 25], ['I', 302, 25], ['O', 337, 25], ['P', 373, 25], ['[', 408, 25], [']', 444, 25], ['\\', 479, 42], ['Del', 547, 25],
+  ['CapsLock', 0, 51], ['A', 61, 25], ['S', 97, 25], ['D', 132, 25], ['F', 168, 25], ['G', 203, 25], ['H', 239, 25], ['J', 274, 25], ['K', 310, 25], ['L', 345, 25], [';', 381, 25], ["'", 416, 25], ['Enter', 452, 69], ['PgUp', 547, 25],
+  ['Shift', 0, 69], ['Z', 79, 25], ['X', 115, 25], ['C', 150, 25], ['V', 186, 25], ['B', 221, 25], ['N', 257, 25], ['M', 292, 25], [',', 328, 25], ['.', 363, 25], ['/', 399, 25], ['RShift', 434, 51], ['PgDn', 547, 25],
+  ['Ctrl', 0, 33], ['Win', 44, 33], ['Alt', 89, 33], ['Space', 135, 207], ['RAlt', 355, 25], ['Fn', 390, 25], ['RCtrl', 426, 25], ['↑', 504, 25], ['←', 469, 25], ['↓', 504, 25], ['→', 540, 25]];
+const PALETTE = [['Rojo', '#FF2D2D'], ['Naranja', '#FF8A1F'], ['Ámbar', '#FFB020'], ['Amarillo', '#FFE14D'], ['Verde', '#3DF56B'], ['Cian', '#2BD2F0'], ['Azul', '#3D6BFF'], ['Violeta', '#9B5CFF'], ['Magenta', '#FF3DA5'], ['Blanco', '#FFFFFF'], ['Apagada', '#000000']];
+const GAME = ['W', 'A', 'S', 'D', '↑', '←', '↓', '→'];
+function hexOf(r, g, b) { return '#' + [r, g, b].map((v) => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0')).join('').toUpperCase(); }
+function hsl(h, s, l) { const a = s * Math.min(l, 1 - l); const f = (n) => { const k = (n + h / 30) % 12; return l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1)); }; return hexOf(f(0) * 255, f(8) * 255, f(4) * 255); }
+function image(n) {
+  const c = {};
+  KEYS.forEach((k) => {
+    const x = (k[1] + k[2] / 2) / 572;
+    if (n === 1) c[k[0]] = hsl(320 - x * 130, 1, 0.56);
+    else if (n === 2) c[k[0]] = '#2BD2F0';
+    else c[k[0]] = '#000000';
+  });
+  if (n === 1) { GAME.forEach((g) => { c[g] = '#FFB020'; }); c.Esc = '#FF2D2D'; }
+  if (n === 2) { GAME.forEach((g) => { c[g] = '#FF3DA5'; }); }
+  return c;
+}
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { brush: '#FFB020', tool: 'brush', colors: image(1), userMode: false, img: 1, picker: false, act: { k: 'idle' }, toast: null, undo: null, profile: 1, profLoading: 0 };
+    this.timers = [];
+  }
+  componentWillUnmount() { this.timers.forEach((t) => { clearTimeout(t); clearInterval(t); }); }
+  toast(kind, text, undo) {
+    clearTimeout(this.toastT);
+    this.setState({ toast: { kind, text, undo: !!undo } });
+    this.toastT = setTimeout(() => this.setState({ toast: null }), 4200);
+    this.timers.push(this.toastT);
+  }
+  busy(text, ms, done, steps) {
+    if (!steps) {
+      this.setState({ act: { k: 'busy', text, p: null } });
+      this.timers.push(setTimeout(() => { this.setState({ act: { k: 'idle' } }); if (done) done(); }, ms));
+      return;
+    }
+    let i = 0;
+    this.setState({ act: { k: 'busy', text, p: 0, count: '0/' + steps } });
+    const iv = setInterval(() => {
+      i += 1;
+      if (i >= steps) { clearInterval(iv); this.setState({ act: { k: 'idle' } }); if (done) done(); }
+      else this.setState({ act: { k: 'busy', text, p: i / steps, count: i + '/' + steps } });
+    }, ms / steps);
+    this.timers.push(iv);
+  }
+  renderVals() {
+    const s = this.state;
+    const theme = this.props.theme ?? 'dark';
+    const isPick = s.tool === 'pick';
+    const t = s.toast;
+    return {
+      theme, conn: this.props.conn ?? 'cable', act: s.act, profile: s.profile, profLoading: s.profLoading, yes: true,
+      setProfile: (n) => {
+        if (n === s.profile || s.profLoading) return;
+        this.setState({ profLoading: n });
+        this.busy('Cargando perfil ' + n + '…', 900, () => { this.setState({ profile: n, profLoading: 0 }); this.toast('info', 'Perfil ' + n + ' cargado'); });
+      },
+      needMode: !s.userMode, modeOn: s.userMode, img: s.img,
+      lightHref: theme === 'light' ? 'Claro-Iluminacion.dc.html' : 'Iluminacion.dc.html',
+      activate: () => this.busy('Aplicando luz…', 500, () => { this.setState({ userMode: true }); this.toast('ok', 'Luz de teclas: Imagen de usuario'); }),
+      readColors: () => this.busy('Leyendo colores…', 900, () => { this.setState({ colors: image(s.img) }); this.toast('ok', 'Colores leídos de la imagen ' + s.img); }, 6),
+      paintAll: () => {
+        const prev = s.colors;
+        const colors = {};
+        KEYS.forEach((k) => { colors[k[0]] = s.brush; });
+        this.setState({ colors, undo: prev });
+        this.busy('Pintando 81 teclas…', 900, () => this.toast('ok', 'Todas las teclas en ' + s.brush, true), 9);
+      },
+      undo: () => { if (s.undo) this.setState({ colors: s.undo, undo: null, toast: null }); },
+      brush: s.brush, pickerOpen: s.picker,
+      togglePicker: () => this.setState({ picker: !s.picker }),
+      setBrush: (hex) => this.setState({ brush: hex, tool: 'brush' }),
+      palette: PALETTE.map((p) => ({ name: p[0], hex: p[1], on: p[1] === s.brush, cls: 'sw' + (p[1] === '#000000' ? ' offc' : '') + (p[1] === s.brush ? ' on' : ''), pick: () => this.setState({ brush: p[1], tool: 'brush' }) })),
+      isBrush: !isPick, isPick, brushCls: 'seg-i' + (isPick ? '' : ' on'), pickCls: 'seg-i' + (isPick ? ' on' : ''),
+      useBrush: () => this.setState({ tool: 'brush' }), usePick: () => this.setState({ tool: 'pick' }),
+      toolHint: isPick ? 'Cuentagotas: haz clic en una tecla para copiar su color' : 'Haz clic o arrastra sobre las teclas para pintar',
+      imgs: [1, 2, 3, 4, 5].map((n) => ({
+        n, on: n === s.img, aria: 'Imagen ' + n, cls: 'chip' + (n === s.img ? ' on' : ''),
+        pick: () => { if (n !== s.img) this.busy('Leyendo imagen ' + n + '…', 700, () => this.setState({ img: n, colors: image(n) }), 6); }
+      })),
+      colors: s.colors,
+      paintKey: (name) => {
+        if (this.state.tool === 'pick') {
+          const c = this.state.colors[name];
+          this.setState({ brush: c, tool: 'brush' });
+          this.toast('info', 'Color de ' + name + ': ' + c);
+          return;
+        }
+        if (this.state.colors[name] === this.state.brush) return;
+        const colors = Object.assign({}, this.state.colors, { [name]: this.state.brush });
+        clearTimeout(this.paintT);
+        this.setState({ colors, act: { k: 'busy', text: 'Enviando color · ' + name, p: null } });
+        this.paintT = setTimeout(() => this.setState({ act: { k: 'idle' } }), 380);
+        this.timers.push(this.paintT);
+      },
+      toastOn: !!t, toastCls: 'toast ' + (t ? t.kind : ''), toastText: t ? t.text : '', toastUndo: !!(t && t.undo && s.undo),
+      toastIcon: t ? ({ ok: 'exito', err: 'error', warn: 'aviso', info: 'info' })[t.kind] : 'info',
+      closeToast: () => this.setState({ toast: null })
+    };
+  }
+}
+</script>
+</body>
+</html>

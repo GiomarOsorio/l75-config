@@ -1,0 +1,59 @@
+{
+  "v": 3,
+  "createdOnFiles": {"v": 1, "at": "2026-11-10T14:53:17Z"},
+  "title": "Rediseño L75 Config",
+  "launch": {"view": "canvas", "page": "pantallas"},
+  "pages": [
+    {"id": "pantallas", "name": "Pantallas"},
+    {"id": "estados", "name": "Estados"},
+    {"id": "sistema", "name": "Sistema de diseño"}
+  ],
+  "boards": {
+    "Main.dc.html": {"x": 0, "y": 0, "w": 1280, "h": 800, "title": "Teclas", "page": "pantallas", "expand": "fill", "is_interactive": true},
+    "Iluminacion.dc.html": {"x": 1360, "y": 0, "w": 1280, "h": 800, "title": "Iluminación", "page": "pantallas", "expand": "fill", "is_interactive": true},
+    "Colores.dc.html": {"x": 2720, "y": 0, "w": 1280, "h": 800, "title": "Colores por tecla", "page": "pantallas", "expand": "fill", "is_interactive": true},
+    "Macros.dc.html": {"x": 4080, "y": 0, "w": 1280, "h": 800, "title": "Macros", "page": "pantallas", "expand": "fill", "is_interactive": true},
+    "Pantalla.dc.html": {"x": 5440, "y": 0, "w": 1280, "h": 800, "title": "Pantalla", "page": "pantallas", "expand": "fill", "is_interactive": true},
+    "Ajustes.dc.html": {"x": 6800, "y": 0, "w": 1280, "h": 800, "title": "Ajustes", "page": "pantallas", "expand": "fill", "is_interactive": true},
+    "Claro-Teclas.dc.html": {"x": 0, "y": 1240, "w": 1280, "h": 800, "title": "Teclas · claro", "page": "pantallas", "expand": "fill", "is_interactive": true},
+    "Claro-Iluminacion.dc.html": {"x": 1360, "y": 1240, "w": 1280, "h": 800, "title": "Iluminación · claro", "page": "pantallas", "expand": "fill", "is_interactive": true},
+    "Claro-Colores.dc.html": {"x": 2720, "y": 1240, "w": 1280, "h": 800, "title": "Colores por tecla · claro", "page": "pantallas", "expand": "fill", "is_interactive": true},
+    "Claro-Macros.dc.html": {"x": 4080, "y": 1240, "w": 1280, "h": 800, "title": "Macros · claro", "page": "pantallas", "expand": "fill", "is_interactive": true},
+    "Claro-Pantalla.dc.html": {"x": 5440, "y": 1240, "w": 1280, "h": 800, "title": "Pantalla · claro", "page": "pantallas", "expand": "fill", "is_interactive": true},
+    "Claro-Ajustes.dc.html": {"x": 6800, "y": 1240, "w": 1280, "h": 800, "title": "Ajustes · claro", "page": "pantallas", "expand": "fill", "is_interactive": true},
+    "Estados-barra.dc.html": {"x": 0, "y": 0, "w": 1280, "h": 1580, "title": "Barra superior: conexión, actividad y avisos", "page": "estados", "expand": "fill"},
+    "Sin-teclado.dc.html": {"x": 1360, "y": 0, "w": 1280, "h": 800, "title": "Teclado no encontrado", "page": "estados", "expand": "fill", "is_interactive": true},
+    "Buscando.dc.html": {"x": 2720, "y": 0, "w": 1280, "h": 800, "title": "Buscando teclado", "page": "estados", "expand": "fill"},
+    "Permiso-udev.dc.html": {"x": 4080, "y": 0, "w": 1280, "h": 800, "title": "Falta permiso (Linux)", "page": "estados", "expand": "fill", "is_interactive": true},
+    "Pantalla-subiendo.dc.html": {"x": 0, "y": 2000, "w": 1280, "h": 800, "title": "Subida en curso", "page": "estados", "expand": "fill", "is_interactive": true},
+    "Pantalla-BT.dc.html": {"x": 1360, "y": 2000, "w": 1280, "h": 800, "title": "Pantalla por Bluetooth", "page": "estados", "expand": "fill", "is_interactive": true},
+    "Teclas-dialogo.dc.html": {"x": 2720, "y": 2000, "w": 1280, "h": 800, "title": "Confirmar «Restaurar todas» + toast", "page": "estados", "expand": "fill", "is_interactive": true},
+    "Ajustes-fabrica.dc.html": {"x": 4080, "y": 2000, "w": 1280, "h": 800, "title": "Restaurar de fábrica (confirmación fuerte)", "page": "estados", "expand": "fill", "is_interactive": true},
+    "Iluminacion-error.dc.html": {"x": 5440, "y": 2000, "w": 1280, "h": 800, "title": "Error: el teclado no respondió", "page": "estados", "expand": "fill", "is_interactive": true},
+    "Tokens.dc.html": {"x": 0, "y": 0, "w": 1280, "h": 3840, "title": "Tokens (oscuro y claro)", "page": "sistema", "expand": "fill"},
+    "Componentes.dc.html": {"x": 1360, "y": 0, "w": 1280, "h": 3800, "title": "Componentes y estados · oscuro", "page": "sistema", "expand": "fill", "is_interactive": true},
+    "Componentes-claro.dc.html": {"x": 2720, "y": 0, "w": 1280, "h": 3800, "title": "Componentes y estados · claro", "page": "sistema", "expand": "fill", "is_interactive": true},
+    "Icon.dc.html": {"x": 4080, "y": 0, "w": 1280, "h": 2040, "title": "Iconos SVG", "page": "sistema", "expand": "fill"},
+    "Teclado.dc.html": {"x": 4080, "y": 2160, "w": 1280, "h": 640, "title": "Teclado (lienzo QPainter)", "page": "sistema", "is_interactive": true},
+    "Tecla.dc.html": {"x": 4080, "y": 2920, "w": 1280, "h": 480, "title": "Tecla: estados y medidas", "page": "sistema"},
+    "Color.dc.html": {"x": 5440, "y": 0, "w": 320, "h": 420, "title": "Selector de color", "page": "sistema", "is_interactive": true},
+    "Sidebar.dc.html": {"x": 5840, "y": 0, "w": 232, "h": 800, "title": "Barra lateral", "page": "sistema"},
+    "Topbar.dc.html": {"x": 5440, "y": 920, "w": 1048, "h": 56, "title": "Barra superior", "page": "sistema"}
+  },
+  "order": [
+    "Main.dc.html", "Iluminacion.dc.html", "Colores.dc.html", "Macros.dc.html", "Pantalla.dc.html", "Ajustes.dc.html",
+    "Claro-Teclas.dc.html", "Claro-Iluminacion.dc.html", "Claro-Colores.dc.html", "Claro-Macros.dc.html", "Claro-Pantalla.dc.html", "Claro-Ajustes.dc.html",
+    "Estados-barra.dc.html", "Sin-teclado.dc.html", "Buscando.dc.html", "Permiso-udev.dc.html",
+    "Pantalla-subiendo.dc.html", "Pantalla-BT.dc.html", "Teclas-dialogo.dc.html", "Ajustes-fabrica.dc.html", "Iluminacion-error.dc.html",
+    "Tokens.dc.html", "Componentes.dc.html", "Componentes-claro.dc.html", "Icon.dc.html", "Teclado.dc.html", "Tecla.dc.html", "Color.dc.html", "Sidebar.dc.html", "Topbar.dc.html"
+  ],
+  "notes": {
+    "n1": {"x": 0, "y": -300, "text": "Pantallas · tema oscuro (por defecto)", "kind": "title1", "maxW": 8080, "page": "pantallas"},
+    "n2": {"x": 0, "y": 940, "text": "Tema claro · mismos tokens", "kind": "title1", "maxW": 8080, "page": "pantallas"},
+    "n3": {"x": -660, "y": 0, "w": 560, "size": "m", "fill": "teal", "page": "pantallas", "text": "Prototipo navegable: pulsa Play en cualquier pantalla. La barra lateral enlaza las seis secciones y los botones luna/sol cambian de tema. Responde de verdad: elegir y reasignar teclas, capa Fn, modos de luz animados, pintar teclas, editar y grabar macros, subir a la pantalla y los diálogos. Tokens, componentes e iconos están en la página «Sistema de diseño»; los estados globales, en «Estados»."},
+    "n4": {"x": 0, "y": -300, "text": "Conexión, errores y progreso", "kind": "title1", "maxW": 5360, "page": "estados"},
+    "n5": {"x": 0, "y": 1700, "text": "Estados dentro de las pantallas", "kind": "title1", "maxW": 6720, "page": "estados"},
+    "n6": {"x": 0, "y": -300, "text": "Sistema de diseño · tokens, componentes e iconos", "kind": "title1", "maxW": 7200, "page": "sistema"}
+  },
+  "designSystems": []
+}

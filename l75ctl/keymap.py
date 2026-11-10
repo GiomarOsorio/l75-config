@@ -128,6 +128,41 @@ MACRO_MODES = {"times": 0, "toggle": 1, "hold": 2}
 MACRO_MODE_LABELS = {0: "repetir N veces", 1: "on/off (pulsar para iniciar/parar)", 2: "mientras se mantiene"}
 MODIFIER_HIDS = range(0xE0, 0xE8)
 
+# Funciones de sistema de la capa Fn (leídas de un L75 real; nombres del manual oficial).
+# El driver oficial no deja cambiarlas ("系统按键无法修改": tecla del sistema).
+# (corto, descripción, confirmado en el manual)
+SYSTEM_FUNCTIONS: dict[tuple[int, int, int, int], tuple[str, str, bool]] = {
+    (10, 1, 0, 0): ("Fn", "Fn", True),
+    (10, 1, 1, 0): ("Fn", "Fn derecha", True),
+    (10, 2, 0, 0): ("Reset", "Restablecer el teclado", True),
+    (10, 3, 0, 0): ("WinLk", "Bloquear la tecla Windows", False),
+    (10, 5, 0, 0): ("Win", "Distribución Windows", True),
+    (10, 5, 1, 0): ("Mac", "Distribución Mac", True),
+    (10, 5, 2, 0): ("iOS", "Distribución iOS", True),
+    (10, 8, 0, 0): ("Bat", "Indicador de batería", True),
+    (10, 12, 0, 0): ("Luz", "Encender / apagar la luz", True),
+    (10, 13, 0, 0): ("FnLk", "Fn Lock", False),
+    (13, 1, 0, 0): ("Modo", "Cambiar el efecto de luz", True),
+    (13, 2, 1, 0): ("Br+", "Subir el brillo de la luz", True),
+    (13, 2, 2, 0): ("Br−", "Bajar el brillo de la luz", True),
+    (13, 3, 1, 0): ("Vel−", "Bajar la velocidad de la luz", True),
+    (13, 3, 2, 0): ("Vel+", "Subir la velocidad de la luz", True),
+    (13, 5, 1, 0): ("Color", "Cambiar el color de la luz (monocromo)", True),
+    (13, 8, 0, 0): ("Tira", "Modo de la tira lateral / apagarla", False),
+    (14, 0, 0, 0): ("BT1", "Bluetooth canal 1 (mantener: emparejar)", True),
+    (14, 0, 1, 0): ("BT2", "Bluetooth canal 2 (mantener: emparejar)", True),
+    (14, 0, 2, 0): ("BT3", "Bluetooth canal 3 (mantener: emparejar)", True),
+    (14, 0, 5, 0): ("2.4G", "Canal 2.4 GHz", False),
+    (19, 0, 0, 0): ("LCD", "Pantalla: tu imagen o el estilo por defecto", True),
+    (19, 2, 0, 0): ("LCD2", "Pantalla: otra vista", False),
+}
+SYSTEM_TYPES = (2, 8, 10, 13, 14, 18, 19)
+
+
+def is_system(raw: tuple[int, int, int, int]) -> bool:
+    """Función de sistema del firmware: el driver oficial no deja cambiarla."""
+    return raw in SYSTEM_FUNCTIONS or raw[0] in SYSTEM_TYPES
+
 
 # ---------------------------------------------------------------- acciones
 @dataclass(frozen=True)
@@ -139,6 +174,8 @@ class Action:
         t, a, b, c = self.raw
         if self.raw == (0, 0, 0, 0):
             return "off"
+        if self.raw[0] in SYSTEM_TYPES and self.raw not in ((10, 1, 0, 0), (10, 1, 1, 0)):
+            return "system"
         if self.raw in FUNCTION_BY_BYTES:
             return "function"
         if t == 0:
@@ -173,6 +210,11 @@ class Action:
             return f"Macro {b} ({MACRO_MODE_LABELS.get(a, a)})"
         if k == "fn":
             return "Fn" if a == 1 else f"Fn especial {a},{b}"
+        if k == "system":
+            info = SYSTEM_FUNCTIONS.get(self.raw)
+            if info:
+                return info[1] + ("" if info[2] else " (sin confirmar)")
+            return "Función del sistema [" + ",".join(str(x) for x in self.raw) + "]"
         return "Desconocido [" + ",".join(str(x) for x in self.raw) + "]"
 
     def short(self) -> str:
@@ -192,6 +234,9 @@ class Action:
             return "🖱" + (MOUSE_BY_BYTES.get(self.raw) or "?")
         if k == "fn":
             return "Fn"
+        if k == "system":
+            info = SYSTEM_FUNCTIONS.get(self.raw)
+            return info[0] if info else "Sist."
         return self.describe()[:6]
 
     # ---- constructores

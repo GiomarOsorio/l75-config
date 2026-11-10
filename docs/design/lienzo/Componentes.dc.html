@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>L75 Config · Componentes</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="l75.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div class="l75" data-theme="{{theme}}" style="min-height: 100vh; background: var(--bg); color: var(--text-1); padding: 40px 48px 56px;">
+<div style="max-width: 1184px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px;">
+<header style="display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; flex-wrap: wrap;">
+<div style="max-width: 760px;">
+<h1 class="ph-t" style="font-size: 28px; line-height: 34px;">Componentes y estados</h1>
+<p class="ph-s">Cada componente con todos sus estados. Debajo del título va el widget de Qt y el selector QSS que le corresponde.</p>
+</div>
+<span class="pill acc">{{themeName}}</span>
+</header>
+<section class="card" style="padding: 20px 22px; display: flex; flex-direction: column; gap: 14px;">
+<div><h2 class="t-title" style="margin: 0;">Botones</h2><p class="hint mono" style="margin: 2px 0 0;">QPushButton[variant="primary|secondary|danger|ghost"] · :hover · :pressed · :focus · :disabled</p></div>
+<div class="scroll" style="overflow-x: auto;">
+<div style="min-width: 860px; display: flex; flex-direction: column; gap: 10px;">
+<div style="display: grid; grid-template-columns: 120px repeat(5, minmax(0, 1fr)); gap: 12px;"><span></span><sc-for list="{{btnCols}}" as="c" hint-placeholder-count="5"><span class="t-label">{{c}}</span></sc-for></div>
+<sc-for list="{{btnRows}}" as="r" hint-placeholder-count="4">
+<div style="display: grid; grid-template-columns: 120px repeat(5, minmax(0, 1fr)); gap: 12px; align-items: center;">
+<span class="lbl">{{r.label}}</span>
+<sc-for list="{{r.cells}}" as="b" hint-placeholder-count="5"><span><button class="{{b.cls}}" type="button" disabled="{{b.dis}}"><dc-import name="Icon" i="{{b.icon}}" s="16" hint-size="16px,16px"></dc-import>{{b.text}}</button></span></sc-for>
+</div>
+</sc-for>
+</div>
+</div>
+<div class="divh"></div>
+<div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+<span class="lbl" style="width: 120px;">Tamaños</span>
+<button class="btn btn-secondary btn-sm" type="button">Pequeño · 28</button>
+<button class="btn btn-secondary" type="button">Normal · 32</button>
+<button class="btn btn-primary btn-lg" type="button"><dc-import name="Icon" i="subir" s="18" hint-size="18px,18px"></dc-import>Grande · 40</button>
+<button class="btn btn-ghost btn-icon" type="button" aria-label="Solo icono"><dc-import name="Icon" i="cerrar" s="16" hint-size="16px,16px"></dc-import></button>
+<button class="btn btn-danger-solid" type="button">Peligro confirmado</button>
+<button class="btn btn-secondary btn-rec" type="button"><span class="dot"></span>Grabar</button>
+<button class="btn btn-secondary btn-rec on" type="button"><span class="dot"></span>Detener</button>
+</div>
+</section>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(540px, 100%), 1fr)); gap: 20px;">
+<section class="card" style="padding: 20px 22px; display: flex; flex-direction: column; gap: 14px;">
+<div><h2 class="t-title" style="margin: 0;">Interruptor</h2><p class="hint mono" style="margin: 2px 0 0;">QCheckBox[role="switch"]::indicator → SVG por estado</p></div>
+<div style="display: flex; gap: 22px; flex-wrap: wrap; align-items: flex-end;">
+<sc-for list="{{toggles}}" as="t" hint-placeholder-count="6">
+<div style="display: flex; flex-direction: column; align-items: center; gap: 8px;"><button class="{{t.cls}}" type="button" role="switch" aria-checked="{{t.on}}" aria-label="{{t.label}}" disabled="{{t.dis}}"><span class="kn"></span></button><span class="hint">{{t.label}}</span></div>
+</sc-for>
+<div style="display: flex; flex-direction: column; align-items: center; gap: 8px; margin-left: auto;"><button class="{{liveCls}}" type="button" role="switch" aria-checked="{{liveOn}}" aria-label="Pruébalo" onClick="{{toggleLive}}"><span class="kn"></span></button><span class="hint">Pruébalo</span></div>
+</div>
+</section>
+<section class="card" style="padding: 20px 22px; display: flex; flex-direction: column; gap: 14px;">
+<div><h2 class="t-title" style="margin: 0;">Slider 0–4 con marcas</h2><p class="hint mono" style="margin: 2px 0 0;">QSlider::groove · ::sub-page · ::handle + marcas pintadas</p></div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 18px;">
+<sc-for list="{{sliders}}" as="sl" hint-placeholder-count="4">
+<div class="slw">
+<span class="hint" style="margin-bottom: 2px;">{{sl.label}}</span>
+<div class="{{sl.cls}}">
+<div class="sl-track"><div class="sl-fill" style="width: {{sl.pct}}%;"></div></div>
+<sc-for list="{{sl.dots}}" as="d" hint-placeholder-count="5"><span class="{{d.cls}}" style="left: {{d.left}}%;"></span></sc-for>
+<span class="sl-knob" style="left: {{sl.pct}}%;"></span>
+<input class="sl-in" type="range" min="0" max="4" step="1" value="{{sl.value}}" disabled="{{sl.dis}}" aria-label="{{sl.label}}" onChange="{{sl.change}}">
+</div>
+<div class="sl-labels"><sc-for list="{{sl.labels}}" as="lb" hint-placeholder-count="5"><span class="{{lb.cls}}">{{lb.t}}</span></sc-for></div>
+</div>
+</sc-for>
+</div>
+</section>
+<section class="card" style="padding: 20px 22px; display: flex; flex-direction: column; gap: 14px;">
+<div><h2 class="t-title" style="margin: 0;">Desplegable</h2><p class="hint mono" style="margin: 2px 0 0;">QComboBox · ::drop-down · QAbstractItemView</p></div>
+<div style="display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-start; min-height: 230px;">
+<div style="display: flex; flex-direction: column; gap: 6px; width: 180px;"><span class="hint">Normal</span><button class="select" type="button"><span class="v">Reproducir/Pausa</span><span class="chev"><dc-import name="Icon" i="chevron-abajo" s="16" hint-size="16px,16px"></dc-import></span></button></div>
+<div style="display: flex; flex-direction: column; gap: 6px; width: 180px;"><span class="hint">Hover</span><button class="select is-hover" type="button"><span class="v">Reproducir/Pausa</span><span class="chev"><dc-import name="Icon" i="chevron-abajo" s="16" hint-size="16px,16px"></dc-import></span></button></div>
+<div style="display: flex; flex-direction: column; gap: 6px; width: 180px;"><span class="hint">Deshabilitado</span><button class="select" type="button" disabled="{{yes}}"><span class="v">Reproducir/Pausa</span><span class="chev"><dc-import name="Icon" i="chevron-abajo" s="16" hint-size="16px,16px"></dc-import></span></button></div>
+<div style="display: flex; flex-direction: column; gap: 6px; width: 220px;"><span class="hint">Abierto</span>
+<div class="dd" style="width: 220px;">
+<button class="select open" type="button"><span class="v">Pista siguiente</span><span class="chev"><dc-import name="Icon" i="chevron-abajo" s="16" hint-size="16px,16px"></dc-import></span></button>
+<div class="menu" style="position: relative; top: 4px;">
+<div class="menu-h">Multimedia</div>
+<button class="menu-i" type="button">Reproducir/Pausa</button>
+<button class="menu-i is-hover" type="button">Pista anterior</button>
+<button class="menu-i sel" type="button">Pista siguiente<span class="tail"><dc-import name="Icon" i="aplicar" s="14" hint-size="14px,14px"></dc-import></span></button>
+<button class="menu-i" type="button">Silencio</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section class="card" style="padding: 20px 22px; display: flex; flex-direction: column; gap: 14px;">
+<div><h2 class="t-title" style="margin: 0;">Campo numérico y de texto</h2><p class="hint mono" style="margin: 2px 0 0;">QSpinBox ::down-button { subcontrol-position: left } · QLineEdit</p></div>
+<div style="display: flex; gap: 16px; flex-wrap: wrap;">
+<sc-for list="{{nums}}" as="n" hint-placeholder-count="4">
+<div style="display: flex; flex-direction: column; gap: 6px;">
+<span class="hint">{{n.label}}</span>
+<span class="{{n.cls}}"><button type="button" aria-label="Menos"><dc-import name="Icon" i="menos" s="14" hint-size="14px,14px"></dc-import></button><input type="text" value="{{n.value}}" readonly="{{yes}}" aria-label="{{n.label}}"><span class="u">ms</span><button type="button" aria-label="Más"><dc-import name="Icon" i="mas" s="14" hint-size="14px,14px"></dc-import></button></span>
+<span class="{{n.hintCls}}">{{n.hint}}</span>
+</div>
+</sc-for>
+</div>
+<div style="display: flex; gap: 12px; flex-wrap: wrap;">
+<input class="field" type="text" value="Normal" readonly="{{yes}}" aria-label="Campo normal" style="width: 130px;">
+<input class="field is-focus" type="text" value="Con foco" readonly="{{yes}}" aria-label="Campo con foco" style="width: 130px;">
+<input class="field is-error" type="text" value="#GG0000" readonly="{{yes}}" aria-label="Campo con error" style="width: 130px;">
+<input class="field" type="text" value="Deshabilitado" disabled="{{yes}}" aria-label="Campo deshabilitado" style="width: 130px;">
+</div>
+</section>
+<section class="card" style="padding: 20px 22px; display: flex; flex-direction: column; gap: 14px;">
+<div><h2 class="t-title" style="margin: 0;">Selector de color</h2><p class="hint mono" style="margin: 2px 0 0;">Botón + QWidget emergente pintado con QLinearGradient</p></div>
+<div style="display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-start;">
+<div style="display: flex; flex-direction: column; gap: 14px;">
+<div style="display: flex; flex-direction: column; gap: 6px;"><span class="hint">Botón del pincel · normal / hover / deshabilitado</span>
+<div style="display: flex; gap: 8px; flex-wrap: wrap;">
+<button class="colorbtn" type="button"><span class="cb" style="background: #FFB020;"></span><span class="mono" style="font-size: 12.5px;">#FFB020</span></button>
+<button class="colorbtn is-hover" type="button"><span class="cb" style="background: #FFB020;"></span><span class="mono" style="font-size: 12.5px;">#FFB020</span></button>
+<button class="colorbtn" type="button" disabled="{{yes}}"><span class="cb" style="background: #FFB020;"></span><span class="mono" style="font-size: 12.5px;">#FFB020</span></button>
+</div></div>
+<div style="display: flex; flex-direction: column; gap: 6px;"><span class="hint">Muestras · normal / hover / elegida / apagada / no disponible</span>
+<div style="display: flex; gap: 10px; align-items: center;">
+<button class="sw" type="button" aria-label="Verde" style="background: #00FF00;"></button>
+<button class="sw is-hover" type="button" aria-label="Cian" style="background: #00FFFF;"></button>
+<button class="sw on" type="button" aria-label="Ámbar elegido" style="background: #FFB020;"></button>
+<button class="sw offc" type="button" aria-label="Apagada"></button>
+<button class="sw" type="button" aria-label="Azul no disponible" disabled="{{yes}}" style="background: #0000FF;"></button>
+</div></div>
+</div>
+<dc-import name="Color" value="#00FF00" theme="{{theme}}" embedded="{{yes}}" hint-size="296px,330px"></dc-import>
+</div>
+</section>
+<section class="card" style="padding: 20px 22px; display: flex; flex-direction: column; gap: 14px;">
+<div><h2 class="t-title" style="margin: 0;">Control segmentado y chip de perfil</h2><p class="hint mono" style="margin: 2px 0 0;">QButtonGroup exclusivo + QToolButton:checked</p></div>
+<div style="display: flex; flex-direction: column; gap: 6px;"><span class="hint">Segmentos · normal / hover / activo / deshabilitado</span>
+<div class="seg" role="radiogroup" aria-label="Ejemplo de segmentos">
+<button class="seg-i" type="button">Normal</button>
+<button class="seg-i is-hover" type="button">Hover</button>
+<button class="seg-i on" type="button">Activo</button>
+<button class="seg-i" type="button" disabled="{{yes}}">No disponible</button>
+</div></div>
+<div style="display: flex; gap: 24px; flex-wrap: wrap;">
+<sc-for list="{{chips}}" as="c" hint-placeholder-count="5">
+<div style="display: flex; flex-direction: column; align-items: center; gap: 6px;">
+<button class="{{c.cls}}" type="button" disabled="{{c.dis}}" aria-label="{{c.label}}"><sc-if value="{{c.load}}" hint-placeholder-val="{{ false }}"><span class="spin" style="width: 12px; height: 12px;"></span></sc-if><sc-if value="{{c.idle}}" hint-placeholder-val="{{ true }}"><span>2</span></sc-if></button>
+<span class="hint">{{c.label}}</span>
+</div>
+</sc-for>
+</div>
+</section>
+<section class="card" style="padding: 20px 22px; display: flex; flex-direction: column; gap: 14px;">
+<div><h2 class="t-title" style="margin: 0;">Tarjeta de modo de luz</h2><p class="hint mono" style="margin: 2px 0 0;">QToolButton checkable + vista previa con QPainter (30 fps)</p></div>
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(124px, 1fr)); gap: 10px;">
+<sc-for list="{{modeCards}}" as="m" hint-placeholder-count="5">
+<div style="display: flex; flex-direction: column; gap: 6px;">
+<button class="{{m.cls}}" type="button" disabled="{{m.dis}}"><span class="mc-pv" style="background: {{m.bg}};"></span><span class="mc-n"><span class="nm">{{m.name}}</span><sc-if value="{{m.live}}" hint-placeholder-val="{{ false }}"><span class="mc-live"></span></sc-if></span></button>
+<span class="hint" style="text-align: center;">{{m.label}}</span>
+</div>
+</sc-for>
+</div>
+</section>
+<section class="card" style="padding: 20px 22px; display: flex; flex-direction: column; gap: 14px;">
+<div><h2 class="t-title" style="margin: 0;">Barra lateral</h2><p class="hint mono" style="margin: 2px 0 0;">QToolButton checkable en QVBoxLayout · compacta a 72 px bajo 1100 px</p></div>
+<div style="display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-start;">
+<div style="flex: 1 1 220px; display: flex; flex-direction: column; gap: 4px; padding: 10px; border-radius: 12px; background: var(--surface-1); border: 1px solid var(--border);">
+<span class="nav"><dc-import name="Icon" i="teclas" s="20" hint-size="20px,20px"></dc-import>Normal</span>
+<span class="nav is-hover"><dc-import name="Icon" i="iluminacion" s="20" hint-size="20px,20px"></dc-import>Hover</span>
+<span class="nav on"><dc-import name="Icon" i="colores" s="20" hint-size="20px,20px"></dc-import>Activa</span>
+<span class="nav is-disabled"><dc-import name="Icon" i="pantalla" s="20" hint-size="20px,20px"></dc-import>Deshabilitada</span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 4px; padding: 10px 14px; border-radius: 12px; background: var(--surface-1); border: 1px solid var(--border);">
+<span class="nav compact"><dc-import name="Icon" i="teclas" s="20" hint-size="20px,20px"></dc-import></span>
+<span class="nav compact on"><dc-import name="Icon" i="iluminacion" s="20" hint-size="20px,20px"></dc-import></span>
+<span class="nav compact"><dc-import name="Icon" i="colores" s="20" hint-size="20px,20px"></dc-import></span>
+<span class="nav compact"><dc-import name="Icon" i="macros" s="20" hint-size="20px,20px"></dc-import></span>
+<span class="nav compact"><dc-import name="Icon" i="pantalla" s="20" hint-size="20px,20px"></dc-import></span>
+<span class="nav compact"><dc-import name="Icon" i="ajustes" s="20" hint-size="20px,20px"></dc-import></span>
+</div>
+</div>
+</section>
+<section class="card" style="padding: 20px 22px; display: flex; flex-direction: column; gap: 12px;">
+<div><h2 class="t-title" style="margin: 0;">Toast</h2><p class="hint mono" style="margin: 2px 0 0;">QWidget sin marco + sombra-2 + QPropertyAnimation (opacidad y posición)</p></div>
+<sc-for list="{{toasts}}" as="t" hint-placeholder-count="5">
+<div class="{{t.cls}}" style="animation: none; max-width: 100%;">
+<span class="ti"><dc-import name="Icon" i="{{t.icon}}" s="18" hint-size="18px,18px"></dc-import></span>
+<span class="tx">{{t.text}}</span>
+<sc-if value="{{t.hasAct}}" hint-placeholder-val="{{ false }}"><button class="btn btn-secondary btn-sm" type="button">{{t.act}}</button></sc-if>
+<button class="btn btn-ghost btn-sm btn-icon" type="button" aria-label="Cerrar aviso"><dc-import name="Icon" i="cerrar" s="14" hint-size="14px,14px"></dc-import></button>
+</div>
+</sc-for>
+</section>
+<section class="card" style="padding: 20px 22px; display: flex; flex-direction: column; gap: 16px;">
+<div><h2 class="t-title" style="margin: 0;">Barra de progreso</h2><p class="hint mono" style="margin: 2px 0 0;">QProgressBar::chunk · la de subida pinta el degradado RGB</p></div>
+<div style="display: flex; flex-direction: column; gap: 6px;"><div style="display: flex; justify-content: space-between;"><span class="hint">Fina, con progreso (barra superior)</span><span class="mono hint">62 %</span></div><div class="pg"><div class="bar" style="width: 62%;"></div></div></div>
+<div style="display: flex; flex-direction: column; gap: 6px;"><span class="hint">Indeterminada (sin estimación)</span><div class="pg ind"><div class="bar"></div></div></div>
+<div style="display: flex; flex-direction: column; gap: 8px; padding: 12px; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--border);">
+<div style="display: flex; align-items: center; gap: 8px;"><span class="spin" style="color: var(--accent);"></span><span class="t-strong">Subiendo cuadro 31 de 48</span></div>
+<div class="pg lg rgb"><div class="bar"></div><div class="cover" style="width: 36%;"></div></div>
+<div style="display: flex; align-items: center; gap: 10px;"><span class="mono" style="font-size: 12px;">64 %</span><span class="hint">≈ 0:44 restantes</span><button class="btn btn-secondary btn-sm" type="button" style="margin-left: auto;">Cancelar</button></div>
+</div>
+<div style="display: flex; gap: 16px; flex-wrap: wrap;">
+<div style="flex: 1 1 160px; display: flex; flex-direction: column; gap: 4px;"><div style="display: flex; justify-content: space-between;"><span class="hint">Capacidad</span><span class="mono hint">22 / 248</span></div><div class="pg"><div class="bar" style="width: 9%;"></div></div></div>
+<div style="flex: 1 1 160px; display: flex; flex-direction: column; gap: 4px;"><div style="display: flex; justify-content: space-between;"><span class="hint warn">Casi llena</span><span class="mono hint warn">226 / 248</span></div><div class="pg"><div class="bar" style="width: 91%; background: var(--warning);"></div></div></div>
+<div style="flex: 1 1 160px; display: flex; flex-direction: column; gap: 4px;"><div style="display: flex; justify-content: space-between;"><span class="hint err">Se pasa</span><span class="mono hint err">260 / 248</span></div><div class="pg"><div class="bar" style="width: 100%; background: var(--error);"></div></div></div>
+</div>
+</section>
+</div>
+<section class="card" style="padding: 20px 22px; display: flex; flex-direction: column; gap: 14px;">
+<div><h2 class="t-title" style="margin: 0;">Diálogo de confirmación</h2><p class="hint mono" style="margin: 2px 0 0;">QDialog sin marco + velo scrim (sin desenfoque) + sombra-2</p></div>
+<div style="display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-start; padding: 24px; border-radius: 12px; background: var(--scrim);">
+<div class="dlg" style="animation: none;">
+<div style="display: flex; gap: 12px; align-items: flex-start;"><div class="dlg-ic"><dc-import name="Icon" i="restaurar" s="18" hint-size="18px,18px"></dc-import></div>
+<div><h3 class="t-title" style="margin: 6px 0 4px;">¿Restaurar todas las teclas?</h3><p class="t-body" style="margin: 0; color: var(--text-2);">Todas las teclas de la capa normal del perfil 1 volverán a su función de fábrica. Las macros no cambian.</p></div></div>
+<div class="dlg-f"><button class="btn btn-secondary" type="button">Cancelar</button><button class="btn btn-danger-solid" type="button">Restaurar todas</button></div>
+</div>
+<div class="dlg" style="animation: none;">
+<div style="display: flex; gap: 12px; align-items: flex-start;"><div class="dlg-ic"><dc-import name="Icon" i="aviso" s="18" hint-size="18px,18px"></dc-import></div>
+<div><h3 class="t-title" style="margin: 6px 0 4px;">¿Restaurar de fábrica?</h3><p class="t-body" style="margin: 0; color: var(--text-2);">Se borrarán reasignaciones, macros, luces y ajustes de los 3 perfiles. <strong style="color: var(--text-1);">No se puede deshacer.</strong></p></div></div>
+<label style="display: flex; flex-direction: column; gap: 6px;"><span class="lbl">Escribe <span class="mono" style="color: var(--error);">RESTAURAR</span> para confirmar</span><input class="field mono is-focus" type="text" value="RESTAU" readonly="{{yes}}" style="letter-spacing: 0.08em;"></label>
+<div class="dlg-f"><button class="btn btn-secondary" type="button">Cancelar</button><button class="btn btn-danger-solid" type="button" disabled="{{yes}}">Restaurar de fábrica</button></div>
+</div>
+</div>
+</section>
+<section class="card" style="padding: 20px 22px; display: flex; flex-direction: column; gap: 14px;">
+<div><h2 class="t-title" style="margin: 0;">Tecla del teclado</h2><p class="hint mono" style="margin: 2px 0 0;">Lienzo propio con QPainter · medidas en la página «Tecla: estados y medidas»</p></div>
+<div style="display: flex; gap: 12px; flex-wrap: wrap;">
+<sc-for list="{{keys}}" as="k" hint-placeholder-count="10">
+<div style="display: flex; flex-direction: column; align-items: center; gap: 8px; width: 96px;">
+<div style="height: 88px; width: 100%; display: flex; align-items: center; justify-content: center; border-radius: 10px; background: var(--deck); border: 1px solid var(--deck-edge);">
+<dc-import name="Tecla" theme="{{theme}}" kind="{{k.kind}}" label="{{k.label}}" sub="{{k.sub}}" icon="{{k.icon}}" color="{{k.color}}" w="25" s="2" hint-size="64px,64px"></dc-import>
+</div>
+<span style="font-size: 12px; font-weight: 500;">{{k.title}}</span>
+</div>
+</sc-for>
+</div>
+</section>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(540px, 100%), 1fr)); gap: 20px;">
+<section class="card" style="padding: 20px 22px; display: flex; flex-direction: column; gap: 14px;">
+<div><h2 class="t-title" style="margin: 0;">Avisos, insignias y atajos</h2><p class="hint mono" style="margin: 2px 0 0;">QLabel con propiedad de estado · QToolTip</p></div>
+<div style="display: flex; flex-direction: column; gap: 8px;">
+<div class="banner"><span class="bi"><dc-import name="Icon" i="info" s="18" hint-size="18px,18px"></dc-import></span><span style="flex: 1;">Información con una acción sugerida.</span><button class="btn btn-primary btn-sm" type="button">Acción</button></div>
+<div class="banner ok"><span class="bi"><dc-import name="Icon" i="exito" s="18" hint-size="18px,18px"></dc-import></span><span style="flex: 1;">Modo Imagen de usuario activo.</span></div>
+<div class="banner warn"><span class="bi"><dc-import name="Icon" i="aviso" s="18" hint-size="18px,18px"></dc-import></span><span style="flex: 1;">Ctrl queda pulsada al terminar la macro.</span><button class="btn btn-secondary btn-sm" type="button">Añadir «Soltar Ctrl»</button></div>
+<div class="banner err"><span class="bi"><dc-import name="Icon" i="error" s="18" hint-size="18px,18px"></dc-import></span><span style="flex: 1;">No pude abrir el teclado: falta permiso.</span><button class="btn btn-secondary btn-sm" type="button">Ver cómo arreglarlo</button></div>
+</div>
+<div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+<span class="pill">Neutra</span><span class="pill acc">Asignada a F12</span><span class="pill ok">En el teclado</span><span class="pill warn">Sin aplicar</span><span class="pill err">Error</span><span class="pill demo">Demo</span>
+<span style="display: inline-flex; align-items: center; gap: 4px; margin-left: 8px;"><span class="kbd">Fn</span>+<span class="kbd">Ctrl</span></span>
+</div>
+<div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+<span class="tip"><dc-import name="Icon" i="candado" s="14" hint-size="14px,14px"></dc-import>Solo por cable USB-C</span>
+<span class="tip">Fijo no usa velocidad</span>
+<span class="tip">Con «Aplicar en vivo» cada cambio se envía al momento</span>
+</div>
+</section>
+<section class="card" style="padding: 20px 22px; display: flex; flex-direction: column;">
+<div style="margin-bottom: 8px;"><h2 class="t-title" style="margin: 0;">Mapa a Qt</h2><p class="hint" style="margin: 2px 0 0;">Qué widget usa cada pieza al pasar a PySide6.</p></div>
+<sc-for list="{{qt}}" as="q" hint-placeholder-count="10"><div class="kv"><span class="kv-l">{{q.l}}</span><span class="kv-v" style="font-size: 11.5px;">{{q.v}}</span></div></sc-for>
+</section>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark"},"$preview":{"width":1280,"height":3700}}'>
+const BTN = [['Primario', 'btn btn-primary', 'aplicar', 'Aplicar'], ['Secundario', 'btn btn-secondary', 'leer', 'Leer'], ['Peligro', 'btn btn-danger', 'borrar', 'Borrar'], ['Fantasma', 'btn btn-ghost', 'restaurar', 'Restaurar']];
+const STATES = [['Normal', ''], ['Hover', ' is-hover'], ['Pulsado', ' is-active'], ['Foco', ' is-focus'], ['Deshabilitado', '']];
+const KEYS = [
+  ['Normal', 'normal', 'A', '', ''], ['Hover', 'hover', 'A', '', ''], ['Seleccionada', 'sel', 'A', '', ''], ['Reasignada', 'remap', 'Esc', 'Caps', ''],
+  ['Desactivada', 'off', '', 'Ins', 'desactivada'], ['Pintada', 'paint', 'W', '', ''], ['Bloqueada', 'locked', 'Fn', '', ''], ['Fn mantenida', 'held', 'Fn', '', ''],
+  ['Sin función', 'dim', 'Q', '', ''], ['Sin teclado', 'disabled', 'A', '', '']
+];
+const QT = [
+  ['Botones', 'QPushButton[variant]'], ['Interruptor', 'QCheckBox::indicator (SVG)'], ['Slider 0–4', 'QSlider + marcas en paintEvent'],
+  ['Desplegable', 'QComboBox + QListView'], ['Campo numérico', 'QSpinBox (botones a los lados)'], ['Segmentos y chips', 'QButtonGroup + QToolButton'],
+  ['Tarjeta de modo', 'QToolButton + vista QPainter'], ['Barra lateral', 'QToolButton:checked en columna'], ['Toast', 'QWidget Qt.ToolTip + animación'],
+  ['Diálogo', 'QDialog + QWidget velo'], ['Teclado', 'QWidget propio (paintEvent)'], ['Pantalla LCD', 'QLabel con QPixmap escalado ×2']
+];
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { live: true, sv: [0, 2, 4, 3], hover: 1 }; }
+  renderVals() {
+    const s = this.state;
+    const theme = this.props.theme === 'light' ? 'light' : 'dark';
+    const slider = (i, label, dis, hover) => {
+      const v = s.sv[i];
+      return {
+        label, value: v, dis: !!dis, pct: v * 25, cls: 'sl' + (dis ? ' is-disabled' : '') + (hover ? ' is-hover' : ''),
+        dots: [0, 1, 2, 3, 4].map((d) => ({ left: d * 25, cls: 'sl-dot' + (d <= v ? ' on' : '') })),
+        labels: [0, 1, 2, 3, 4].map((d) => ({ t: d, cls: d === v && !dis ? 'on' : '' })),
+        change: (e) => { const sv = s.sv.slice(); sv[i] = Number(e.target.value); this.setState({ sv }); }
+      };
+    };
+    return {
+      theme, themeName: theme === 'light' ? 'Tema claro' : 'Tema oscuro', yes: true,
+      btnCols: STATES.map((x) => x[0]),
+      btnRows: BTN.map((b) => ({ label: b[0], icon: b[2], text: b[3], cells: STATES.map((st, i) => ({ cls: b[1] + st[1], dis: i === 4, icon: b[2], text: b[3] })) })),
+      toggles: [['Apagado', 'tg', false, false], ['Encendido', 'tg on', true, false], ['Hover', 'tg is-hover', false, false], ['Deshabilitado', 'tg', false, true], ['Desh. encendido', 'tg on', true, true], ['Arcoíris', 'tg rgb on', true, false]].map((t) => ({ label: t[0], cls: t[1], on: t[2], dis: t[3] })),
+      liveCls: 'tg' + (s.live ? ' on' : ''), liveOn: s.live, toggleLive: () => this.setState({ live: !s.live }),
+      sliders: [slider(0, 'Valor 0'), slider(1, 'Valor 2 · hover', false, true), slider(2, 'Valor 4'), slider(3, 'Deshabilitado', true)],
+      nums: [['Normal', 'num', '80', 'hint', '20–255 ms'], ['Con foco', 'num is-focus', '80', 'hint', 'Flechas o rueda para cambiar'], ['Error', 'num is-error', '300', 'hint err', 'Máximo 255 ms'], ['Deshabilitado', 'num is-disabled', '80', 'hint', 'Imagen fija: sin retardo']].map((n) => ({ label: n[0], cls: n[1], value: n[2], hintCls: n[3], hint: n[4] })),
+      chips: [['Inactivo', 'chip', false, false], ['Hover', 'chip is-hover', false, false], ['Activo', 'chip on', false, false], ['Cargando', 'chip on', false, true], ['Sin teclado', 'chip', true, false]].map((c) => ({ label: c[0], cls: c[1], dis: c[2], load: c[3], idle: !c[3] })),
+      modeCards: [['Normal', 'mc', 'Ola', false, false, 'linear-gradient(90deg, #FF4D8D, #FFB547, #3DF5A1, #2BD2F0, #8B7CFF)'], ['Hover', 'mc is-hover', 'Meteoro', false, false, 'linear-gradient(120deg, #07090B 30%, #2BD2F0 50%, #07090B 70%)'], ['Seleccionada', 'mc on', 'Lluvia', true, false, 'repeating-linear-gradient(90deg, #07090B 0 10px, #00FF00 10px 12px)'], ['En el teclado', 'mc', 'Fijo', true, false, '#2BD2F0'], ['No disponible', 'mc', 'Música 1', false, true, 'linear-gradient(0deg, #3DF5A1, #07090B)']].map((m) => ({ label: m[0], cls: m[1], name: m[2], live: m[3], dis: m[4], bg: m[5] })),
+      toasts: [['toast ok', 'exito', 'CapsLock → Esc', ''], ['toast ok', 'exito', 'Macro 3 guardada', ''], ['toast err', 'error', 'El teclado no respondió.', 'Reintentar'], ['toast warn', 'aviso', 'Por Bluetooth no se pueden subir imágenes.', ''], ['toast info', 'info', 'Todas las teclas en #FFB020', 'Deshacer']].map((t) => ({ cls: t[0], icon: t[1], text: t[2], act: t[3], hasAct: !!t[3] })),
+      keys: KEYS.map((k) => ({ title: k[0], kind: k[1], label: k[2], sub: k[3], icon: k[4], color: '#FFB020' })),
+      qt: QT.map((q) => ({ l: q[0], v: q[1] }))
+    };
+  }
+}
+</script>
+</body>
+</html>
