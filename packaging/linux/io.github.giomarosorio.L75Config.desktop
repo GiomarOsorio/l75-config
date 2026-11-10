@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Name=L75 Config
+GenericName=Keyboard configurator
+GenericName[es]=Configurador de teclado
+Comment=Configure the ROYALAXE × ProtoArc L75 keyboard
+Comment[es]=Configura el teclado ROYALAXE × ProtoArc L75
+Exec=l75-config
+Icon=io.github.giomarosorio.L75Config
+Terminal=false
+Categories=Settings;HardwareSettings;Utility;
+Keywords=keyboard;teclado;rgb;macro;l75;royalaxe;protoarc;
+StartupWMClass=l75-config

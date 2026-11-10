@@ -1,0 +1,57 @@
+# Flatpak de L75 Config.
+#   flatpak run org.flatpak.Builder --user --install --force-clean --repo=build/flatpak-repo \
+#       build/flatpak packaging/flatpak/io.github.giomarosorio.L75Config.yml
+#   flatpak build-bundle build/flatpak-repo dist/L75_Config.flatpak io.github.giomarosorio.L75Config
+# Nota: Flatpak no puede instalar la regla udev; en Linux hay que instalarla aparte (./install.sh o
+# los comandos que muestra la app).
+id: io.github.giomarosorio.L75Config
+runtime: org.freedesktop.Platform
+runtime-version: '25.08'
+sdk: org.freedesktop.Sdk
+command: l75-config
+finish-args:
+  - --share=ipc
+  - --socket=wayland
+  - --socket=fallback-x11
+  - --device=all            # /dev/hidraw*: el teclado por cable y por Bluetooth
+  - --filesystem=home:ro    # elegir imágenes y GIF para la pantalla
+  - --env=QT_QPA_PLATFORM=wayland;xcb
+modules:
+  - name: python-deps
+    buildsystem: simple
+    build-commands:
+      - pip3 install --no-index --no-deps --no-build-isolation --prefix=/app *.whl
+    sources:
+      - type: file
+        url: https://files.pythonhosted.org/packages/49/c2/a04fa003b4360e99d8e3fc2829abacf37396ace63ea1cd616402209ec7c6/shiboken6-6.12.0-cp310-abi3-manylinux_2_34_x86_64.whl
+        sha256: 3bde565bb0890044b5c7f63808adddede5abc241e9395a2bfed61919884d6240
+      - type: file
+        url: https://files.pythonhosted.org/packages/7b/3c/7597d8dcb36aa8315427635ec6ec9d850ffbad4ce78b9118ac854889f2d3/pyside6_essentials-6.12.0-cp310-abi3-manylinux_2_34_x86_64.whl
+        sha256: 16f4b5e41daf49235ae048458243da9efe5f3d8040f9cc5aa454ce69893d3bd9
+      - type: file
+        url: https://files.pythonhosted.org/packages/ef/fe/f5cdaa2d1c4086e757430f368c271a58ee29cfe7378e7ae7b9d964015c25/pillow-13.0.0-cp313-cp313-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl
+        sha256: 5f56499c1a74d2b862beb0c33b8016f99d095858455df9d21583bbbc1c15b582
+      - type: file
+        url: https://files.pythonhosted.org/packages/f1/b0/f144cee5ce9e45518d234fd07c7a4f9a66de3a78ed42bf9f3f4083165e10/hidapi-0.15.0-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.whl
+        sha256: 208c7fc89f78c3448d55957c3e12893778aa91218ed7dc22697e554f091fe4fe
+
+  - name: l75-config
+    buildsystem: simple
+    build-commands:
+      - mkdir -p /app/lib/l75-config
+      - cp -r l75ctl /app/lib/l75-config/
+      - install -Dm755 packaging/flatpak/l75-config.sh /app/bin/l75-config
+      - install -Dm644 packaging/linux/io.github.giomarosorio.L75Config.desktop /app/share/applications/io.github.giomarosorio.L75Config.desktop
+      - install -Dm644 packaging/linux/io.github.giomarosorio.L75Config.metainfo.xml /app/share/metainfo/io.github.giomarosorio.L75Config.metainfo.xml
+      - install -Dm644 l75ctl/assets/icon/l75-config-256.png /app/share/icons/hicolor/256x256/apps/io.github.giomarosorio.L75Config.png
+      - install -Dm644 l75ctl/assets/icon/l75-config-512.png /app/share/icons/hicolor/512x512/apps/io.github.giomarosorio.L75Config.png
+      - install -Dm644 udev/70-royalaxe-l75.rules /app/share/l75-config/70-royalaxe-l75.rules
+    sources:
+      - type: dir
+        path: ../..
+        skip:
+          - build
+          - dist
+          - .git
+          - docs
+          - L75_User_Manual.pdf

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.giomarosorio.L75Config</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+  <name>L75 Config</name>
+  <summary>Configure the ROYALAXE × ProtoArc L75 keyboard</summary>
+  <summary xml:lang="es">Configura el teclado ROYALAXE × ProtoArc L75</summary>
+  <description>
+    <p>Unofficial, free configurator for the ROYALAXE × ProtoArc L75 keyboard over USB-C or Bluetooth:
+      key remapping, Fn layer, macros, RGB lighting and side strip, per-key colours, the 240×135 screen
+      (images and animated GIFs) and keyboard settings.</p>
+    <p xml:lang="es">Configurador libre y no oficial del teclado ROYALAXE × ProtoArc L75 por USB-C o Bluetooth:
+      reasignación de teclas, capa Fn, macros, iluminación RGB y tira lateral, colores por tecla, la pantalla
+      de 240×135 (imágenes y GIF) y ajustes del teclado.</p>
+    <p>On Linux the udev rule from the project must be installed to access the keyboard without root.</p>
+  </description>
+  <launchable type="desktop-id">io.github.giomarosorio.L75Config.desktop</launchable>
+  <url type="homepage">https://github.com/GiomarOsorio/l75-config</url>
+  <url type="bugtracker">https://github.com/GiomarOsorio/l75-config/issues</url>
+  <developer id="io.github.giomarosorio">
+    <name>GiomarOsorio</name>
+  </developer>
+  <content_rating type="oars-1.1"/>
+  <supports>
+    <control>pointing</control>
+    <control>keyboard</control>
+  </supports>
+  <releases>
+    <release version="0.3.0" date="2026-11-10">
+      <description><p>New interface (dark and light theme), Fn layer with real system functions, packages for Windows, macOS and Linux.</p></description>
+    </release>
+  </releases>
+</component>

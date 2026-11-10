@@ -3,13 +3,24 @@
 Aplicación libre (interfaz gráfica y línea de comandos) para configurar el teclado
 **ROYALAXE × ProtoArc L75** desde Linux, sin el driver de Windows.
 
-> Estado: **v0.2. Por Bluetooth, probado con un L75 real** (lectura de estado, luces, teclas y
+> Estado: **v0.3. Por Bluetooth, probado con un L75 real** (lectura de estado, luces, teclas y
 > escritura de luz verificada). **Por cable todavía sin probar.** El protocolo se obtuvo leyendo el
 > driver oficial (ver [docs/PROTOCOLO.md](docs/PROTOCOLO.md)) y está verificado con pruebas
 > automáticas y un teclado simulado. La primera vez que lo conectes, prueba primero los
 > comandos de solo lectura (`./l75 info`) y después cambios pequeños.
 
-![Pestaña Teclas](docs/screenshots/teclas.png)
+![Sección Teclas](docs/screenshots/teclas.png)
+
+<details><summary>Más capturas (iluminación, colores, macros, pantalla, ajustes, tema claro)</summary>
+
+![Iluminación](docs/screenshots/iluminacion.png)
+![Colores por tecla](docs/screenshots/colores-por-tecla.png)
+![Macros](docs/screenshots/macros.png)
+![Pantalla](docs/screenshots/pantalla.png)
+![Ajustes](docs/screenshots/ajustes.png)
+![Tema claro](docs/screenshots/teclas-claro.png)
+
+</details>
 
 Manual oficial del teclado: [L75_User_Manual.pdf](https://cdn.shopify.com/s/files/1/0551/3972/9497/files/L75_User_Manual.pdf) (ProtoArc).
 
@@ -36,7 +47,32 @@ Por Bluetooth funciona todo **menos subir imágenes a la pantalla**, que solo va
 el driver oficial). La hora sí se puede sincronizar por Bluetooth.
 El receptor 2.4 GHz todavía no está soportado.
 
-## Instalación (Fedora / Nobara)
+## Descargas
+
+En [Releases](https://github.com/GiomarOsorio/l75-config/releases) están los paquetes de cada versión:
+
+| Sistema | Archivo | Cómo instalar |
+|---|---|---|
+| Windows 10/11 (64 bits) | `L75_Config-<versión>-Setup.exe` | Ejecútalo. Si SmartScreen avisa (no está firmado): «Más información» → «Ejecutar de todas formas». |
+| macOS 11+ (Apple Silicon) | `L75_Config-<versión>-macOS-arm64.dmg` | Arrastra la app a Aplicaciones. La primera vez: clic derecho → «Abrir» (no está firmada por Apple). |
+| Linux (cualquier distro) | `L75_Config-<versión>-x86_64.AppImage` | `chmod +x L75_Config-*.AppImage` y ejecútalo. |
+| Linux (Flatpak) | `L75_Config-<versión>-x86_64.flatpak` | `flatpak install --user L75_Config-*.flatpak` y ábrelo desde el menú. |
+
+**En Linux, además, una sola vez:** instala la regla udev para poder usar el teclado sin ser root (ni el
+AppImage ni el Flatpak pueden instalarla solos):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/GiomarOsorio/l75-config/main/udev/70-royalaxe-l75.rules \
+  | sudo tee /etc/udev/rules.d/70-royalaxe-l75.rules
+sudo udevadm control --reload-rules && sudo udevadm trigger
+```
+
+Los paquetes se generan con GitHub Actions ([.github/workflows/build.yml](.github/workflows/build.yml)):
+en Actions → «Paquetes» → «Run workflow», o al subir una etiqueta `vX.Y.Z`. Para generarlos a mano, mira
+[packaging/](packaging/) (PyInstaller + Inno Setup en Windows, `build_dmg.sh` en macOS,
+`build_appimage.sh` y el manifiesto Flatpak en Linux).
+
+## Instalación desde el código (Fedora / Nobara)
 
 ```bash
 sudo dnf install python3-hid hidapi python3-pyside6 python3-pillow   # si falta algo
@@ -59,6 +95,11 @@ Sin instalar nada, también puedes ejecutarlo directamente desde esta carpeta: `
 l75                # o ./l75, o "L75 Config" en el menú
 l75 --demo gui     # probar la app SIN teclado (teclado simulado)
 ```
+
+La interfaz sigue el diseño de [docs/design/](docs/design/HANDOFF.md): barra lateral con las seis
+secciones, barra superior con la conexión, el perfil y la batería, tema oscuro y claro (botón abajo a
+la izquierda) y avisos que no bloquean la ventana. Por debajo de 1100 px de ancho la barra lateral se
+compacta a solo iconos.
 
 ### Línea de comandos
 ```bash
@@ -135,10 +176,16 @@ l75ctl/
   macros.py     codificación de macros
   lcd.py        imagen/GIF → RGB565 → paquetes
   cli.py        línea de comandos
-  gui.py        interfaz gráfica (PySide6)
+  gui.py        punto de entrada de la interfaz gráfica
+  ui/           interfaz (PySide6): tema (tokens → QSS), componentes, teclado dibujado,
+                vistas previas de luz y una página por sección (ui/pages/)
+  assets/       tokens del diseño, iconos SVG y fuentes Inter y JetBrains Mono (OFL)
   l75_data.py   matriz por defecto y layout (extraídos del driver)
+packaging/             PyInstaller, instalador de Windows, DMG, AppImage y Flatpak
+.github/workflows/      compilación de los paquetes en GitHub Actions
 docs/PROTOCOLO.md      protocolo USB y Bluetooth documentado
 docs/DESIGN_BRIEF.md   brief para el rediseño visual (Claude Design)
+docs/design/           entrega de Claude Design: capturas, tokens, iconos y guía (HANDOFF.md)
 ```
 
 ## Licencia
@@ -147,3 +194,6 @@ docs/DESIGN_BRIEF.md   brief para el rediseño visual (Claude Design)
 que distribuyas deben seguir siendo libres bajo la misma licencia.
 
 Proyecto no oficial, sin relación con ProtoArc ni ROYALAXE.
+
+Las fuentes incluidas en `l75ctl/assets/fonts/` (Inter y JetBrains Mono) tienen su propia licencia,
+SIL Open Font License 1.1; los textos están junto a los archivos.

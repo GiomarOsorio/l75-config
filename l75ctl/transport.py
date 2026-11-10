@@ -48,13 +48,22 @@ class Transport:
 
 
 def _hid_module():
+    # En Linux, el paquete `hidapi` de pip trae dos módulos: `hid` (libusb, no ve el Bluetooth)
+    # y `hidraw` (el bueno). Si está, se usa `hidraw`; si no, `hid` (python3-hid / pyhidapi).
+    if sys.platform.startswith("linux"):
+        try:
+            import hidraw  # type: ignore
+
+            return hidraw
+        except ImportError:
+            pass
     try:
         import hid  # type: ignore
     except ImportError as exc:  # pragma: no cover - depende del sistema
         raise TransportError(
             "No se encontro el modulo 'hid'. Instala hidapi para Python:\n"
             "  sudo dnf install python3-hid hidapi    (Fedora/Nobara)\n"
-            "  o: pip install --user hid"
+            "  o: pip install --user hidapi"
         ) from exc
     return hid
 
@@ -87,16 +96,52 @@ def list_devices(include_dongles: bool = False) -> list[DeviceInfo]:
     return found
 
 
+class _CythonHidDevice:
+    """Adapta el módulo `hidapi` de pip (cython-hidapi, `hid.device()`) a la API de pyhidapi.
+
+    Los paquetes para Windows y macOS usan `hidapi`, que ya trae la librería nativa;
+    en Linux suele estar `python3-hid` (pyhidapi, `hid.Device`). Las dos se importan como `hid`.
+    """
+
+    def __init__(self, hid, path: bytes):
+        self._d = hid.device()
+        self._d.open_path(path)
+
+    def send_feature_report(self, data: bytes) -> int:
+        n = self._d.send_feature_report(list(data))
+        if n < 0:
+            raise OSError("send_feature_report fallo")
+        return n
+
+    def get_feature_report(self, report_id: int, size: int) -> bytes:
+        return bytes(self._d.get_feature_report(report_id, size))
+
+    def read(self, size: int, timeout: int = 0) -> bytes:
+        # en cython-hidapi, timeout 0 bloquea hasta que llegue algo; pyhidapi devuelve al momento
+        return bytes(self._d.read(size, max(1, int(timeout))))
+
+    def write(self, data: bytes) -> int:
+        n = self._d.write(list(data))
+        if n < 0:
+            raise OSError("write fallo")
+        return n
+
+    def close(self) -> None:
+        self._d.close()
+
+
 def _open_hid(path: bytes):
     hid = _hid_module()
     try:
-        return hid.Device(path=path)
-    except Exception as exc:  # hid.HIDException
-        raise TransportError(
-            f"No pude abrir {path.decode(errors='replace')}: {exc}\n"
-            "Probablemente falta permiso: ejecuta ./install.sh (instala la regla udev) y "
-            "reconecta el teclado (desenchufa el cable, o apaga y enciende el Bluetooth del teclado)."
-        ) from exc
+        if hasattr(hid, "Device"):
+            return hid.Device(path=path)
+        return _CythonHidDevice(hid, path)
+    except Exception as exc:  # hid.HIDException / OSError
+        hint = ("Probablemente falta permiso: ejecuta ./install.sh (instala la regla udev) y "
+                "reconecta el teclado (desenchufa el cable, o apaga y enciende el Bluetooth del teclado)."
+                if sys.platform.startswith("linux") else
+                "Cierra el driver oficial u otras apps que usen el teclado y vuelve a conectarlo.")
+        raise TransportError(f"No pude abrir {path.decode(errors='replace')}: {exc}\n{hint}") from exc
 
 
 def open_transport(prefer: str = "auto", path: bytes | None = None) -> "Transport":
@@ -274,7 +319,11 @@ class SimulatedTransport(Transport):
 
         flat = bytes(b for slot in DEFAULT_MATRIX for b in slot)
         self.matrix = [bytearray(flat) for _ in range(P.NUM_PROFILES)]
+        from .l75_data import DEFAULT_FN_LAYER
+
         self.fn_matrix = [bytearray(len(flat)) for _ in range(P.NUM_FN_LAYERS)]
+        for slot, raw in DEFAULT_FN_LAYER.items():
+            self.fn_matrix[0][slot * 4:slot * 4 + 4] = bytes(raw)
         self.macros = [bytearray(P.MACRO_BUFFER) for _ in range(P.MACRO_MAX)]
         self.userpic = bytearray(P.MATRIX_SLOTS * 3)
         self.profile = 0
