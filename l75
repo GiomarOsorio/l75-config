@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# Lanzador: ./l75 <comando>   (sin argumentos abre la interfaz grafica)
+DIR="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)"
+export PYTHONPATH="$DIR${PYTHONPATH:+:$PYTHONPATH}"
+if [ $# -eq 0 ]; then
+    exec python3 -m l75ctl gui
+fi
+exec python3 -m l75ctl "$@"
