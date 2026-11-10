@@ -141,4 +141,9 @@ docs/PROTOCOLO.md      protocolo USB y Bluetooth documentado
 docs/DESIGN_BRIEF.md   brief para el rediseño visual (Claude Design)
 ```
 
+## Licencia
+
+[GPL-3.0](LICENSE). Puedes usar, modificar y redistribuir este programa; las versiones modificadas
+que distribuyas deben seguir siendo libres bajo la misma licencia.
+
 Proyecto no oficial, sin relación con ProtoArc ni ROYALAXE.
