@@ -18,6 +18,7 @@ from PySide6.QtGui import QBrush, QColor, QFontMetricsF, QLinearGradient, QPaint
 from PySide6.QtWidgets import QSizePolicy, QWidget
 
 from ..keymap import KEYS, PhysicalKey
+from ..i18n import t as tr
 from .theme import font, paint_rgb_line, theme
 
 CANVAS_W, CANVAS_H = 579.0, 225.0
@@ -296,7 +297,7 @@ class KeyboardView(QWidget):
                 lab = self.labels.get(k.slot)
                 if self.mode == "paint":
                     c = self.colors.get(k.slot, 0)
-                    self.setToolTip(f"{k.name} · " + (f"#{c:06X}" if c else "apagada"))
+                    self.setToolTip(f"{k.name} · " + (f"#{c:06X}" if c else tr("off")))
                 else:
                     self.setToolTip(lab.tip if lab and lab.tip else k.name)
             else:

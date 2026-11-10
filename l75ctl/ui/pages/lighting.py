@@ -12,18 +12,19 @@ from PySide6.QtWidgets import QAbstractButton, QGridLayout, QSizePolicy, QToolBu
 from ... import lighting as L
 from .. import widgets as W
 from ..effects import DEMO, paint_preview, paint_strip
+from ...i18n import t as tr
 from ..theme import font, theme
 from ..window import Page
-from .common import MODE_HINTS, MODE_NAMES, OPTION_ICONS, OPTION_NAMES, color_name
+from .common import OPTION_ICONS, color_name, mode_hint, mode_name, option_name
 
 
 def _desc(s: L.LightSetting, side: bool) -> str:
     m = (L.SIDE_MODE_BY_KEY if side else L.MODE_BY_KEY).get(s.mode)
-    parts = [MODE_NAMES.get(s.mode, s.mode)]
+    parts = [mode_name(s.mode)]
     if m and m.kind != "off":
-        parts.append(f"brillo {s.brightness}")
+        parts.append(tr("brightness {n}").format(n=s.brightness))
         if m.color or m.kind == "music":
-            parts.append("arcoíris" if s.rainbow else color_name(s.color))
+            parts.append(tr("rainbow") if s.rainbow else color_name(s.color))
     return " · ".join(parts)
 
 
@@ -38,7 +39,7 @@ class ModeCard(QAbstractButton):
         self.setCursor(Qt.PointingHandCursor)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.setMinimumWidth(120)
-        self.setToolTip(MODE_HINTS.get(mdef.key, ""))
+        self.setToolTip(mode_hint(mdef.key))
 
     def heightForWidth(self, w):  # noqa: N802
         return round((w - 10) / 2.6) + 34
@@ -93,7 +94,7 @@ class ModeCard(QAbstractButton):
         p.setFont(font(12.5, 500))
         p.setPen(t.c("accent") if on else t.c("text-1"))
         p.drawText(QRectF(9, pv.bottom() + 4, self.width() - 30, self.height() - pv.bottom() - 8),
-                   Qt.AlignLeft | Qt.AlignVCenter, MODE_NAMES.get(self.m.key, self.m.label))
+                   Qt.AlignLeft | Qt.AlignVCenter, mode_name(self.m.key))
         if self.live:
             p.setPen(Qt.NoPen)
             p.setBrush(t.c("success"))
@@ -148,22 +149,22 @@ class LightPage(Page):
         self.device = {False: None, True: None}
         self.cards: dict[bool, list[ModeCard]] = {False: [], True: []}
 
-        header = W.PageHeader("Iluminación", "Efectos para las teclas y para la tira lateral. "
-                                             "Pasa el ratón por un efecto para verlo en movimiento.")
+        header = W.PageHeader(tr("Lighting"), tr("Effects for the keys and the side strip. Hover over an effect "
+                                                 "to see it move."))
         self.live = W.Switch()
-        self.live.setToolTip("Cada cambio se envía al teclado al momento")
+        self.live.setToolTip(tr("Every change is sent to the keyboard right away"))
         header.actions.addWidget(self.live)
-        header.actions.addWidget(W.label("Aplicar en vivo", "strong"))
+        header.actions.addWidget(W.label(tr("Apply live"), "strong"))
         header.actions.addSpacing(4)
-        self.b_read = header.add(W.button("Leer", "secondary", "leer", on_click=self.read))
-        self.b_apply = header.add(W.button("Aplicar", "primary", "aplicar", on_click=self.apply))
+        self.b_read = header.add(W.button(tr("Read"), "secondary", "leer", on_click=self.read))
+        self.b_apply = header.add(W.button(tr("Apply"), "primary", "aplicar", on_click=self.apply))
         self.live.toggled.connect(self._live_toggled)
         self.lay.addWidget(header)
 
         # zonas
         zone = W.Segmented(kind="zone", block=True)
-        self.z_keys = ZoneButton("Luz de teclas", "teclas")
-        self.z_side = ZoneButton("Tira lateral", "tira")
+        self.z_keys = ZoneButton(tr("Key lighting"), "teclas")
+        self.z_side = ZoneButton(tr("Side strip"), "tira")
         for i, b in enumerate((self.z_keys, self.z_side)):
             zone.group.addButton(b, i)
             zone.buttons.append(b)
@@ -175,12 +176,12 @@ class LightPage(Page):
 
         # modos
         self.modes_card, ml = W.card(padding=(16, 14, 16, 16), spacing=12)
-        self.modes_title = W.label("Modo", "sub")
+        self.modes_title = W.label(tr("Mode"), "sub")
         self.modes_count = W.label("", "cap")
         live_dot = W.label("●", tone="success")
         live_dot.setStyleSheet("font-size: 9px;")
         ml.addLayout(W.hbox(self.modes_title, self.modes_count, "stretch", live_dot,
-                            W.label("En el teclado", "cap"), spacing=8))
+                            W.label(tr("On the keyboard"), "cap"), spacing=8))
         self.grids = {}
         for side, modes in ((False, L.MODES), (True, L.SIDE_MODES)):
             box = QWidget()
@@ -201,24 +202,24 @@ class LightPage(Page):
         self.panel.setFixedWidth(320)
         self.big = BigPreview(self)
         self.p_name = W.label("", "title")
-        self.p_state = W.pill("En el teclado", "ok")
+        self.p_state = W.pill(tr("On the keyboard"), "ok")
         pl.addWidget(self.big)
         pl.addLayout(W.hbox(self.p_name, "stretch", self.p_state))
         self.bright = W.TickSlider(0, 4)
         self.bright_v = W.label("4 / 4", "mono2")
-        pl.addLayout(W.hbox(W.icon_label("brillo"), W.label("Brillo", "strong"), "stretch", self.bright_v, spacing=8))
+        pl.addLayout(W.hbox(W.icon_label("brillo"), W.label(tr("Brightness"), "strong"), "stretch", self.bright_v, spacing=8))
         pl.addWidget(self.bright)
         self.speed = W.TickSlider(0, 4)
         self.speed_v = W.label("", "mono2")
-        self.speed_lbl = W.label("Velocidad", "strong")
+        self.speed_lbl = W.label(tr("Speed"), "strong")
         pl.addLayout(W.hbox(W.icon_label("velocidad"), self.speed_lbl, "stretch", self.speed_v, spacing=8))
         pl.addWidget(self.speed)
         self.color_hex = W.label("", "mono2")
-        self.color_lbl = W.label("Color", "strong")
+        self.color_lbl = W.label(tr("Colour"), "strong")
         pl.addLayout(W.hbox(W.icon_label("color"), self.color_lbl, "stretch", self.color_hex, spacing=8))
         self.eyed = QToolButton()
         self.eyed.setCursor(Qt.PointingHandCursor)
-        self.eyed.setToolTip("Otro color…")
+        self.eyed.setToolTip(tr("Another colour…"))
         self.eyed.setFixedSize(26, 26)
         self.eyed.setStyleSheet("")
         W.set_icon(self.eyed, "cuentagotas", "text-1", 14)
@@ -227,10 +228,10 @@ class LightPage(Page):
         self.eyed.clicked.connect(self._custom_color)
         pl.addWidget(self.swatches)
         self.rainbow = W.Switch(rgb=True)
-        self.rainbow_lbl = W.label("Arcoíris <span style='font-weight:400'>(colores cíclicos)</span>", "strong",
+        self.rainbow_lbl = W.label(tr("Rainbow") + " <span style='font-weight:400'>(" + tr("cycling colours") + ")</span>", "strong",
                                    rich=True)
         pl.addLayout(W.hbox(W.icon_label("arcoiris"), self.rainbow_lbl, "stretch", self.rainbow, spacing=8))
-        self.var_lbl = W.label("Variante", "strong")
+        self.var_lbl = W.label(tr("Variant"), "strong")
         pl.addLayout(W.hbox(W.icon_label("mas-opciones"), self.var_lbl, "stretch", spacing=8))
         self.var_host = QWidget()
         self.var_lay = W.vbox(spacing=0, parent=self.var_host)
@@ -301,7 +302,7 @@ class LightPage(Page):
         self.grids[False][0].setVisible(not self.side)
         self.grids[True][0].setVisible(self.side)
         n = len(L.SIDE_MODES if self.side else L.MODES)
-        self.modes_count.setText(f"{n} efectos")
+        self.modes_count.setText(tr("{n} effects").format(n=n))
         self.show_state()
 
     def _summaries(self):
@@ -316,7 +317,7 @@ class LightPage(Page):
             dev = self.device[self.side]
             c.live = dev is not None and dev.mode == c.m.key
             c.update()
-        self.p_name.setText(MODE_NAMES.get(m.key, m.label))
+        self.p_name.setText(mode_name(m.key))
         for w in (self.bright, self.speed, self.rainbow):
             w.blockSignals(True)
         self.bright.setValue(s.brightness)
@@ -326,15 +327,16 @@ class LightPage(Page):
             w.blockSignals(False)
         self.bright_v.setText(f"{s.brightness} / 4")
         self.speed_v.setText(f"{s.speed} / 4")
-        name = MODE_NAMES.get(m.key, m.label)
+        name = mode_name(m.key)
         off = m.kind in ("off", "screen")
-        W.disable_with_reason(self.bright, f"{name} no usa brillo" if off else None)
-        W.disable_with_reason(self.speed, None if m.speed else f"{name} no usa velocidad")
+        W.disable_with_reason(self.bright, tr("{name} does not use brightness").format(name=name) if off else None)
+        W.disable_with_reason(self.speed, None if m.speed else tr("{name} does not use speed").format(name=name))
         color_ok = m.color or m.kind == "music"
-        W.disable_with_reason(self.rainbow, None if color_ok else f"{name} no usa color")
+        W.disable_with_reason(self.rainbow, None if color_ok else tr("{name} does not use colour").format(name=name))
         for sw in self.swatches.swatches:
             W.disable_with_reason(sw, None if (color_ok and not s.rainbow) else
-                                  (f"{name} no usa color" if not color_ok else "Desactiva el arcoíris para elegir color"))
+                                  (tr("{name} does not use colour").format(name=name) if not color_ok else
+                                   tr("Turn off rainbow to pick a colour")))
         self.eyed.setEnabled(color_ok and not s.rainbow)
         self.swatches.select(s.color if color_ok and not s.rainbow else None)
         self.color_hex.setText(f"#{s.color:06X}" if color_ok and not s.rainbow else "—")
@@ -351,12 +353,12 @@ class LightPage(Page):
             it = self.var_lay.takeAt(0)
             if it.widget():
                 it.widget().deleteLater()
-        name = MODE_NAMES.get(m.key, m.label)
+        name = mode_name(m.key)
         if m.kind == "picture":
             opts = [(str(i), f"{i}") for i in range(1, 6)]
-            hint = "Qué imagen de usuario mostrar (Colores por tecla pinta la 1)."
+            hint = tr("Which user picture to show («Per-key colours» paints number 1).")
         else:
-            opts = [(o, OPTION_NAMES.get(o, lab.capitalize())) for o, lab in zip(m.options, m.option_labels)]
+            opts = [(o, option_name(o)) for o, lab in zip(m.options, m.option_labels)]
             hint = ""
         if not opts:
             empty = W.Segmented(block=True)
@@ -365,7 +367,7 @@ class LightPage(Page):
             empty.setEnabled(False)
             self.var_lay.addWidget(empty)
             self.variant = empty
-            self.var_hint.setText(f"{name} no tiene variantes")
+            self.var_hint.setText(tr("{name} has no variants").format(name=name))
             return
         seg = W.Segmented(block=True)
         for key, lab in opts:
@@ -380,17 +382,17 @@ class LightPage(Page):
         seg.changed.connect(lambda v: self._edit(option=v))
         self.var_lay.addWidget(seg)
         self.variant = seg
-        self.var_hint.setText(hint or OPTION_NAMES.get(cur, ""))
+        self.var_hint.setText(hint or option_name(cur))
 
     def _update_apply(self):
         dev = self.device[self.side]
         same = dev is not None and dev == self.current()
-        self.p_state.setText("En el teclado" if same else "Sin aplicar")
+        self.p_state.setText(tr("On the keyboard") if same else tr("Not applied"))
         W.set_prop(self.p_state, "pill", "ok" if same else "warn")
         if self.live.isChecked():
-            W.disable_with_reason(self.b_apply, "Con «Aplicar en vivo» cada cambio se envía al momento")
+            W.disable_with_reason(self.b_apply, tr("With «Apply live» every change is sent right away"))
         else:
-            W.disable_with_reason(self.b_apply, None if not same else "No hay cambios que aplicar")
+            W.disable_with_reason(self.b_apply, None if not same else tr("No changes to apply"))
 
     # ------------------------------------------------------------ edición
     def pick_mode(self, key: str):
@@ -446,7 +448,7 @@ class LightPage(Page):
             self.show_state()
             self.win.pages["colors"].light_changed(r[0])
 
-        self.win.run(work, on_done=done, label="Leyendo luz…", retry=self.read)
+        self.win.run(work, on_done=done, label=tr("Reading lighting…"), retry=self.read)
 
     def apply(self):
         kb = self.kb
@@ -462,9 +464,9 @@ class LightPage(Page):
             if not side:
                 self.win.pages["colors"].light_changed(s)
             if not self.live.isChecked():
-                self.win.toast("ok", ("Tira lateral: " if side else "Luz: ") + _desc(s, side))
+                self.win.toast("ok", (tr("Side strip: ") if side else tr("Lighting: ")) + _desc(s, side))
 
-        self.win.run(kb.set_side_light if side else kb.set_light, s, on_done=done, label="Aplicando luz…",
+        self.win.run(kb.set_side_light if side else kb.set_light, s, on_done=done, label=tr("Applying lighting…"),
                      quiet=self.live.isChecked(), retry=self.apply)
 
     def set_user_mode(self):

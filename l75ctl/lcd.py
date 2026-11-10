@@ -19,6 +19,7 @@ import statistics
 from dataclasses import dataclass
 
 from . import protocol as P
+from .i18n import t
 
 W, H = P.LCD_WIDTH, P.LCD_HEIGHT
 
@@ -49,7 +50,7 @@ def _pil():
     try:
         from PIL import Image, ImageSequence  # noqa: F401
     except ImportError as exc:  # pragma: no cover
-        raise RuntimeError("Falta Pillow: sudo dnf install python3-pillow") from exc
+        raise RuntimeError(t("Pillow is missing: pip install Pillow (or sudo dnf install python3-pillow)")) from exc
     from PIL import Image, ImageSequence
     return Image, ImageSequence
 
@@ -81,7 +82,7 @@ def load_animation(path: str, fit: str = "contain", delay_ms: int | None = None,
         durations.append(int(fr.info.get("duration", im.info.get("duration", 100)) or 100))
         frames.append(fit_image(fr.copy(), fit))
     if not frames:
-        raise ValueError("la imagen no tiene cuadros")
+        raise ValueError(t("the image has no frames"))
     if delay_ms is None:
         delay_ms = int(statistics.median(durations)) if len(frames) > 1 else 0
     if len(frames) > max_frames:

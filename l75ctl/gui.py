@@ -9,4 +9,4 @@ from .ui import run
 __all__ = ["run"]
 
 if __name__ == "__main__":
-    sys.exit(run("--demo" in sys.argv))
+    sys.exit(run(demo="--demo" in sys.argv))

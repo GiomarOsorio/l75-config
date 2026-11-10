@@ -4,19 +4,23 @@ from __future__ import annotations
 
 from dataclasses import replace
 
-from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QFrame
+from PySide6.QtCore import QSettings, Qt
+from PySide6.QtWidgets import QComboBox, QFrame
 
 from ... import __version__
 from ... import protocol as P
 from ...keyboard import KeyboardOptions, SleepTimes
 from .. import widgets as W
+from ...i18n import LANGUAGES, language
+from ...i18n import t as tr
 from ..window import Page
 
-OPTIONS = [("win_lock", "candado", "Bloquear tecla Windows", "Evita abrir el menú Inicio en mitad de una partida."),
-           ("mac_mode", "comando", "Modo Mac", "Distribución de modificadores para macOS (⌥ y ⌘)."),
-           ("wasd_arrows_swap", "intercambiar", "Intercambiar WASD y flechas",
-            "WASD funcionan como flechas y las flechas como WASD.")]
+OPTIONS = [("win_lock", "candado", "Lock Windows key", "Avoids opening the Start menu in the middle of a game."),
+           ("mac_mode", "comando", "Mac mode", "Modifier layout for macOS (⌥ and ⌘)."),
+           ("wasd_arrows_swap", "intercambiar", "Swap WASD and arrows",
+            "WASD work as arrows and the arrows as WASD.")]
+INFO = [("fw", "Firmware"), ("id", "Model ID"), ("conn", "Connection"), ("profile", "Active profile"),
+        ("battery", "Battery"), ("version", "App version")]
 
 
 def _card_title(icon: str, text: str, extra: str = ""):
@@ -34,47 +38,47 @@ class SettingsPage(Page):
         self.loaded: dict | None = None
         self.opts = KeyboardOptions()
 
-        self.header = W.PageHeader("Ajustes", "")
-        self.header.add(W.button("Leer", "secondary", "leer", on_click=self.load))
-        self.b_apply = self.header.add(W.button("Aplicar cambios", "primary", "aplicar", on_click=self.apply))
+        self.header = W.PageHeader(tr("Settings"), "")
+        self.header.add(W.button(tr("Read"), "secondary", "leer", on_click=self.load))
+        self.b_apply = self.header.add(W.button(tr("Apply changes"), "primary", "aplicar", on_click=self.apply))
         self.lay.addWidget(self.header)
 
         # --- rendimiento
         perf, pl = W.card(spacing=10)
-        pl.addLayout(_card_title("sondeo", "Rendimiento"))
+        pl.addLayout(_card_title("sondeo", tr("Performance")))
         pl.addSpacing(2)
-        pl.addWidget(W.label("Tasa de sondeo", "strong"))
+        pl.addWidget(W.label(tr("Polling rate"), "strong"))
         self.rate = W.Segmented([(f"{hz} Hz", hz) for hz in (125, 250, 500, 1000)], block=True, mono=True)
         self.rate.setValue(1000)
         self.rate.changed.connect(self._dirty)
         pl.addWidget(self.rate)
-        pl.addWidget(W.label("Más alto, menos latencia. 1000 Hz es lo habitual para jugar.", "cap"))
+        pl.addWidget(W.label(tr("Higher means less latency. 1000 Hz is usual for gaming."), "cap"))
         pl.addSpacing(4)
-        pl.addWidget(W.label("Debounce", "strong"))
+        pl.addWidget(W.label(tr("Debounce"), "strong"))
         self.deb_sl = W.TickSlider(0, 50, ticks=False)
         self.deb = W.Stepper(0, 50, 1, "ms", buttons=False, width=36)
         self.deb_sl.valueChanged.connect(lambda v: self.deb.setValue(v))
         self.deb.valueChanged.connect(self._deb)
         pl.addLayout(W.hbox(self.deb_sl, self.deb, spacing=16))
-        pl.addWidget(W.label("Súbelo solo si alguna tecla escribe dos veces.", "cap"))
+        pl.addWidget(W.label(tr("Raise it only if a key types twice."), "cap"))
         pl.addStretch(1)
 
         # --- reposo
         sleep, sl = W.card(spacing=10)
-        sl.addLayout(_card_title("luna", "Reposo", "(modo inalámbrico)"))
+        sl.addLayout(_card_title("luna", tr("Sleep"), tr("(wireless mode)")))
         sl.addSpacing(2)
         self.sleep = W.Stepper(0, 60, 2, "min")
         self.deep = W.Stepper(10, 60, 28, "min")
-        for st, t, h in ((self.sleep, "Reposo tras", "0 = nunca"),
-                         (self.deep, "Reposo profundo tras", "Entre 10 y 60 min")):
+        for st, t, h in ((self.sleep, tr("Sleep after"), tr("0 = never")),
+                         (self.deep, tr("Deep sleep after"), tr("Between 10 and 60 min"))):
             st.valueChanged.connect(self._dirty)
             sl.addLayout(W.hbox(W.vbox(W.label(t, "strong"), W.label(h, "cap"), spacing=0), "stretch", st))
-        sl.addWidget(W.label("Solo cuenta por Bluetooth o 2.4 GHz.", "cap"))
+        sl.addWidget(W.label(tr("Only applies over Bluetooth or 2.4 GHz."), "cap"))
         sl.addStretch(1)
 
         # --- opciones
         opt, ol = W.card(spacing=0)
-        ol.addLayout(_card_title("ajustes", "Opciones"))
+        ol.addLayout(_card_title("ajustes", tr("Options")))
         ol.addSpacing(10)
         self.switches: dict[str, W.Switch] = {}
         for i, (key, icon, title, desc) in enumerate(OPTIONS):
@@ -87,29 +91,51 @@ class SettingsPage(Page):
             sw = W.Switch()
             sw.toggled.connect(self._dirty)
             self.switches[key] = sw
-            W.hbox(box, 4, W.vbox(W.label(title, "strong"), W.label(desc, "cap"), spacing=0), "stretch", sw,
+            W.hbox(box, 4, W.vbox(W.label(tr(title), "strong"), W.label(tr(desc), "cap"), spacing=0), "stretch", sw,
                    spacing=10, margins=(0, 10, 0, 10), parent=row)
             ol.addWidget(row)
+        # idioma de la app (no es un ajuste del teclado: se aplica al momento)
+        lang_row = QFrame()
+        lang_row.setProperty("kv", "last")
+        lbox = QFrame()
+        lbox.setProperty("iconbox", "true")
+        lbox.setFixedSize(32, 32)
+        W.hbox(W.icon_label("info", "text-2", 16), margins=(7, 7, 7, 7), parent=lbox)
+        self.lang = QComboBox()
+        self.lang.addItem(tr("Automatic (system)"), "auto")
+        for code, name in LANGUAGES.items():
+            self.lang.addItem(name, code)
+        saved = QSettings("l75-config", "l75-config").value("language", "auto")
+        self.lang.setCurrentIndex(max(0, self.lang.findData(saved)))
+        self.lang.activated.connect(self._language)
+        W.hbox(lbox, 4, W.vbox(W.label(tr("Language") + ("" if language() == "en" else " · Language"), "strong"),
+                               W.label(tr("Language of the app (not of the keyboard)."), "cap"), spacing=0),
+               "stretch", self.lang, spacing=10, margins=(0, 10, 0, 10), parent=lang_row)
+        ol.addWidget(lang_row)
         ol.addStretch(1)
 
         # --- información
         info, il = W.card(spacing=0)
-        il.addLayout(_card_title("chip", "Información"))
+        il.addLayout(_card_title("chip", tr("Information")))
         il.addSpacing(8)
         self.kv: dict[str, object] = {}
-        names = ["Firmware", "ID de modelo", "Conexión", "Perfil activo", "Batería", "Versión de la app"]
-        for i, n in enumerate(names):
+        for i, (key, name) in enumerate(INFO):
             row = QFrame()
-            row.setProperty("kv", "last" if i == len(names) - 1 else "true")
+            row.setProperty("kv", "last" if i == len(INFO) - 1 else "true")
             row.setFixedHeight(34)
             v = W.label("—", "kv-v")
             v.setTextInteractionFlags(Qt.TextSelectableByMouse)
-            self.kv[n] = v
-            W.hbox(W.label(n, "kv-l"), "stretch", v, parent=row)
+            self.kv[key] = v
+            W.hbox(W.label(tr(name), "kv-l"), "stretch", v, parent=row)
             il.addWidget(row)
-        self.kv["Versión de la app"].setText(f"L75 Config {__version__}")
+        self.kv["version"].setText(f"L75 Config {__version__}")
 
-        grid = W.vbox(W.hbox(perf, sleep, spacing=16), W.hbox(opt, info, spacing=16), spacing=16)
+        grid = W.vbox(spacing=16)
+        for a, b in ((perf, sleep), (opt, info)):
+            row = W.hbox(spacing=16)
+            row.addWidget(a, 1)
+            row.addWidget(b, 1)
+            grid.addLayout(row)
         self.lay.addLayout(grid)
 
         # --- zona peligrosa
@@ -119,20 +145,22 @@ class SettingsPage(Page):
         ic.setProperty("iconbox", "err")
         ic.setFixedSize(36, 36)
         W.hbox(W.icon_label("aviso", "error", 18), margins=(9, 9, 9, 9), parent=ic)
-        self.b_factory = W.button("Restaurar de fábrica…", "danger", "restaurar", on_click=self.factory)
+        self.b_factory = W.button(tr("Factory reset…"), "danger", "restaurar", on_click=self.factory)
         dl = W.hbox(ic, spacing=14, margins=(18, 14, 18, 14), parent=danger)
-        dl.addLayout(W.vbox(W.label("Zona peligrosa", "sub", tone="error"),
-                            W.label("<b>Restaurar de fábrica</b> devuelve el teclado a su estado original: teclas, "
-                                    "macros, luces y ajustes de los 3 perfiles.", "body2", wrap=True, rich=True),
+        dl.addLayout(W.vbox(W.label(tr("Danger zone"), "sub", tone="error"),
+                            W.label(tr("<b>Factory reset</b> returns the keyboard to its original state: keys, "
+                                       "macros, lighting and settings of all 3 profiles."), "body2", wrap=True,
+                                    rich=True),
                             spacing=2), 1)
         dl.addWidget(self.b_factory)
         self.lay.addWidget(danger)
         self.lay.addStretch(1)
         self._header()
-        W.disable_with_reason(self.b_apply, "No hay cambios que aplicar")
+        W.disable_with_reason(self.b_apply, tr("No changes to apply"))
 
     def _header(self):
-        self.header.subtitle.setText(f"Rendimiento, reposo y opciones del teclado para el perfil {self.win.profile + 1}.")
+        self.header.subtitle.setText(tr("Performance, sleep and keyboard options for profile {n}.").format(
+            n=self.win.profile + 1))
 
     def _deb(self, v):
         self.deb_sl.blockSignals(True)
@@ -147,7 +175,7 @@ class SettingsPage(Page):
 
     def _dirty(self, *_a):
         same = self.loaded is not None and self._values() == self.loaded
-        reason = "Conecta el teclado" if not self.kb else ("No hay cambios que aplicar" if same else None)
+        reason = tr("Connect the keyboard") if not self.kb else (tr("No changes to apply") if same else None)
         W.disable_with_reason(self.b_apply, reason)
 
     def on_connected(self):
@@ -167,7 +195,7 @@ class SettingsPage(Page):
             return (kb.get_report_rate(), kb.get_debounce(), kb.get_sleep(), kb.get_options(),
                     kb.firmware_version(), kb.battery(), kb.device_id())
 
-        self.win.run(work, on_done=self._loaded, label="Leyendo ajustes…", retry=self.load)
+        self.win.run(work, on_done=self._loaded, label=tr("Reading settings…"), retry=self.load)
 
     def _loaded(self, r):
         rate, deb, sl, opts, fw, bat, dev_id = r
@@ -190,17 +218,17 @@ class SettingsPage(Page):
             sw.blockSignals(False)
         self.loaded = self._values()
         kb = self.kb
-        self.kv["Firmware"].setText(f"{fw >> 8}.{fw & 0xFF:02d}")
-        self.kv["ID de modelo"].setText(f"{dev_id}" + (" (L75)" if dev_id in P.DEVICE_IDS_L75 else ""))
+        self.kv["fw"].setText(f"{fw >> 8}.{fw & 0xFF:02d}")
+        self.kv["id"].setText(f"{dev_id}" + (" (L75)" if dev_id in P.DEVICE_IDS_L75 else ""))
         if kb.is_demo:
-            conn = "Simulado (modo demo)"
+            conn = tr("Simulated (demo mode)")
         elif kb.bus == "bt":
             conn = f"Bluetooth · {P.VID:04x}:4012"
         else:
-            conn = f"Cable USB-C · {P.VID:04x}:{P.PID_WIRED:04x}"
-        self.kv["Conexión"].setText(conn)
-        self.kv["Perfil activo"].setText(f"{self.win.profile + 1} de 3")
-        self.kv["Batería"].setText(f"{bat[0]} % · {bat[1]}")
+            conn = tr("USB-C cable") + f" · {P.VID:04x}:{P.PID_WIRED:04x}"
+        self.kv["conn"].setText(conn)
+        self.kv["profile"].setText(tr("{n} of 3").format(n=self.win.profile + 1))
+        self.kv["battery"].setText(f"{bat[0]} % · {tr(bat[1])}")
         self.win.topbar.set_battery(*bat)
         self._dirty()
 
@@ -222,21 +250,26 @@ class SettingsPage(Page):
             self.opts = o
             self.loaded = v
             self._dirty()
-            self.win.toast("ok", "Ajustes guardados en el teclado")
+            self.win.toast("ok", tr("Settings saved to the keyboard"))
 
-        self.win.run(work, on_done=done, label="Guardando ajustes…", retry=self.apply)
+        self.win.run(work, on_done=done, label=tr("Saving settings…"), retry=self.apply)
 
     def factory(self):
         if not self.kb:
             return
-        self.win.confirm("¿Restaurar de fábrica?",
-                         "Se borrarán reasignaciones, macros, luces y ajustes de los 3 perfiles. "
-                         "<b>No se puede deshacer.</b>",
-                         "Restaurar de fábrica",
+        self.win.confirm(tr("Factory reset?"),
+                         tr("Remaps, macros, lighting and settings of all 3 profiles will be erased.") +
+                         " <b>" + tr("This cannot be undone.") + "</b>",
+                         tr("Factory reset"),
                          lambda: self.win.run(self.kb.factory_reset, on_done=lambda _: self._after_reset(),
-                                              label="Restaurando de fábrica…"),
-                         danger=True, icon="aviso", require="RESTAURAR")
+                                              label=tr("Resetting to factory…")),
+                         danger=True, icon="aviso", require=tr("RESTORE"))
+
+    def _language(self, _i):
+        code = self.lang.currentData()
+        QSettings("l75-config", "l75-config").setValue("language", code)
+        self.win.set_language(code)
 
     def _after_reset(self):
-        self.win.toast("ok", "Teclado restaurado de fábrica")
+        self.win.toast("ok", tr("Keyboard reset to factory"))
         self.win.on_connected()

@@ -10,6 +10,7 @@ from PySide6.QtGui import QDesktopServices, QGuiApplication
 from PySide6.QtWidgets import QFrame, QWidget
 
 from .. import widgets as W
+from ...i18n import t as tr
 from ..keyboard_view import KeyboardView
 from ..theme import font
 from ..window import Page
@@ -23,13 +24,13 @@ if _LOCAL_RULES.exists():  # ejecutando desde la carpeta del proyecto
 else:  # AppImage, Flatpak u otros paquetes
     UDEV_CMDS = (f"curl -fsSL {RULES_URL} | sudo tee /etc/udev/rules.d/{RULES}\n"
                  "sudo udevadm control --reload-rules && sudo udevadm trigger")
-README_URL = "https://github.com/GiomarOsorio/l75-config#soluci%C3%B3n-de-problemas"
+README_URL = "https://github.com/GiomarOsorio/l75-config#troubleshooting"
 
 
 def _option(icon: str, title: str, desc: str) -> QFrame:
     f = QFrame()
     f.setProperty("card", "true")
-    W.hbox(W.icon_label(icon, "text-2", 16), W.vbox(W.label(title, "strong"), W.label(desc, "cap"), spacing=2),
+    W.hbox(W.icon_label(icon, "text-2", 16), W.vbox(W.label(tr(title), "strong"), W.label(tr(desc), "cap"), spacing=2),
            "stretch", spacing=14, margins=(16, 12, 16, 12), parent=f)
     return f
 
@@ -47,15 +48,15 @@ class NoKeyboardPage(Page):
 
         # sin teclado
         self.none_box = QWidget()
-        W.vbox(_option("cable", "Por cable", "Bien conectado y con el interruptor del teclado en modo cable."),
-               _option("inalambrico", "Por Bluetooth", "Emparejado y conectado como «L75 BT5.0»."),
-               _option("receptor", "Receptor 2.4 GHz", "Todavía no está soportado: usa cable o Bluetooth."),
+        W.vbox(_option("cable", "By cable", "Properly plugged in, with the keyboard's switch in wired mode."),
+               _option("inalambrico", "By Bluetooth", "Paired and connected as «L75 BT5.0»."),
+               _option("receptor", "2.4 GHz receiver", "Not supported yet: use cable or Bluetooth."),
                spacing=8, parent=self.none_box)
 
         # permiso udev
         self.udev_box = QWidget()
-        self.udev_banner = W.Banner("err", "<b>No pude abrir el teclado: falta permiso.</b> Linux necesita una regla "
-                                           "udev para usar el L75 sin ser root.")
+        self.udev_banner = W.Banner("err", "<b>" + tr("Could not open the keyboard: missing permission.") + "</b> " +
+                                    tr("Linux needs a udev rule to use the L75 without being root."))
         code = QFrame()
         code.setProperty("codebox", True)
         lbl = W.label(UDEV_CMDS)
@@ -63,20 +64,20 @@ class NoKeyboardPage(Page):
         lbl.setMinimumHeight(40)
         lbl.setTextInteractionFlags(Qt.TextSelectableByMouse)
         W.vbox(lbl, margins=(12, 10, 12, 10), parent=code)
-        copy = W.button("Copiar", "ghost", "copiar", size="sm", on_click=self._copy)
+        copy = W.button(tr("Copy"), "ghost", "copiar", size="sm", on_click=self._copy)
         W.vbox(self.udev_banner, 10,
-               W.hbox(W.label("Instala la regla y recarga udev", "strong"), "stretch", copy),
+               W.hbox(W.label(tr("Install the rule and reload udev"), "strong"), "stretch", copy),
                code,
-               W.label("Después desconecta y vuelve a conectar el teclado (por Bluetooth, desconéctalo y conéctalo "
-                       "de nuevo). Solo hace falta una vez.", "cap", wrap=True),
+               W.label(tr("Then unplug and reconnect the keyboard (over Bluetooth, disconnect and connect it "
+                          "again). You only need to do this once."), "cap", wrap=True),
                spacing=8, parent=self.udev_box)
         self.err_detail = W.label("", "cap", wrap=True)
         self.err_detail.setTextInteractionFlags(Qt.TextSelectableByMouse)
 
-        self.b_retry = W.button("Reintentar", "primary", "reintentar", on_click=win.reconnect)
-        self.b_demo = W.button("Probar en modo demo", "secondary", "demo",
+        self.b_retry = W.button(tr("Retry"), "primary", "reintentar", on_click=win.reconnect)
+        self.b_demo = W.button(tr("Try demo mode"), "secondary", "demo",
                                on_click=lambda: win.connect_device(demo=True))
-        self.b_help = W.button("Ver instrucciones", "secondary", "externo",
+        self.b_help = W.button(tr("See instructions"), "secondary", "externo",
                                on_click=lambda: QDesktopServices.openUrl(QUrl(README_URL)))
         col = QWidget()
         col.setFixedWidth(620)
@@ -96,14 +97,14 @@ class NoKeyboardPage(Page):
             self.kbv._timer.stop()
         self.kbv.update()
         if searching:
-            self.title.setText("Buscando tu L75…")
-            self.text.setText("Un momento: miro el cable USB-C y los dispositivos Bluetooth.")
+            self.title.setText(tr("Looking for your L75…"))
+            self.text.setText(tr("One moment: checking the USB-C cable and Bluetooth devices."))
         elif state == "udev":
             self.title.setText("")
             self.text.setText("")
         else:
-            self.title.setText("No encuentro tu L75")
-            self.text.setText("Conéctalo con el cable USB-C o empareja «L75 BT5.0» por Bluetooth y pulsa Reintentar.")
+            self.title.setText(tr("Can't find your L75"))
+            self.text.setText(tr("Connect it with the USB-C cable or pair «L75 BT5.0» over Bluetooth and press Retry."))
         self.title.setVisible(state != "udev")
         self.text.setVisible(state != "udev")
         self.none_box.setVisible(state == "none")
@@ -118,4 +119,4 @@ class NoKeyboardPage(Page):
 
     def _copy(self):
         QGuiApplication.clipboard().setText(UDEV_CMDS)
-        self.win.toast("ok", "Comandos copiados")
+        self.win.toast("ok", tr("Commands copied"))

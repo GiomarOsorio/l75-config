@@ -12,7 +12,7 @@ AppId={{F607F98C-38FB-51AF-9028-BC6BB2C03460}
 AppName={#AppName}
 AppVersion={#AppVersion}
 AppVerName={#AppName} {#AppVersion}
-AppPublisher=l75-config (proyecto no oficial)
+AppPublisher=l75-config (unofficial project)
 AppPublisherURL=https://github.com/GiomarOsorio/l75-config
 AppSupportURL=https://github.com/GiomarOsorio/l75-config/issues
 DefaultDirName={autopf}\{#AppName}
@@ -31,8 +31,8 @@ ArchitecturesInstallIn64BitMode=x64compatible
 PrivilegesRequiredOverridesAllowed=dialog
 
 [Languages]
-Name: "spanish"; MessagesFile: "compiler:Languages\Spanish.isl"
 Name: "english"; MessagesFile: "compiler:Default.isl"
+Name: "spanish"; MessagesFile: "compiler:Languages\Spanish.isl"
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked

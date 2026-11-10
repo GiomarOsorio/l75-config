@@ -16,6 +16,7 @@ import struct
 from dataclasses import dataclass, field
 
 from . import protocol as P
+from .i18n import t as _t
 from .keymap import hid_name, parse_hid
 
 MOUSE_CODES = {
@@ -35,13 +36,13 @@ class MacroEvent:
 
     def describe(self) -> str:
         if self.type == "delay":
-            return f"esperar {self.value} ms"
+            return _t("wait {ms} ms").format(ms=self.value)
         if self.type == "move":
-            return f"mover raton ({self.dx}, {self.dy})"
-        act = "pulsar" if self.down else "soltar"
+            return _t("move mouse ({dx}, {dy})").format(dx=self.dx, dy=self.dy)
         if self.type == "mouse":
-            return f"{act} raton {MOUSE_NAMES.get(self.value, self.value)}"
-        return f"{act} {hid_name(self.value)}"
+            what = MOUSE_NAMES.get(self.value, self.value)
+            return (_t("press mouse {b}") if self.down else _t("release mouse {b}")).format(b=what)
+        return (_t("press {k}") if self.down else _t("release {k}")).format(k=hid_name(self.value))
 
     def to_text(self) -> str:
         if self.type == "delay":
@@ -91,7 +92,7 @@ def parse_macro_text(text: str) -> list[MacroEvent]:
             else:
                 events.append(MacroEvent(typ, code, kind == "down"))
         else:
-            raise ValueError(f"evento de macro desconocido: {tok!r}")
+            raise ValueError(_t("unknown macro event: {tok}").format(tok=repr(tok)))
     return events
 
 
@@ -124,7 +125,7 @@ def _encode(events: list[MacroEvent], repeat: int, check: bool = True) -> bytear
             elif ev.type == "move":
                 out.append(249)
             else:
-                raise ValueError(f"tipo de evento invalido: {ev.type}")
+                raise ValueError(_t("invalid event type: {type}").format(type=ev.type))
             attr = 0
             if t + 1 < n and events[t + 1].type == "delay" and events[t + 1].value <= 127:
                 attr = int(events[t + 1].value)
@@ -140,8 +141,8 @@ def _encode(events: list[MacroEvent], repeat: int, check: bool = True) -> bytear
         t += 1
     if check and len(out) > P.MACRO_MAX_BYTES:
         raise ValueError(
-            f"la macro ocupa {len(out)} bytes; el maximo es {P.MACRO_MAX_BYTES}. "
-            "Quita eventos o retardos.")
+            _t("the macro takes {n} bytes; the maximum is {max}. Remove events or delays.").format(
+                n=len(out), max=P.MACRO_MAX_BYTES))
     return out
 
 

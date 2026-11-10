@@ -12,15 +12,16 @@ from ... import protocol as P
 from ...keymap import KEYS
 from ...macros import MOUSE_CODES, Macro, MacroEvent, encoded_length, parse_macro_text
 from .. import widgets as W
+from ...i18n import t as tr
 from ..hidkeys import qt_to_hid
 from ..window import Page
 from .common import hid_combo, key_display
 
 MODS = {0xE0: "Ctrl", 0xE1: "Shift", 0xE2: "Alt", 0xE3: "Win", 0xE4: "RCtrl", 0xE5: "RShift", 0xE6: "RAlt",
         0xE7: "RWin"}
-MOUSE_LABELS = {"left": "Clic izq.", "right": "Clic der.", "middle": "Clic central", "forward": "Adelante",
-                "back": "Atrás", "wheelleft": "Rueda izq.", "wheelright": "Rueda der.",
-                "wheelforward": "Rueda arriba", "wheelback": "Rueda abajo"}
+MOUSE_LABELS = {"left": "Left click", "right": "Right click", "middle": "Middle click", "forward": "Forward",
+                "back": "Back", "wheelleft": "Wheel left", "wheelright": "Wheel right",
+                "wheelforward": "Wheel up", "wheelback": "Wheel down"}
 MOUSE_BY_CODE = {v: k for k, v in MOUSE_CODES.items()}
 
 
@@ -32,7 +33,8 @@ def summarize(m: Macro) -> str:
         if e.type == "delay":
             toks.append(f"{e.value} ms")
         elif e.type == "mouse" and e.down:
-            toks.append(MOUSE_LABELS.get(MOUSE_BY_CODE.get(e.value, ""), "Clic"))
+            lab = MOUSE_LABELS.get(MOUSE_BY_CODE.get(e.value, ""))
+            toks.append(tr(lab) if lab else tr("Click"))
         elif e.type == "key":
             if e.down:
                 if e.value in MODS:
@@ -57,7 +59,7 @@ class MacroItem(QFrame):
         self.setCursor(Qt.PointingHandCursor)
         self.num = QLabel(f"{idx:02d}")
         self.num.setProperty("mlidx", "")
-        self.title = W.label("Vacía")
+        self.title = W.label(tr("Empty"))
         self.title.setProperty("mlt", "empty")
         self.meta = W.label("", "cap")
         self.meta.hide()
@@ -73,12 +75,12 @@ class MacroItem(QFrame):
         if used:
             self.title.setText(summarize(m))
             n = len(m.events)
-            meta = f"{n} evento{'s' if n != 1 else ''} · {encoded_length(m.events)} B"
+            meta = (tr("{n} events") if n != 1 else tr("{n} event")).format(n=n) + f" · {encoded_length(m.events)} B"
             if assigned:
                 meta += f" · {assigned}"
             self.meta.setText(meta)
         else:
-            self.title.setText("Vacía" if m is not None else "…")
+            self.title.setText(tr("Empty") if m is not None else "…")
         self.meta.setVisible(used)
 
     def set_on(self, on: bool):
@@ -99,7 +101,7 @@ class EventRow(QFrame):
         lay = W.hbox(spacing=8, margins=(4, 4, 8, 4), parent=self)
         grip = W.icon_label("arrastrar", "text-3", 16)
         grip.setCursor(Qt.OpenHandCursor)
-        grip.setToolTip("Arrastra para reordenar")
+        grip.setToolTip(tr("Drag to reorder"))
         num = W.label(str(n), "mono2")
         num.setStyleSheet("font-size: 11px;")
         num.setFixedWidth(20)
@@ -119,13 +121,13 @@ class EventRow(QFrame):
         W.hbox(W.icon_label(self.ICONS[kind], self.COLORS[kind], 14), margins=(6, 6, 6, 6), parent=box)
         lay.addWidget(box)
         if ev.type == "delay":
-            text = "Esperar"
+            text = tr("Wait")
         elif ev.type == "mouse":
-            text = "Clic" if ev.down else "Soltar clic"
+            text = tr("Click") if ev.down else tr("Release click")
         elif ev.type == "move":
-            text = "Mover ratón"
+            text = tr("Move mouse")
         else:
-            text = "Pulsar" if ev.down else "Soltar"
+            text = tr("Press") if ev.down else tr("Release")
         t = W.label(text, "body2")
         t.setMinimumWidth(56)
         lay.addWidget(t)
@@ -144,14 +146,14 @@ class EventRow(QFrame):
         elif ev.type == "mouse":
             c = QComboBox()
             for name, code in MOUSE_CODES.items():
-                c.addItem(MOUSE_LABELS.get(name, name), code)
+                c.addItem(tr(MOUSE_LABELS[name]) if name in MOUSE_LABELS else name, code)
             c.setCurrentIndex(max(0, c.findData(ev.value)))
             c.currentIndexChanged.connect(lambda _i, c=c: self._mouse(c))
             lay.addWidget(c)
         else:
             lay.addWidget(W.label(f"({ev.dx}, {ev.dy})", "mono2"))
         lay.addStretch(1)
-        lay.addWidget(W.button("", "ghost", "cerrar", size="sm", tip="Quitar evento",
+        lay.addWidget(W.button("", "ghost", "cerrar", size="sm", tip=tr("Remove event"),
                                on_click=lambda: page.remove_event(self.ev)))
 
     def _delay(self, v):
@@ -193,15 +195,15 @@ class MacrosPage(Page):
         self.last_t = 0.0
         self.filter = "all"
 
-        self.lay.addWidget(W.PageHeader("Macros", "Secuencias de teclas y clics que luego asignas a cualquier "
-                                                  "tecla. El teclado guarda 50."))
+        self.lay.addWidget(W.PageHeader(tr("Macros"), tr("Sequences of keys and clicks that you then assign to any "
+                                                        "key. The keyboard stores 50.")))
         # --- lista
         left, ll = W.card(padding=(12, 14, 12, 8), spacing=10)
         left.setFixedWidth(288)
         self.left_card = left
         self.used_lbl = W.label("", "cap")
-        ll.addLayout(W.hbox(5, W.label("Posiciones", "sub"), "stretch", self.used_lbl, 5))
-        self.filt = W.Segmented([("Todas", "all"), ("Usadas", "used"), ("Vacías", "empty")], block=True)
+        ll.addLayout(W.hbox(5, W.label(tr("Slots"), "sub"), "stretch", self.used_lbl, 5))
+        self.filt = W.Segmented([(tr("All"), "all"), (tr("Used"), "used"), (tr("Empty slots"), "empty")], block=True)
         self.filt.changed.connect(self._filter)
         ll.addWidget(self.filt)
         self.items = [MacroItem(i, self) for i in range(P.MACRO_MAX)]
@@ -218,34 +220,34 @@ class MacrosPage(Page):
         # --- editor
         right, rl = W.card(padding=(18, 16, 18, 16), spacing=12)
         self.title = W.label("Macro 00", "title")
-        self.state = W.pill("Vacía", "neutral")
+        self.state = W.pill(tr("Empty"), "neutral")
         self.assign = W.label("", "cap", rich=True)
         self.assign.linkActivated.connect(lambda _l: self.win.go("keys"))
         self.view = W.Segmented()
-        self.view.add("Visual", "visual", icon="macros")
-        self.view.add("Texto", "text", icon="codigo")
+        self.view.add(tr("Visual"), "visual", icon="macros")
+        self.view.add(tr("Text"), "text", icon="codigo")
         self.view.changed.connect(self._view)
         head = W.hbox(W.vbox(W.hbox(self.title, self.state, "stretch", spacing=10), self.assign, spacing=2), "stretch",
                       self.view, spacing=12)
         rl.addLayout(head)
-        self.b_rec = W.button("Grabar", "secondary", "grabar", on_click=self.toggle_record)
+        self.b_rec = W.button(tr("Record"), "secondary", "grabar", on_click=self.toggle_record)
         W.set_icon(self.b_rec, "grabar", "error", 16)
-        self.b_add = W.button("Añadir evento", "secondary", "mas")
+        self.b_add = W.button(tr("Add event"), "secondary", "mas")
         menu = QMenu(self)
-        for text, icon, kind in (("Pulsar tecla", "pulsar", "down"), ("Soltar tecla", "soltar", "up"),
-                                 ("Pulsar y soltar", "teclas", "tap"), ("Esperar", "esperar", "delay"),
-                                 ("Clic de ratón", "raton", "click")):
-            a = menu.addAction(W.theme().icon(icon, "text-2", 16), text)
+        for text, icon, kind in (("Press key", "pulsar", "down"), ("Release key", "soltar", "up"),
+                                 ("Press and release", "teclas", "tap"), ("Wait", "esperar", "delay"),
+                                 ("Mouse click", "raton", "click")):
+            a = menu.addAction(W.theme().icon(icon, "text-2", 16), tr(text))
             a.triggered.connect(lambda _=False, k=kind: self.add_event(k))
         self.b_add.setMenu(menu)
         self.rec_waits = W.Switch(True)
-        self.drag_hint = W.label("Arrastra  ⠿  para reordenar", "cap")
-        self.tools = W.hbox(self.b_rec, self.b_add, 6, self.rec_waits, W.label("Grabar esperas", "strong"), "stretch",
+        self.drag_hint = W.label(tr("Drag  ⠿  to reorder"), "cap")
+        self.tools = W.hbox(self.b_rec, self.b_add, 6, self.rec_waits, W.label(tr("Record delays"), "strong"), "stretch",
                             self.drag_hint, spacing=8)
         rl.addLayout(self.tools)
         self.stack = QStackedWidget()
         self.list = EventList(self)
-        self.empty_hint = W.label("Sin eventos. Pulsa «Grabar» y escribe, o añade eventos a mano.", "cap")
+        self.empty_hint = W.label(tr("No events. Press «Record» and type, or add events by hand."), "cap")
         self.empty_hint.setAlignment(Qt.AlignCenter)
         vis = QWidget()
         W.vbox(self.list, self.empty_hint, spacing=0, parent=vis)
@@ -253,9 +255,9 @@ class MacrosPage(Page):
         self.text = QPlainTextEdit()
         self.text.setPlaceholderText("down:ctrl, tap:c, up:ctrl, delay:50, tap:enter")
         self.text.textChanged.connect(self._text_changed)
-        self.text_hint = W.label("<code>down:</code>pulsar · <code>up:</code>soltar · <code>tap:</code>pulsar y "
-                                 "soltar · <code>delay:</code>ms · <code>down:mouse-left</code> ratón", "cap",
-                                 rich=True)
+        self.text_hint = W.label("<code>down:</code>" + tr("press") + " · <code>up:</code>" + tr("release") +
+                                 " · <code>tap:</code>" + tr("press and release") + " · <code>delay:</code>ms · "
+                                 "<code>down:mouse-left</code> " + tr("mouse"), "cap", rich=True)
         tw = QWidget()
         W.vbox(self.text, self.text_hint, spacing=8, parent=tw)
         self.stack.addWidget(tw)
@@ -265,13 +267,13 @@ class MacrosPage(Page):
         self.rep.valueChanged.connect(self._rep)
         self.cap_meter = W.Meter(190)
         self.cap_lbl = W.label("", "mono2")
-        foot = W.hbox(W.label("Repeticiones", "strong"), self.rep, 16,
-                      W.vbox(W.hbox(W.label("Capacidad", "cap"), "stretch", self.cap_lbl, spacing=8), self.cap_meter,
+        foot = W.hbox(W.label(tr("Repeats"), "strong"), self.rep, 16,
+                      W.vbox(W.hbox(W.label(tr("Capacity"), "cap"), "stretch", self.cap_lbl, spacing=8), self.cap_meter,
                              spacing=4), "stretch", spacing=10)
         rl.addLayout(foot)
-        self.b_read = W.button("Leer del teclado", "ghost", "leer", on_click=self.read)
-        self.b_clear = W.button("Borrar", "danger", "borrar", on_click=self.clear)
-        self.b_save = W.button("Guardar en el teclado", "primary", "guardar", on_click=self.save)
+        self.b_read = W.button(tr("Read from keyboard"), "ghost", "leer", on_click=self.read)
+        self.b_clear = W.button(tr("Delete"), "danger", "borrar", on_click=self.clear)
+        self.b_save = W.button(tr("Save to keyboard"), "primary", "guardar", on_click=self.save)
         rl.addLayout(W.hbox("stretch", self.b_read, self.b_clear, self.b_save, spacing=8))
 
         row = W.hbox(spacing=16)
@@ -325,7 +327,7 @@ class MacrosPage(Page):
         def fail(_m):
             self.loaded = False
 
-        self.win.run(work, progress=True, on_done=done, on_error=fail, label="Leyendo macros…",
+        self.win.run(work, progress=True, on_done=done, on_error=fail, label=tr("Reading macros…"),
                      count_fmt=lambda f, m: f"{round(f * P.MACRO_MAX)}/{P.MACRO_MAX}", retry=self.load_all)
 
     def assignments(self) -> dict[int, list[str]]:
@@ -347,7 +349,7 @@ class MacrosPage(Page):
             m = self.macros[i]
             it.set(m, ", ".join(asg.get(i, [])))
             used += bool(m and m.events)
-        self.used_lbl.setText(f"{used} de {P.MACRO_MAX} usadas")
+        self.used_lbl.setText(tr("{n} of {max} used").format(n=used, max=P.MACRO_MAX))
         self._filter(self.filt.value())
         self._header()
 
@@ -363,8 +365,8 @@ class MacrosPage(Page):
         if idx == self.idx and not force:
             return
         if self.dirty() and not force:
-            self.win.confirm(f"¿Descartar los cambios de la macro {self.idx:02d}?",
-                             "Tienes cambios sin guardar en el teclado.", "Descartar",
+            self.win.confirm(tr("Discard the changes to macro {n}?").format(n=f"{self.idx:02d}"),
+                             tr("You have changes not saved to the keyboard."), tr("Discard"),
                              lambda: self.select(idx, force=True), danger=True, icon="aviso")
             return
         self.stop_record()
@@ -389,19 +391,20 @@ class MacrosPage(Page):
         self.title.setText(f"Macro {self.idx:02d}")
         asg = self.assignments().get(self.idx)
         if asg:
-            self.assign.setText(f"Asignada a <b>{', '.join(asg)}</b> en el perfil {self.win.profile + 1}.")
+            self.assign.setText(tr("Assigned to <b>{keys}</b> in profile {n}.").format(keys=", ".join(asg),
+                                                                                     n=self.win.profile + 1))
         else:
             acc = W.theme().hex("accent")
-            self.assign.setText("Sin asignar. Asígnala a una tecla en la sección Teclas. "
-                                f"<a href='keys' style='color:{acc};text-decoration:none'>Ir a Teclas ›</a>")
+            self.assign.setText(tr("Not assigned. Assign it to a key in the Keys section.") + " "
+                                f"<a href='keys' style='color:{acc};text-decoration:none'>{tr('Go to Keys')} ›</a>")
         if self.dirty():
-            self.state.setText("Sin guardar")
+            self.state.setText(tr("Not saved"))
             W.set_prop(self.state, "pill", "warn")
         elif self.events:
-            self.state.setText("Guardada")
+            self.state.setText(tr("Saved"))
             W.set_prop(self.state, "pill", "ok")
         else:
-            self.state.setText("Vacía")
+            self.state.setText(tr("Empty"))
             W.set_prop(self.state, "pill", "neutral")
 
     # ------------------------------------------------------------ editor
@@ -437,16 +440,16 @@ class MacrosPage(Page):
         self.cap_lbl.setProperty("tone", {"error": "error", "warning": "warning"}.get(tone))
         W.repolish(self.cap_lbl)
         if not self.kb:
-            reason = "Conecta el teclado"
+            reason = tr("Connect the keyboard")
         elif n > lim:
-            reason = f"Se pasa por {n - lim} bytes: quita eventos o esperas"
+            reason = tr("{n} bytes too long: remove events or delays").format(n=n - lim)
         elif not self.dirty():
-            reason = "No hay cambios que guardar"
+            reason = tr("No changes to save")
         else:
             reason = None
         W.disable_with_reason(self.b_save, reason)
         has = bool(self.events) or bool(self.macros[self.idx] and self.macros[self.idx].events)
-        W.disable_with_reason(self.b_clear, None if has else "La macro ya está vacía")
+        W.disable_with_reason(self.b_clear, None if has else tr("The macro is already empty"))
         self._header()
 
     def events_changed(self, rebuild: bool = True):
@@ -496,12 +499,12 @@ class MacrosPage(Page):
                 self.events = parse_macro_text(self.text.toPlainText())
             except (ValueError, KeyError) as e:
                 self.view.setValue("text")
-                self.win.toast("err", f"No entiendo el texto: {e}")
+                self.win.toast("err", tr("I do not understand the text: {error}").format(error=e))
                 return
             self.stack.setCurrentIndex(0)
             self._render()
         for w in (self.b_rec, self.b_add):
-            W.disable_with_reason(w, "Solo en la vista Visual" if v == "text" else None)
+            W.disable_with_reason(w, tr("Only in the Visual view") if v == "text" else None)
 
     def _text_changed(self):
         try:
@@ -510,7 +513,7 @@ class MacrosPage(Page):
             self._update_cap()
         except (ValueError, KeyError):
             W.set_prop(self.text, "error", True)
-            W.disable_with_reason(self.b_save, "Corrige el texto de la macro")
+            W.disable_with_reason(self.b_save, tr("Fix the macro text"))
 
     # ------------------------------------------------------------ grabar
     def toggle_record(self):
@@ -519,19 +522,19 @@ class MacrosPage(Page):
         else:
             self.recording = True
             self.last_t = 0.0
-            self.b_rec.setText("Detener")
+            self.b_rec.setText(tr("Stop"))
             W.set_variant(self.b_rec, "rec-on")
             W.set_icon(self.b_rec, "detener", "error", 16)
             self.setFocus()
             self.grabKeyboard()
-            self.win.toast("info", "Grabando: escribe la secuencia y pulsa «Detener».")
+            self.win.toast("info", tr("Recording: type the sequence and press «Stop»."))
 
     def stop_record(self):
         if not self.recording:
             return
         self.recording = False
         self.releaseKeyboard()
-        self.b_rec.setText("Grabar")
+        self.b_rec.setText(tr("Record"))
         W.set_variant(self.b_rec, "secondary")
         W.set_icon(self.b_rec, "grabar", "error", 16)
 
@@ -574,7 +577,7 @@ class MacrosPage(Page):
             self.refresh_assignments()
             self.select(idx, force=True)
 
-        self.win.run(self.kb.read_macro, idx, on_done=done, label=f"Leyendo macro {idx:02d}…", retry=self.read)
+        self.win.run(self.kb.read_macro, idx, on_done=done, label=tr("Reading macro {n}…").format(n=f"{idx:02d}"), retry=self.read)
 
     def save(self):
         if not self.kb:
@@ -583,7 +586,7 @@ class MacrosPage(Page):
         idx = self.idx
         m = Macro([MacroEvent(e.type, e.value, e.down, e.dx, e.dy) for e in self.events], self.repeat)
         if encoded_length(m.events) > P.MACRO_MAX_BYTES:
-            self.win.toast("err", "La macro es demasiado larga.")
+            self.win.toast("err", tr("The macro is too long."))
             return
 
         def done(_):
@@ -591,9 +594,9 @@ class MacrosPage(Page):
             self.saved = self._snapshot() if idx == self.idx else self.saved
             self.refresh_assignments()
             self._update_cap()
-            self.win.toast("ok", f"Macro {idx:02d} guardada")
+            self.win.toast("ok", tr("Macro {n} saved").format(n=f"{idx:02d}"))
 
-        self.win.run(self.kb.write_macro, idx, m, on_done=done, label=f"Guardando macro {idx:02d}…",
+        self.win.run(self.kb.write_macro, idx, m, on_done=done, label=tr("Saving macro {n}…").format(n=f"{idx:02d}"),
                      retry=self.save)
 
     def clear(self):
@@ -606,11 +609,13 @@ class MacrosPage(Page):
                 self.macros[idx] = Macro([], 0)
                 self.refresh_assignments()
                 self.select(idx, force=True)
-                self.win.toast("ok", f"Macro {idx:02d} borrada")
-            self.win.run(self.kb.write_macro, idx, Macro([], 0), on_done=done, label=f"Borrando macro {idx:02d}…")
+                self.win.toast("ok", tr("Macro {n} deleted").format(n=f"{idx:02d}"))
+            self.win.run(self.kb.write_macro, idx, Macro([], 0), on_done=done, label=tr("Deleting macro {n}…").format(n=f"{idx:02d}"))
 
         asg = self.assignments().get(idx)
-        extra = f" Sigue asignada a {', '.join(asg)}: esa tecla no hará nada." if asg else ""
-        self.win.confirm(f"¿Borrar la macro {idx:02d}?", "Se borra del teclado." + extra, "Borrar", go, danger=True,
+        extra = (" " + tr("It is still assigned to {keys}: that key will do nothing.").format(keys=", ".join(asg))
+                 if asg else "")
+        self.win.confirm(tr("Delete macro {n}?").format(n=f"{idx:02d}"), tr("It is deleted from the keyboard.") + extra,
+                         tr("Delete"), go, danger=True,
                          icon="borrar")
 

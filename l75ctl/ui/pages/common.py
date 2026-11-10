@@ -6,37 +6,48 @@ from PySide6.QtCore import QRectF, Qt
 from PySide6.QtGui import QPainter, QPen
 from PySide6.QtWidgets import QComboBox, QCompleter, QFrame, QWidget
 
+from ... import lighting as L
+from ...i18n import t as tr
 from ...keymap import HID_NAMES
 from .. import widgets as W
 from ..theme import paint_rgb_line, theme
 
-# Nombres para la interfaz (con tildes y cortos, como en el diseño)
-MODE_NAMES = {
-    "off": "Apagado", "static": "Fijo", "breath": "Respiración", "neon": "Neón", "wave": "Ola",
-    "ripple": "Onda expansiva", "raindrop": "Gotas de lluvia", "snake": "Serpiente", "reactive": "Reactivo",
-    "converge": "Convergencia", "sine": "Onda senoidal", "kaleidoscope": "Caleidoscopio", "linewave": "Línea",
-    "user": "Imagen de usuario", "laser": "Láser", "circle": "Círculo", "dazzling": "Deslumbrante",
-    "raindown": "Lluvia", "meteor": "Meteoro", "reactive-off": "Reactivo inverso", "music3": "Música 1",
-    "screen": "Color de pantalla", "music2": "Música 2",
+_MODE_HINTS = {
+    "reactive": "Lights up when pressed", "reactive-off": "Turns off when pressed",
+    "music3": "Follows the computer's audio", "music2": "Follows the computer's audio",
+    "user": "Colours from «Per-key colours»", "screen": "Takes the colour of the screen",
 }
-MODE_HINTS = {
-    "reactive": "Se enciende al pulsar", "reactive-off": "Se apaga al pulsar",
-    "music3": "Sigue el audio del ordenador", "music2": "Sigue el audio del ordenador",
-    "user": "Colores de «Colores por tecla»", "screen": "Toma el color de la pantalla",
+_OPTION_NAMES = {
+    "right": "Right", "left": "Left", "down": "Down", "up": "Up", "z": "Z pattern", "return": "Back and forth",
+    "out": "Outwards", "in": "Inwards", "anti-clockwise": "Counter-clockwise", "clockwise": "Clockwise",
+    "upright": "Upright", "separate": "Separate", "intersect": "Crossed",
 }
-OPTION_NAMES = {
-    "right": "Derecha", "left": "Izquierda", "down": "Abajo", "up": "Arriba", "z": "En Z", "return": "Ida y vuelta",
-    "out": "Hacia fuera", "in": "Hacia dentro", "anti-clockwise": "Antihorario", "clockwise": "Horario",
-    "upright": "Vertical", "separate": "Separado", "intersect": "Cruzado",
-}
+
+
+def mode_name(key: str, side: bool = False) -> str:
+    table = L.SIDE_MODE_BY_KEY if side else L.MODE_BY_KEY
+    m = table.get(key) or L.MODE_BY_KEY.get(key)
+    return tr(m.label) if m else key
+
+
+def mode_hint(key: str) -> str:
+    h = _MODE_HINTS.get(key)
+    return tr(h) if h else ""
+
+
+def option_name(key: str) -> str:
+    n = _OPTION_NAMES.get(key)
+    return tr(n) if n else key
+
+
 OPTION_ICONS = {
     "right": "flecha-derecha", "left": "flecha-izquierda", "down": "flecha-abajo", "up": "flecha-arriba",
     "z": "en-z", "return": "ida-vuelta", "out": "hacia-fuera", "in": "hacia-dentro",
     "anti-clockwise": "antihorario", "clockwise": "horario", "upright": "vertical", "separate": "separado",
     "intersect": "cruzado",
 }
-COLOR_NAMES = {0xFF0000: "rojo", 0xFF8000: "naranja", 0xFFFF00: "amarillo", 0x00FF00: "verde", 0x00FFFF: "cian",
-               0x0000FF: "azul", 0xFF00FF: "magenta", 0xFFFFFF: "blanco"}
+_COLOR_NAMES = {0xFF0000: "red", 0xFF8000: "orange", 0xFFFF00: "yellow", 0x00FF00: "green", 0x00FFFF: "cyan",
+                0x0000FF: "blue", 0xFF00FF: "magenta", 0xFFFFFF: "white"}
 
 KEY_DISPLAY = {"Insert": "Ins", "Delete": "Del", "PageUp": "PgUp", "PageDown": "PgDn", "Right": "→", "Left": "←",
                "Down": "↓", "Up": "↑", "PrintScreen": "PrtSc", "ScrollLock": "ScrLk", "Backspace": "Backspace"}
@@ -48,7 +59,8 @@ def key_display(code: int) -> str:
 
 
 def color_name(rgb: int) -> str:
-    return COLOR_NAMES.get(rgb, f"#{rgb:06X}")
+    n = _COLOR_NAMES.get(rgb)
+    return tr(n) if n else f"#{rgb:06X}"
 
 
 def hid_combo(allow_none: bool = False) -> QComboBox:

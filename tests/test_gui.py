@@ -17,8 +17,10 @@ except ImportError:  # pragma: no cover - PySide6 es opcional para las pruebas d
 class GuiSmokeTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        from l75ctl.i18n import set_language
         from l75ctl.ui.theme import init
 
+        set_language("en")
         cls.app = QApplication.instance() or QApplication([])
         init(cls.app, "dark")
 
@@ -40,7 +42,7 @@ class GuiSmokeTest(unittest.TestCase):
         w.show()
         self._settle(w)
         self.assertIsNotNone(w.kb)
-        self.assertEqual(w.topbar.conn_label.text(), "Modo demo")
+        self.assertEqual(w.topbar.conn_label.text(), "Demo mode")
         for key in ("keys", "light", "colors", "macros", "screen", "settings"):
             w.go(key)
             self._settle(w)

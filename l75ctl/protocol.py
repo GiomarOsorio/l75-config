@@ -1,7 +1,7 @@
 """Protocolo HID del ROYALAXE / ProtoArc L75 (firmware Rongyuan "YC500").
 
 Todo lo de este archivo se obtuvo leyendo el driver oficial "ROYALAXE Driver"
-(app Electron de Rongyuan). Ver docs/PROTOCOLO.md para el detalle.
+(app Electron de Rongyuan). Ver docs/PROTOCOL.md para el detalle.
 
 Resumen del transporte:
   * Interfaz HID 2, usage page 0xFFFF, usage 0x02.
@@ -123,13 +123,13 @@ def packet(*head: int, data: bytes | list[int] | None = None, at: int = 8) -> by
     """
     buf = bytearray(PACKET_SIZE)
     if len(head) > PACKET_SIZE:
-        raise ValueError("cabecera demasiado larga")
+        raise ValueError("header too long")
     for i, b in enumerate(head):
         buf[i] = b & 0xFF
     if data is not None:
         data = bytes(data)
         if at + len(data) > PACKET_SIZE:
-            raise ValueError("datos demasiado largos para un paquete")
+            raise ValueError("data too long for one packet")
         buf[at:at + len(data)] = data
     return buf
 

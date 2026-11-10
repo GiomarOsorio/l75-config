@@ -11,6 +11,7 @@ from PySide6.QtGui import QColor, QIntValidator, QLinearGradient, QPainter, QPai
 from PySide6.QtWidgets import (QAbstractButton, QButtonGroup, QFrame, QGraphicsOpacityEffect, QHBoxLayout, QLabel,
                                QLineEdit, QPushButton, QSizePolicy, QSlider, QToolButton, QVBoxLayout, QWidget)
 
+from ..i18n import t as tr
 from .theme import font, rgb_gradient, theme
 
 # ---------------------------------------------------------------- utilidades
@@ -675,7 +676,7 @@ class Toast(QFrame):
                 on_action()
                 self.dismiss()
             lay.addWidget(button(action, "secondary", size="sm", on_click=act))
-        lay.addWidget(button("", "ghost", "cerrar", size="sm", tip="Cerrar", on_click=self.dismiss))
+        lay.addWidget(button("", "ghost", "cerrar", size="sm", tip=tr("Close"), on_click=self.dismiss))
         theme().shadow(self, 2)
         if kind in ("ok", "info"):
             QTimer.singleShot(3200, self.dismiss)
@@ -753,7 +754,7 @@ class Dialog(QWidget):
     """Diálogo sin marco sobre un velo `scrim` (sin desenfoque)."""
 
     def __init__(self, window: QWidget, title: str, text: str, confirm: str, on_ok, danger: bool = False,
-                 icon: str = "restaurar", require: str | None = None, cancel: str = "Cancelar", extra=None):
+                 icon: str = "restaurar", require: str | None = None, cancel: str | None = None, extra=None):
         super().__init__(window)
         self.setObjectName("Scrim")
         self.setAttribute(Qt.WA_StyledBackground, True)
@@ -779,14 +780,14 @@ class Dialog(QWidget):
             lay.addWidget(extra)
         self.field = None
         if require:
-            lab = label(f"Escribe <span style='color:{theme().hex('error')};font-weight:600'>{require}</span> "
-                        "para confirmar", "strong", rich=True)
+            word = f"<span style='color:{theme().hex('error')};font-weight:600'>{require}</span>"
+            lab = label(tr("Type {word} to confirm").format(word=word), "strong", rich=True)
             self.field = QLineEdit()
             self.field.setProperty("mono", True)
             self.field.textChanged.connect(self._check)
             lay.addLayout(vbox(lab, self.field, spacing=6))
         self.ok = button(confirm, "danger-solid" if danger else "primary", on_click=self._accept)
-        foot = hbox("stretch", button(cancel, "ghost", on_click=self.close_dialog), self.ok, spacing=8)
+        foot = hbox("stretch", button(cancel or tr("Cancel"), "ghost", on_click=self.close_dialog), self.ok, spacing=8)
         lay.addLayout(foot)
         theme().shadow(box, 2)
         self._check()
@@ -859,7 +860,7 @@ class Swatch(QAbstractButton):
         self.setFixedSize(size + 8, size + 8)
         self.size_ = size
         self.setCursor(Qt.PointingHandCursor)
-        self.setToolTip(f"#{rgb:06X}" + (" · tecla apagada" if rgb == 0 else ""))
+        self.setToolTip(f"#{rgb:06X}" + (" · " + tr("key off") if rgb == 0 else ""))
 
     def paintEvent(self, _e):
         t = theme()
@@ -1021,7 +1022,7 @@ class ColorPopover(QFrame):
         fields = hbox(self.hex, *self.rgbf, spacing=6)
         self.row = SwatchRow(swatches, 20)
         self.row.picked.connect(self.set_rgb_emit)
-        lay = vbox(self.sv, self.hue, heads, fields, label("Colores del teclado", "label"), self.row, spacing=8,
+        lay = vbox(self.sv, self.hue, heads, fields, label(tr("Keyboard colours").upper(), "label"), self.row, spacing=8,
                    margins=(12, 12, 12, 12), parent=self)
         lay.setSpacing(8)
         self._sync_fields()

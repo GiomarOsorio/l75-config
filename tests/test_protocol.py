@@ -1,5 +1,5 @@
 """Pruebas sin hardware. Los vectores esperados se derivaron a mano leyendo el
-codigo del driver oficial (ver docs/PROTOCOLO.md).
+codigo del driver oficial (ver docs/PROTOCOL.md).
 
 Ejecutar:  python3 -m unittest discover -s tests -v
 """
@@ -10,8 +10,11 @@ import unittest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
+from l75ctl import i18n  # noqa: E402
 from l75ctl import lcd  # noqa: E402
 from l75ctl import lighting as L  # noqa: E402
+
+i18n.set_language("en")
 from l75ctl import protocol as P  # noqa: E402
 from l75ctl.keyboard import L75  # noqa: E402
 from l75ctl.keymap import KEYS, Action, find_key, parse_action  # noqa: E402
@@ -259,7 +262,7 @@ class SystemFunctionTest(unittest.TestCase):
         self.assertEqual(Action((10, 5, 2, 0)).kind, "system")
         self.assertEqual(Action((10, 5, 2, 0)).short(), "iOS")
         self.assertEqual(Action((14, 0, 0, 0)).short(), "BT1")
-        self.assertIn("brillo", Action((13, 2, 1, 0)).describe())
+        self.assertIn("brightness", Action((13, 2, 1, 0)).describe())
         self.assertTrue(is_system((13, 9, 9, 0)))
         self.assertFalse(is_system((3, 0, 205, 0)))      # multimedia: se puede cambiar
         self.assertFalse(is_system((0, 0, 227, 43)))     # Win+Tab: se puede cambiar

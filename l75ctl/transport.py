@@ -8,6 +8,7 @@ import time
 from dataclasses import dataclass
 
 from . import protocol as P
+from .i18n import t
 
 
 class TransportError(RuntimeError):
@@ -16,6 +17,18 @@ class TransportError(RuntimeError):
 
 class DeviceNotFound(TransportError):
     pass
+
+
+class PermissionDenied(TransportError):
+    """The device exists but cannot be opened (udev rule missing on Linux, or in use)."""
+
+
+class NoResponse(TransportError):
+    """The keyboard did not answer in time."""
+
+
+class Cancelled(TransportError):
+    """The user cancelled a long operation (screen upload)."""
 
 
 @dataclass
@@ -61,9 +74,9 @@ def _hid_module():
         import hid  # type: ignore
     except ImportError as exc:  # pragma: no cover - depende del sistema
         raise TransportError(
-            "No se encontro el modulo 'hid'. Instala hidapi para Python:\n"
+            t("The 'hid' module is missing. Install hidapi for Python:") + "\n"
             "  sudo dnf install python3-hid hidapi    (Fedora/Nobara)\n"
-            "  o: pip install --user hidapi"
+            "  " + t("or:") + " pip install --user hidapi"
         ) from exc
     return hid
 
@@ -137,11 +150,12 @@ def _open_hid(path: bytes):
             return hid.Device(path=path)
         return _CythonHidDevice(hid, path)
     except Exception as exc:  # hid.HIDException / OSError
-        hint = ("Probablemente falta permiso: ejecuta ./install.sh (instala la regla udev) y "
-                "reconecta el teclado (desenchufa el cable, o apaga y enciende el Bluetooth del teclado)."
+        hint = (t("Probably a missing permission: install the udev rule (./install.sh) and reconnect the "
+                  "keyboard (unplug the cable, or turn the keyboard's Bluetooth off and on).")
                 if sys.platform.startswith("linux") else
-                "Cierra el driver oficial u otras apps que usen el teclado y vuelve a conectarlo.")
-        raise TransportError(f"No pude abrir {path.decode(errors='replace')}: {exc}\n{hint}") from exc
+                t("Close the official driver or other apps using the keyboard and reconnect it."))
+        raise PermissionDenied(t("Could not open {path}: {error}").format(
+            path=path.decode(errors="replace"), error=exc) + "\n" + hint) from exc
 
 
 def open_transport(prefer: str = "auto", path: bytes | None = None) -> "Transport":
@@ -159,10 +173,10 @@ def open_transport(prefer: str = "auto", path: bytes | None = None) -> "Transpor
     if prefer in ("auto", "bt") and bt:
         return BleTransport(bt[0].path)
     raise DeviceNotFound(
-        "No encuentro el L75.\n"
-        "- Por cable: USB-C conectado y el interruptor en modo cable (USB 3151:4015).\n"
-        "- Por Bluetooth: emparejado y conectado como 'L75 BT5.0' (3151:4012).\n"
-        "Comprueba con: l75 list"
+        t("L75 not found.") + "\n"
+        + t("- Cable: USB-C plugged in and the switch in wired mode (USB 3151:4015).") + "\n"
+        + t("- Bluetooth: paired and connected as 'L75 BT5.0' (3151:4012).") + "\n"
+        + t("Check with: l75 list")
     )
 
 
@@ -179,17 +193,17 @@ class HidTransport(Transport):
 
     def write(self, buf: bytes) -> None:
         if len(buf) != P.PACKET_SIZE:
-            raise ValueError("el paquete debe tener 64 bytes")
+            raise ValueError(t("the packet must be 64 bytes"))
         try:
             self._dev.send_feature_report(bytes([P.REPORT_ID]) + bytes(buf))
         except Exception as exc:
-            raise TransportError(f"error enviando feature report: {exc}") from exc
+            raise TransportError(t("error sending feature report: {error}").format(error=exc)) from exc
 
     def read(self) -> bytes:
         try:
             data = self._dev.get_feature_report(P.REPORT_ID, P.PACKET_SIZE + 1)
         except Exception as exc:
-            raise TransportError(f"error leyendo feature report: {exc}") from exc
+            raise TransportError(t("error reading feature report: {error}").format(error=exc)) from exc
         data = bytes(data)
         # hidraw devuelve el report ID como primer byte.
         if len(data) == P.PACKET_SIZE + 1:
@@ -252,24 +266,24 @@ class BleTransport(Transport):
 
     def write(self, buf: bytes) -> None:
         if len(buf) != P.PACKET_SIZE:
-            raise ValueError("el paquete debe tener 64 bytes")
+            raise ValueError(t("the packet must be 64 bytes"))
         self._drain()
         data = bytes([P.BLE_REPORT_ID, P.BLE_CMD_MARKER]) + bytes(buf)
         try:
             self._dev.write(data)
         except Exception as exc:
-            raise TransportError(f"error enviando por Bluetooth: {exc}") from exc
+            raise TransportError(t("error sending over Bluetooth: {error}").format(error=exc)) from exc
 
     def read(self) -> bytes:
         deadline = time.monotonic() + self.TIMEOUT_S
         while True:
             left = deadline - time.monotonic()
             if left <= 0:
-                raise TransportError("el teclado no respondio por Bluetooth (timeout 3 s)")
+                raise NoResponse(t("the keyboard did not answer over Bluetooth (3 s timeout)"))
             try:
                 r = self._dev.read(P.BLE_REPORT_SIZE, timeout=max(1, int(left * 1000)))
             except Exception as exc:
-                raise TransportError(f"error leyendo por Bluetooth: {exc}") from exc
+                raise TransportError(t("error reading over Bluetooth: {error}").format(error=exc)) from exc
             if not r:
                 continue
             payload = self._note(bytes(r))

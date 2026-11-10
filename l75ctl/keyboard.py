@@ -10,10 +10,11 @@ from typing import Callable
 from . import lcd
 from . import lighting as L
 from . import protocol as P
+from .i18n import t
 from .keymap import Action, PhysicalKey, matrix_to_actions
 from .macros import Macro, decode_macro, encode_macro, macro_pages
-from .transport import (DryRunTransport, SimulatedTransport, Transport, TransportError, open_transport,
-                        sleep_ms)
+from .transport import (Cancelled, DryRunTransport, NoResponse, SimulatedTransport, Transport, TransportError,
+                        open_transport, sleep_ms)
 
 Progress = Callable[[float, str], None]
 
@@ -96,7 +97,7 @@ class L75:
         if len(b) != P.PACKET_SIZE:
             b = b.ljust(P.PACKET_SIZE, b"\0")[: P.PACKET_SIZE]
         if b[0] in P.FORBIDDEN_CMDS:
-            raise ValueError(f"comando 0x{b[0]:02X} bloqueado (firmware/bootloader)")
+            raise ValueError(t("command 0x{cmd} blocked (firmware/bootloader)").format(cmd=f"{b[0]:02X}"))
         if checksum is not None:
             P.apply_checksum(b, checksum)
         with self._lock:
@@ -128,7 +129,7 @@ class L75:
 
     def battery(self) -> tuple[int, str]:
         r = self._get(P.Cmd.GET_BATTERY)
-        status = {0: "descargando", 1: "cargando", 2: "cargado"}.get(r[2], f"?{r[2]}")
+        status = {0: "discharging", 1: "charging", 2: "charged"}.get(r[2], f"?{r[2]}")
         return r[1], status
 
     # ------------------------------------------------------------ perfiles
@@ -140,7 +141,7 @@ class L75:
 
     def set_profile(self, profile: int) -> None:
         if not 0 <= profile < P.NUM_PROFILES:
-            raise ValueError("perfil 0..2")
+            raise ValueError(t("profile 0..2"))
         self.send(P.packet(P.Cmd.SET_PROFILE, profile))
         self.profile = profile
         sleep_ms(200)
@@ -152,7 +153,7 @@ class L75:
 
     def set_report_rate(self, hz: int) -> None:
         if hz not in P.REPORT_RATE_CODES:
-            raise ValueError("tasa valida: 125, 250, 500 o 1000 Hz")
+            raise ValueError(t("valid rates: 125, 250, 500 or 1000 Hz"))
         self.send(P.packet(P.Cmd.SET_REPORT, self.profile, P.REPORT_RATE_CODES[hz]))
         sleep_ms(1000)
 
@@ -173,7 +174,7 @@ class L75:
         vals = []
         for v in (s.bt, s.rf24, s.deep_bt, s.deep_rf24):
             if not 0 <= v <= 0xFFFF:
-                raise ValueError("tiempo fuera de rango (0..65535 s)")
+                raise ValueError(t("time out of range (0..65535 s)"))
             vals += list(P.u16le(v))
         self.send(P.packet(P.Cmd.SET_SLEEPTIME, data=vals))
         sleep_ms(500)
@@ -234,13 +235,13 @@ class L75:
         for page in range(8):
             data += self._get(cmd, 0 if fn else prof, page)
             if progress:
-                progress((page + 1) / 8, "leyendo teclas")
+                progress((page + 1) / 8, "keys")
         return matrix_to_actions(data)
 
     def set_key(self, key: PhysicalKey | int, action: Action, profile: int | None = None, fn: bool = False) -> None:
         slot = key if isinstance(key, int) else key.slot
         if not 0 <= slot < P.MATRIX_SLOTS:
-            raise ValueError("slot fuera de rango")
+            raise ValueError(t("slot out of range"))
         if fn:
             buf = P.packet(P.Cmd.SET_FN_SIMPLE, 0, slot, data=action.raw)
         else:
@@ -279,12 +280,12 @@ class L75:
                          cancel: Callable[[], bool] | None = None) -> None:
         """Sube una imagen o GIF a la pantalla (solo por cable)."""
         if self.bus == "bt":
-            raise TransportError("la subida de imagenes solo funciona por cable "
-                                 "(el driver oficial tampoco la permite por Bluetooth)")
+            raise TransportError(t("image upload only works over the cable "
+                                   "(the official driver does not allow it over Bluetooth either)"))
         frames = anim.frames
         n = len(frames)
         if not 1 <= n <= P.LCD_MAX_FRAMES:
-            raise ValueError(f"de 1 a {P.LCD_MAX_FRAMES} cuadros")
+            raise ValueError(t("1 to {max} frames").format(max=P.LCD_MAX_FRAMES))
         box = lcd.content_box(frames)
         datas = [lcd.frame_to_rgb565(f, box) for f in frames]
         size = len(datas[0])
@@ -298,15 +299,15 @@ class L75:
                     break
                 sleep_ms(100)
             if not ready:
-                raise TransportError("la pantalla no respondio 'listo'. ¿Esta encendida? Prueba Fn+Ctrl y reintenta.")
+                raise NoResponse(t("the screen did not report 'ready'. Is it on? Try Fn+Ctrl and retry."))
             sleep_ms(100)
             total = sum((len(d) + 55) // 56 for d in datas)
             sent = 0
             for fi, data in enumerate(datas):
                 for pkt in lcd.data_packets(data, fi, n, anim.delay_ms):
                     if cancel and cancel():
-                        raise TransportError("subida cancelada")
+                        raise Cancelled(t("upload cancelled"))
                     self.send(pkt, checksum=None, delay_ms=1)
                     sent += 1
                     if progress and (sent % 32 == 0 or sent == total):
-                        progress(sent / total, f"cuadro {fi + 1}/{n}")
+                        progress(sent / total, f"{fi + 1}/{n}")

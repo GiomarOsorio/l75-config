@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import traceback
 
 from PySide6.QtCore import QObject, QRectF, QRunnable, QSettings, Qt, QThreadPool, QTimer, QUrl, Signal
@@ -11,17 +12,18 @@ from PySide6.QtWidgets import (QApplication, QButtonGroup, QFrame, QLabel, QMain
 
 from .. import __version__
 from ..keyboard import L75
-from ..transport import TransportError, list_devices
+from ..i18n import t as tr
+from ..transport import Cancelled, NoResponse, PermissionDenied, list_devices
 from . import widgets as W
 from .theme import font, paint_rgb_line, theme
 
-SECTIONS = [
-    ("keys", "Teclas", "teclas"),
-    ("light", "Iluminación", "iluminacion"),
-    ("colors", "Colores por tecla", "colores"),
+SECTIONS = [  # (key, English name -> tr(), icon)
+    ("keys", "Keys", "teclas"),
+    ("light", "Lighting", "iluminacion"),
+    ("colors", "Per-key colours", "colores"),
     ("macros", "Macros", "macros"),
-    ("screen", "Pantalla", "pantalla"),
-    ("settings", "Ajustes", "ajustes"),
+    ("screen", "Screen", "pantalla"),
+    ("settings", "Settings", "ajustes"),
 ]
 
 REPO_URL = "https://github.com/GiomarOsorio/l75-config"
@@ -32,7 +34,7 @@ REPO_URL = "https://github.com/GiomarOsorio/l75-config"
 
 class _Signals(QObject):
     done = Signal(object)
-    failed = Signal(str)
+    failed = Signal(object)
     progress = Signal(float, str)
 
 
@@ -50,7 +52,7 @@ class Task(QRunnable):
             self.signals.done.emit(self.func(*self.args, **self.kwargs))
         except Exception as exc:  # noqa: BLE001
             traceback.print_exc()
-            self.signals.failed.emit(str(exc))
+            self.signals.failed.emit(exc)
 
 
 # ---------------------------------------------------------------- logo
@@ -97,7 +99,7 @@ class Sidebar(QWidget):
         for key, text, icon in SECTIONS:
             b = QToolButton()
             b.setProperty("nav", True)
-            b.setText("  " + text)
+            b.setText("  " + tr(text))
             b.setCheckable(True)
             b.setFocusPolicy(Qt.NoFocus)
             b.setCursor(Qt.PointingHandCursor)
@@ -110,13 +112,13 @@ class Sidebar(QWidget):
             nav.addWidget(b)
         # tema
         self.theme_seg = W.Segmented(kind="true")
-        self.b_dark = self.theme_seg.add("", "dark", icon="luna", tip="Tema oscuro")
-        self.b_light = self.theme_seg.add("", "light", icon="brillo", tip="Tema claro")
+        self.b_dark = self.theme_seg.add("", "dark", icon="luna", tip=tr("Dark theme"))
+        self.b_light = self.theme_seg.add("", "light", icon="brillo", tip=tr("Light theme"))
         self.theme_seg.setValue(theme().mode)
         self.theme_seg.changed.connect(theme().set_mode)
         self.version = QLabel(f"v{__version__}")
         self.version.setObjectName("Version")
-        self.help = W.button("", "ghost", "ayuda", size="sm", tip="Acerca de L75 Config", on_click=win.about)
+        self.help = W.button("", "ghost", "ayuda", size="sm", tip=tr("About L75 Config"), on_click=win.about)
         self.foot_div = W.divider()
         foot = W.hbox(self.theme_seg, "stretch", self.version, self.help, spacing=6)
         self.lay = W.vbox(self.brand, 18, nav, "stretch", self.foot_div, foot, spacing=0, margins=(12, 18, 12, 12),
@@ -136,8 +138,8 @@ class Sidebar(QWidget):
         for key, text, _i in SECTIONS:
             b = self.buttons[key]
             b.setToolButtonStyle(Qt.ToolButtonIconOnly if on else Qt.ToolButtonTextBesideIcon)
-            b.setToolTip(text if on else "")
-            b.setText("" if on else "  " + text)
+            b.setToolTip(tr(text) if on else "")
+            b.setText("" if on else "  " + tr(text))
 
 
 # ---------------------------------------------------------------- barra superior
@@ -157,7 +159,7 @@ class Topbar(QWidget):
         self.conn_icon = QLabel()
         self.conn_icon.setFixedSize(16, 16)
         self.conn_spin = W.Spinner(14, "text-2")
-        self.conn_label = QLabel("Buscando teclado…")
+        self.conn_label = QLabel(tr("Looking for the keyboard…"))
         self.conn_label.setObjectName("ConnLabel")
         self.conn_sep = W.divider("vs")
         self.conn_sep.setFixedHeight(14)
@@ -166,13 +168,13 @@ class Topbar(QWidget):
         W.hbox(self.conn_icon, self.conn_spin, self.conn_label, self.conn_sep, self.conn_sub, spacing=8,
                margins=(10, 0, 12, 0), parent=self.conn)
         # aviso BT
-        self.bt_pill = W.pill("  Imágenes solo por cable", "warn")
-        self.bt_pill.setToolTip("Por Bluetooth no se pueden subir imágenes a la pantalla. Conecta el cable USB-C.")
+        self.bt_pill = W.pill("  " + tr("Images by cable only"), "warn")
+        self.bt_pill.setToolTip(tr("Images cannot be uploaded to the screen over Bluetooth. Plug in the USB-C cable."))
         # acciones sin teclado
-        self.b_retry = W.button("Reintentar", "secondary", "reintentar", size="sm", on_click=win.reconnect)
-        self.b_demo = W.button("Probar en modo demo", "ghost", "demo", size="sm",
+        self.b_retry = W.button(tr("Retry"), "secondary", "reintentar", size="sm", on_click=win.reconnect)
+        self.b_demo = W.button(tr("Try demo mode"), "ghost", "demo", size="sm",
                                on_click=lambda: win.connect_device(demo=True))
-        self.rf_hint = W.label("Conéctalo por cable o por Bluetooth.", "cap")
+        self.rf_hint = W.label(tr("Connect it by cable or Bluetooth."), "cap")
         # actividad
         self.act_div = W.divider("v")
         self.act_div.setFixedHeight(20)
@@ -186,13 +188,13 @@ class Topbar(QWidget):
         self.act_bar.setRange(0, 1000)
         self.act_count = QLabel("")
         self.act_count.setObjectName("ActCount")
-        self.act_retry = W.button("Reintentar", "link", size="sm")
+        self.act_retry = W.button(tr("Retry"), "link", size="sm")
         self.act_retry.setStyleSheet("")
         self.act_retry.setProperty("variant", "link")
         act = W.hbox(self.act_spin, self.act_icon, self.act_label, self.act_bar, self.act_count, self.act_retry,
                      spacing=8)
         # perfil
-        self.profile_lbl = W.label("Perfil", "cap")
+        self.profile_lbl = W.label(tr("Profile"), "cap")
         self.profile_group = QButtonGroup(self)
         self.chips = []
         chips = W.hbox(spacing=2)
@@ -233,14 +235,14 @@ class Topbar(QWidget):
 
     # ---- conexión: searching | usb | bt | demo | none | rf
     def set_connection(self, state: str, sub: str = ""):
-        t = {"searching": ("Buscando teclado…", None, ""),
-             "usb": ("Conectado por cable", "cable", "ok"),
-             "bt": ("Conectado por Bluetooth", "inalambrico", "bt"),
-             "demo": ("Modo demo", "demo", "demo"),
-             "none": ("Teclado no encontrado", "desconectado", "err"),
-             "rf": ("Receptor 2.4 GHz detectado", "receptor", "rf")}[state]
-        text, icon, st = t
-        self.conn_label.setText(text)
+        states = {"searching": ("Looking for the keyboard…", None, ""),
+                  "usb": ("Connected by cable", "cable", "ok"),
+                  "bt": ("Connected by Bluetooth", "inalambrico", "bt"),
+                  "demo": ("Demo mode", "demo", "demo"),
+                  "none": ("Keyboard not found", "desconectado", "err"),
+                  "rf": ("2.4 GHz receiver detected", "receptor", "rf")}
+        text, icon, st = states[state]
+        self.conn_label.setText(tr(text))
         W.set_prop(self.conn, "state", st)
         color = {"ok": "success", "bt": "accent", "demo": "demo", "err": "error", "rf": "warning"}.get(st, "text-2")
         self.conn_spin.setVisible(icon is None)
@@ -258,7 +260,7 @@ class Topbar(QWidget):
         self.act_div.setVisible(connected)
         for c in self.chips:
             c.setEnabled(connected)
-            c.setToolTip("" if connected else "Conecta el teclado para cambiar de perfil")
+            c.setToolTip("" if connected else tr("Connect the keyboard to change profiles"))
         if not connected:
             self.profile_group.setExclusive(False)
             for c in self.chips:
@@ -274,14 +276,16 @@ class Topbar(QWidget):
             self.chips[i].setChecked(True)
 
     def set_battery(self, level: int, status: str):
-        self.batt.set(level, status == "cargando")
+        self.batt.set(level, status == "charging")
         self.batt_text.setText(f"{level} %")
-        self.batt_bolt.setVisible(status == "cargando")
-        self.batt_box.setToolTip(f"Batería {level} % · {status}")
+        self.batt_bolt.setVisible(status == "charging")
+        self.batt_box.setToolTip(tr("Battery {n} % · {status}").format(n=level, status=tr(status)))
 
     # ---- actividad
     def set_activity(self, text: str | None, progress: float | None = None, count: str = "", error: bool = False,
-                     retry=None, idle_text: str = "Sincronizado"):
+                     retry=None, idle_text: str | None = None):
+        if idle_text is None:
+            idle_text = tr("In sync")
         self.act_retry.setVisible(error and retry is not None)
         self._err_retry = retry
         if text is None:
@@ -450,16 +454,17 @@ class MainWindow(QMainWindow):
             if on_done:
                 on_done(result)
 
-        def fail(msg):
+        def fail(exc):
             finished()
+            msg = str(exc)
             if on_error:
                 on_error(msg)
-            if "cancelada" in msg:
-                self.toast("info", "Subida cancelada.")
+            if isinstance(exc, Cancelled):
+                self.toast("info", tr("Upload cancelled."))
                 return
             nice = msg[:1].upper() + msg[1:]
-            self.topbar.set_activity(_short_error(msg), error=True, retry=retry)
-            self.toast("err", nice, "Reintentar" if retry else None, retry)
+            self.topbar.set_activity(_short_error(exc), error=True, retry=retry)
+            self.toast("err", nice, tr("Retry") if retry else None, retry)
 
         def prog(f, m):
             if label and not quiet:
@@ -489,26 +494,24 @@ class MainWindow(QMainWindow):
         QApplication.processEvents()
         try:
             self.kb = L75.open(demo=demo)
-        except TransportError as e:
-            self._no_keyboard(str(e))
-            return
         except Exception as e:  # noqa: BLE001
-            self._no_keyboard(str(e))
+            self._no_keyboard(e)
             return
         bus = "demo" if demo else self.kb.bus
-        self.topbar.set_connection(bus, "teclado simulado" if demo else ("L75 BT5.0" if bus == "bt" else "L75"))
+        self.topbar.set_connection(bus, tr("simulated keyboard") if demo else ("L75 BT5.0" if bus == "bt" else "L75"))
         self.stack.setCurrentWidget(self.pages[self.current])
         self.on_connected()
 
-    def _no_keyboard(self, msg: str):
-        perm = "permiso" in msg.lower() or "permission" in msg.lower()
+    def _no_keyboard(self, exc: Exception):
+        msg = str(exc)
+        perm = isinstance(exc, PermissionDenied)
         rf = False
         if not perm:
             try:
                 rf = any(d.bus == "dongle" for d in list_devices(include_dongles=True))
             except Exception:  # noqa: BLE001
                 rf = False
-        self.topbar.set_connection("rf" if rf else "none", "aún no compatible" if rf else "")
+        self.topbar.set_connection("rf" if rf else "none", tr("not supported yet") if rf else "")
         self.empty.set_state("udev" if perm else "none", msg)
         self.stack.setCurrentWidget(self.empty)
 
@@ -539,7 +542,7 @@ class MainWindow(QMainWindow):
             for page in self.pages.values():
                 page.on_connected()
 
-        self.run(work, on_done=got, label="Conectando…", retry=self.reconnect)
+        self.run(work, on_done=got, label=tr("Connecting…"), retry=self.reconnect)
 
     def change_profile(self, idx: int):
         if not self.kb:
@@ -547,20 +550,39 @@ class MainWindow(QMainWindow):
 
         def done(_):
             self.profile = idx
-            self.toast("info", f"Perfil {idx + 1} cargado")
+            self.toast("info", tr("Profile {n} loaded").format(n=idx + 1))
             for page in self.pages.values():
                 page.on_profile()
 
-        self.run(self.kb.set_profile, idx, on_done=done, label=f"Cargando perfil {idx + 1}…",
+        self.run(self.kb.set_profile, idx, on_done=done, label=tr("Loading profile {n}…").format(n=idx + 1),
                  retry=lambda: self.change_profile(idx))
 
     # ------------------------------------------------------------ otros
     def about(self):
         self.confirm("L75 Config " + __version__,
-                     "Configurador libre (GPL-3.0) del teclado ROYALAXE × ProtoArc L75 para Linux, Windows y macOS."
-                     "<br><br>Proyecto no oficial, sin relación con ProtoArc ni ROYALAXE. El protocolo se obtuvo "
-                     "leyendo el driver oficial.",
-                     "Ver el código", lambda: QDesktopServices.openUrl(QUrl(REPO_URL)), icon="info", cancel="Cerrar")
+                     tr("Free (GPL-3.0) configurator for the ROYALAXE × ProtoArc L75 keyboard for Linux, Windows "
+                        "and macOS.") + "<br><br>" +
+                     tr("Unofficial project, not affiliated with ProtoArc or ROYALAXE. The protocol was obtained by "
+                        "reading the official driver."),
+                     tr("View the code"), lambda: QDesktopServices.openUrl(QUrl(REPO_URL)), icon="info",
+                     cancel=tr("Close"))
+
+    def set_language(self, code: str) -> None:
+        """Cambia el idioma rehaciendo la ventana (los textos se crean al construir los widgets)."""
+        apply_language(code)
+        demo = bool(self.kb and self.kb.is_demo)
+        if self.kb:
+            self.kb.close()
+            self.kb = None
+        geom = self.geometry()
+        new = MainWindow(demo=demo)
+        new.setGeometry(geom)
+        new.go(self.current)
+        app = QApplication.instance()
+        app._l75_window = new
+        new.show()
+        self.close()
+        self.deleteLater()
 
     def closeEvent(self, ev):
         if self.kb:
@@ -568,16 +590,25 @@ class MainWindow(QMainWindow):
         super().closeEvent(ev)
 
 
-def _short_error(msg: str) -> str:
-    m = msg.lower()
-    if "no respondi" in m or "timeout" in m:
-        return "El teclado no respondió"
-    if "permiso" in m:
-        return "Falta permiso"
-    return msg.split("\n")[0][:60]
+def apply_language(code) -> str:
+    """"auto" sigue el idioma del sistema (QLocale funciona también en Windows y macOS)."""
+    from PySide6.QtCore import QLocale
+
+    from ..i18n import set_language
+    if not code or code == "auto":
+        code = os.environ.get("L75_LANG") or ("es" if QLocale.system().name().lower().startswith("es") else "en")
+    return set_language(code)
 
 
-def run(demo: bool = False, theme_mode: str | None = None) -> int:
+def _short_error(exc: Exception) -> str:
+    if isinstance(exc, NoResponse):
+        return tr("The keyboard did not answer")
+    if isinstance(exc, PermissionDenied):
+        return tr("Missing permission")
+    return str(exc).split("\n")[0][:60]
+
+
+def run(demo: bool = False, theme_mode: str | None = None, language: str | None = None) -> int:
     import sys
 
     from .theme import init
@@ -586,6 +617,7 @@ def run(demo: bool = False, theme_mode: str | None = None) -> int:
     app.setApplicationName("L75 Config")
     app.setDesktopFileName("l75-config")
     init(app, theme_mode)
+    apply_language(language or QSettings("l75-config", "l75-config").value("language", "auto"))
     from PySide6.QtGui import QIcon
 
     from .theme import ASSETS
@@ -594,6 +626,7 @@ def run(demo: bool = False, theme_mode: str | None = None) -> int:
         icon.addFile(str(ASSETS / "icon" / f"l75-config-{size}.png"))
     app.setWindowIcon(icon)
     w = MainWindow(demo=demo)
+    app._l75_window = w
     w.show()
     return app.exec()
 

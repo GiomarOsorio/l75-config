@@ -13,6 +13,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from . import protocol as P
+from .i18n import t
 
 MAX_SPEED = 4
 MAX_BRIGHTNESS = 4
@@ -38,47 +39,47 @@ class ModeDef:
 
 
 _DIR = ("right", "left", "down", "up")
-_DIR_L = ("derecha", "izquierda", "abajo", "arriba")
+_DIR_L = ("right", "left", "down", "up")
 _MUSIC = ("upright", "separate", "intersect")
-_MUSIC_L = ("vertical", "separado", "cruzado")
+_MUSIC_L = ("upright", "separate", "crossed")
 
 # Modos que el driver oficial ofrece para el L75 (layout "lightK401t").
 MODES: list[ModeDef] = [
-    ModeDef("off", 0, "Apagado", speed=False, color=False, kind="off"),
-    ModeDef("static", 1, "Fijo", speed=False),
-    ModeDef("breath", 2, "Respiracion"),
+    ModeDef("off", 0, "Off", speed=False, color=False, kind="off"),
+    ModeDef("static", 1, "Static", speed=False),
+    ModeDef("breath", 2, "Breathing"),
     ModeDef("neon", 3, "Neon", color=False),
-    ModeDef("wave", 4, "Ola", options=_DIR, option_labels=_DIR_L),
-    ModeDef("ripple", 5, "Onda expansiva"),
-    ModeDef("raindrop", 6, "Gotas de lluvia"),
-    ModeDef("snake", 7, "Serpiente", options=("z", "return"), option_labels=("en Z", "ida y vuelta")),
-    ModeDef("reactive", 8, "Reactivo (se enciende al pulsar)"),
-    ModeDef("converge", 9, "Convergencia"),
-    ModeDef("sine", 10, "Onda senoidal"),
-    ModeDef("kaleidoscope", 11, "Caleidoscopio", options=("out", "in"), option_labels=("hacia fuera", "hacia dentro")),
-    ModeDef("linewave", 12, "Linea", options=("right", "left"), option_labels=("derecha", "izquierda")),
-    ModeDef("user", 13, "Imagen de usuario (colores por tecla)", speed=False, color=False, kind="picture"),
+    ModeDef("wave", 4, "Wave", options=_DIR, option_labels=_DIR_L),
+    ModeDef("ripple", 5, "Ripple"),
+    ModeDef("raindrop", 6, "Raindrops"),
+    ModeDef("snake", 7, "Snake", options=("z", "return"), option_labels=("Z pattern", "back and forth")),
+    ModeDef("reactive", 8, "Reactive"),
+    ModeDef("converge", 9, "Converge"),
+    ModeDef("sine", 10, "Sine wave"),
+    ModeDef("kaleidoscope", 11, "Kaleidoscope", options=("out", "in"), option_labels=("outwards", "inwards")),
+    ModeDef("linewave", 12, "Line", options=("right", "left"), option_labels=("right", "left")),
+    ModeDef("user", 13, "User picture", speed=False, color=False, kind="picture"),
     ModeDef("laser", 14, "Laser"),
-    ModeDef("circle", 15, "Circulo", options=("anti-clockwise", "clockwise"), option_labels=("antihorario", "horario")),
-    ModeDef("dazzling", 16, "Deslumbrante"),
-    ModeDef("raindown", 17, "Lluvia"),
-    ModeDef("meteor", 18, "Meteoro"),
-    ModeDef("reactive-off", 19, "Reactivo inverso (se apaga al pulsar)"),
-    ModeDef("music3", 20, "Musica 1", speed=False, options=_MUSIC, option_labels=_MUSIC_L, kind="music"),
-    ModeDef("screen", 21, "Color de pantalla", speed=False, color=False, kind="screen"),
-    ModeDef("music2", 22, "Musica 2", speed=False, options=_MUSIC, option_labels=_MUSIC_L, kind="music"),
+    ModeDef("circle", 15, "Circle", options=("anti-clockwise", "clockwise"), option_labels=("counter-clockwise", "clockwise")),
+    ModeDef("dazzling", 16, "Dazzling"),
+    ModeDef("raindown", 17, "Rain"),
+    ModeDef("meteor", 18, "Meteor"),
+    ModeDef("reactive-off", 19, "Reverse reactive"),
+    ModeDef("music3", 20, "Music 1", speed=False, options=_MUSIC, option_labels=_MUSIC_L, kind="music"),
+    ModeDef("screen", 21, "Screen colour", speed=False, color=False, kind="screen"),
+    ModeDef("music2", 22, "Music 2", speed=False, options=_MUSIC, option_labels=_MUSIC_L, kind="music"),
 ]
 MODE_BY_KEY = {m.key: m for m in MODES}
 MODE_BY_CODE = {m.code: m for m in MODES}
 
 # Tira lateral (RGB light strip)
 SIDE_MODES: list[ModeDef] = [
-    ModeDef("off", 0, "Apagado", speed=False, color=False, kind="off"),
-    ModeDef("static", 1, "Fijo", speed=False),
-    ModeDef("breath", 2, "Respiracion"),
+    ModeDef("off", 0, "Off", speed=False, color=False, kind="off"),
+    ModeDef("static", 1, "Static", speed=False),
+    ModeDef("breath", 2, "Breathing"),
     ModeDef("neon", 3, "Neon", color=False),
-    ModeDef("wave", 4, "Ola", options=_DIR, option_labels=_DIR_L),
-    ModeDef("snake", 5, "Serpiente", options=("z", "return"), option_labels=("en Z", "ida y vuelta")),
+    ModeDef("wave", 4, "Wave", options=_DIR, option_labels=_DIR_L),
+    ModeDef("snake", 5, "Snake", options=("z", "return"), option_labels=("Z pattern", "back and forth")),
 ]
 SIDE_MODE_BY_KEY = {m.key: m for m in SIDE_MODES}
 SIDE_MODE_BY_CODE = {m.code: m for m in SIDE_MODES}
@@ -96,16 +97,16 @@ class LightSetting:
     def describe(self, side: bool = False) -> str:
         table = SIDE_MODE_BY_KEY if side else MODE_BY_KEY
         m = table.get(self.mode)
-        name = m.label if m else self.mode
+        name = t(m.label) if m else self.mode
         parts = [name]
         if m and m.kind != "off":
-            parts.append(f"brillo {self.brightness}/4")
+            parts.append(t("brightness {n}/4").format(n=self.brightness))
             if m.speed:
-                parts.append(f"velocidad {self.speed}/4")
+                parts.append(t("speed {n}/4").format(n=self.speed))
             if m.color:
-                parts.append("arcoiris" if self.rainbow else f"color #{self.color:06X}")
+                parts.append(t("rainbow") if self.rainbow else t("colour #{rgb}").format(rgb=f"{self.color:06X}"))
             if self.option:
-                parts.append(f"opcion {self.option}")
+                parts.append(t("option {o}").format(o=self.option))
         return ", ".join(parts)
 
 
@@ -122,7 +123,7 @@ def _rgb_bytes(color: int) -> tuple[int, int, int]:
 def encode_light(s: LightSetting) -> bytearray:
     m = MODE_BY_KEY.get(s.mode)
     if m is None:
-        raise ValueError("modo desconocido: " + s.mode)
+        raise ValueError(t("unknown mode: ") + s.mode)
     flag = DAZZLE if s.rainbow else NORMAL
     speed = 0
     bright = 0
@@ -185,7 +186,7 @@ def decode_light(r: bytes) -> LightSetting:
 def encode_side(s: LightSetting) -> bytearray:
     m = SIDE_MODE_BY_KEY.get(s.mode)
     if m is None:
-        raise ValueError("modo de tira lateral desconocido: " + s.mode)
+        raise ValueError(t("unknown side strip mode: ") + s.mode)
     flag = DAZZLE if s.rainbow else NORMAL
     speed = _clamp(s.speed, 0, MAX_SPEED) if m.speed else 0
     bright = _clamp(s.brightness, 0, MAX_BRIGHTNESS) if m.kind != "off" else 0
@@ -225,18 +226,18 @@ def decode_side(r: bytes) -> LightSetting:
 
 
 def parse_color(text: str) -> int:
-    t = text.strip().lower().lstrip("#")
+    v = text.strip().lower().lstrip("#")
     names = {"rojo": 0xFF0000, "red": 0xFF0000, "verde": 0x00FF00, "green": 0x00FF00,
              "azul": 0x0000FF, "blue": 0x0000FF, "blanco": 0xFFFFFF, "white": 0xFFFFFF,
              "amarillo": 0xFFFF00, "yellow": 0xFFFF00, "cian": 0x00FFFF, "cyan": 0x00FFFF,
              "morado": 0xFF00FF, "magenta": 0xFF00FF, "naranja": 0xFF8000, "orange": 0xFF8000,
              "negro": 0, "black": 0}
-    if t in names:
-        return names[t]
-    if t.startswith("0x"):
-        t = t[2:]
-    if len(t) == 3:
-        t = "".join(c * 2 for c in t)
-    if len(t) != 6:
-        raise ValueError(f"color invalido: {text!r} (usa #RRGGBB)")
-    return int(t, 16)
+    if v in names:
+        return names[v]
+    if v.startswith("0x"):
+        v = v[2:]
+    if len(v) == 3:
+        v = "".join(c * 2 for c in v)
+    if len(v) != 6:
+        raise ValueError(t("invalid colour: {text} (use #RRGGBB)").format(text=repr(text)))
+    return int(v, 16)
