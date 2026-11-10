@@ -18,8 +18,8 @@ jobs:
   tests:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with: { python-version: "3.12" }
       - run: sudo apt-get update && sudo apt-get install -y libegl1 libxkbcommon0 libfontconfig1
       - run: pip install PySide6-Essentials==6.12.0 Pillow hidapi
@@ -29,8 +29,8 @@ jobs:
     needs: tests
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with: { python-version: "3.12" }
       - run: pip install ${{ env.PIP_PACKAGES }}
       - run: pyinstaller --noconfirm --clean packaging/l75-config.spec
@@ -41,7 +41,7 @@ jobs:
           $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
           if (-not (Test-Path $iscc)) { choco install innosetup -y --no-progress }
           & $iscc "/DAppVersion=$version" packaging\windows\l75-config.iss
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: windows
           path: dist/*-Setup.exe
@@ -50,12 +50,12 @@ jobs:
     needs: tests
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with: { python-version: "3.12" }
       - run: pip install ${{ env.PIP_PACKAGES }}
       - run: packaging/macos/build_dmg.sh python
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: macos
           path: dist/*.dmg
@@ -64,13 +64,13 @@ jobs:
     needs: tests
     runs-on: ubuntu-22.04   # glibc 2.35: el AppImage funciona en distros de 2022 en adelante
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with: { python-version: "3.12" }
       - run: sudo apt-get update && sudo apt-get install -y libegl1 libxkbcommon0 libfontconfig1 file
       - run: pip install ${{ env.PIP_PACKAGES }}
       - run: packaging/linux/build_appimage.sh python
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: appimage
           path: dist/*.AppImage
@@ -82,26 +82,28 @@ jobs:
       image: ghcr.io/flathub-infra/flatpak-github-actions:freedesktop-25.08
       options: --privileged
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
+      - name: Versión
+        run: echo "VERSION=$(sed -n 's/^__version__ = "\(.*\)"/\1/p' l75ctl/__init__.py)" >> "$GITHUB_ENV"
       - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
         with:
-          bundle: L75_Config-x86_64.flatpak
+          bundle: L75_Config-${{ env.VERSION }}-x86_64.flatpak
           manifest-path: packaging/flatpak/io.github.giomarosorio.L75Config.yml
           cache-key: flatpak-builder-${{ github.sha }}
           upload-artifact: false
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: flatpak
-          path: L75_Config-x86_64.flatpak
+          path: L75_Config-${{ env.VERSION }}-x86_64.flatpak
 
   release:
     if: startsWith(github.ref, 'refs/tags/v')
     needs: [windows, macos, appimage, flatpak]
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with: { path: artifacts, merge-multiple: true }
-      - uses: softprops/action-gh-release@v2
+      - uses: softprops/action-gh-release@v3
         with:
           files: artifacts/*
           generate_release_notes: true
