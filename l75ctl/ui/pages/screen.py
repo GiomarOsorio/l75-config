@@ -244,7 +244,7 @@ class ScreenPage(Page):
         bl.addLayout(W.hbox(W.icon_label("inalambrico", "warning", 16),
                             W.label(tr("Upload only works by cable"), "strong"), "stretch", spacing=8))
         bl.addWidget(W.label(tr("Connect the L75 with the USB-C cable to upload images. Date and time do sync "
-                                "over Bluetooth."), "cap", wrap=True))
+                                "wirelessly."), "cap", wrap=True))
         b_lock = W.button(tr("Upload to the screen"), "secondary", "candado")
         W.disable_with_reason(b_lock, tr("USB-C cable only"))
         bl.addWidget(b_lock)
@@ -368,7 +368,7 @@ class ScreenPage(Page):
 
     def _update_state(self):
         uploading = self.task is not None
-        bt = bool(self.kb and self.kb.bus == "bt")
+        bt = bool(self.kb and self.kb.wireless)
         self.up_box.setVisible(uploading)
         self.bt_box.setVisible(bt and not uploading)
         self.normal_box.setVisible(not bt and not uploading)
@@ -425,8 +425,8 @@ class ScreenPage(Page):
     def upload(self):
         if not self.kb or not self.anim:
             return
-        if self.kb.bus == "bt":
-            self.win.toast("warn", tr("Images cannot be uploaded over Bluetooth. Plug in the cable."))
+        if self.kb.wireless:
+            self.win.toast("warn", tr("Images cannot be uploaded wirelessly. Plug in the cable."))
             return
         n = len(self.anim.frames)
         self.t_start = time.monotonic()

@@ -13,7 +13,7 @@ from ...keyboard import KeyboardOptions, SleepTimes
 from .. import widgets as W
 from ...i18n import LANGUAGES, language
 from ...i18n import t as tr
-from ..window import Page
+from ..window import SECTIONS, Page
 
 OPTIONS = [("win_lock", "candado", "Lock Windows key", "Avoids opening the Start menu in the middle of a game."),
            ("mac_mode", "comando", "Mac mode", "Modifier layout for macOS (⌥ and ⌘)."),
@@ -96,7 +96,7 @@ class SettingsPage(Page):
             ol.addWidget(row)
         # idioma de la app (no es un ajuste del teclado: se aplica al momento)
         lang_row = QFrame()
-        lang_row.setProperty("kv", "last")
+        lang_row.setProperty("kv", "true")
         lbox = QFrame()
         lbox.setProperty("iconbox", "true")
         lbox.setFixedSize(32, 32)
@@ -112,6 +112,24 @@ class SettingsPage(Page):
                                W.label(tr("Language of the app (not of the keyboard)."), "cap"), spacing=0),
                "stretch", self.lang, spacing=10, margins=(0, 10, 0, 10), parent=lang_row)
         ol.addWidget(lang_row)
+        # página con la que abre la app
+        start_row = QFrame()
+        start_row.setProperty("kv", "last")
+        sbox = QFrame()
+        sbox.setProperty("iconbox", "true")
+        sbox.setFixedSize(32, 32)
+        W.hbox(W.icon_label("panel", "text-2", 16), margins=(7, 7, 7, 7), parent=sbox)
+        self.start = QComboBox()
+        self.start.addItem(tr("Last used"), "last")
+        for key, name, _icon in SECTIONS:
+            self.start.addItem(tr(name), key)
+        saved = QSettings("l75-config", "l75-config").value("start_section", "last")
+        self.start.setCurrentIndex(max(0, self.start.findData(saved)))
+        self.start.activated.connect(self._start_section)
+        W.hbox(sbox, 4, W.vbox(W.label(tr("Start page"), "strong"),
+                               W.label(tr("Section shown when the app opens."), "cap"), spacing=0),
+               "stretch", self.start, spacing=10, margins=(0, 10, 0, 10), parent=start_row)
+        ol.addWidget(start_row)
         ol.addStretch(1)
 
         # --- información
@@ -224,13 +242,17 @@ class SettingsPage(Page):
             conn = tr("Simulated (demo mode)")
         elif kb.bus == "bt":
             conn = f"Bluetooth · {P.VID:04x}:4012"
+        elif kb.bus == "dongle":
+            conn = tr("2.4 GHz receiver") + f" · {P.VID:04x}:{getattr(kb.t, 'pid', 0x4011):04x}"
         else:
             conn = tr("USB-C cable") + f" · {P.VID:04x}:{P.PID_WIRED:04x}"
         self.kv["conn"].setText(conn)
         self.kv["profile"].setText(tr("{n} of 3").format(n=self.win.profile + 1))
-        self.kv["battery"].setText(f"{bat[0]} % · {tr(bat[1])}")
-        self.win.topbar.set_battery(*bat)
+        self.win.set_battery(bat)
         self._dirty()
+
+    def show_battery(self, level: int):
+        self.kv["battery"].setText(f"{level} %")
 
     def apply(self):
         kb = self.kb
@@ -269,6 +291,9 @@ class SettingsPage(Page):
         code = self.lang.currentData()
         QSettings("l75-config", "l75-config").setValue("language", code)
         self.win.set_language(code)
+
+    def _start_section(self, _i):
+        QSettings("l75-config", "l75-config").setValue("start_section", self.start.currentData())
 
     def _after_reset(self):
         self.win.toast("ok", tr("Keyboard reset to factory"))

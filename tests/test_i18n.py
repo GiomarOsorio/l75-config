@@ -39,7 +39,6 @@ def _table_strings():
     out += [x for text, _k, _i, hint in screen.FITS for x in (text, hint)]
     out += [x for _k, _i, title, desc in settings.OPTIONS for x in (title, desc)] + [n for _k, n in settings.INFO]
     out += list(common._MODE_HINTS.values()) + list(common._OPTION_NAMES.values()) + list(common._COLOR_NAMES.values())
-    out += ["charging", "discharging", "charged"]
     return out
 
 

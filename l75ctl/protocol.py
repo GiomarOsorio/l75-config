@@ -19,8 +19,15 @@ from enum import Enum, IntEnum
 
 VID = 0x3151
 PID_WIRED = 0x4015
-# Receptores 2.4 GHz de Rongyuan (protocolo "dongle", aun no soportado).
-PID_DONGLES = (0x4011, 0x4014, 0x4017)
+# Rongyuan 2.4 GHz receivers ("dongle_common" in the official driver). The L75 ships with 0x4011.
+PID_DONGLES = (0x4011, 0x4014, 0x4017, 0x4021, 0x4027)
+# Receiver commands (from iot_driver, verified with a real L75 receiver, firmware 1.17):
+DONGLE_STATUS = 0xF7      # answer [0]=answer ready, [1]=battery %, [3]=0 keyboard online, [5]=1 idle
+DONGLE_SELECT = 0xF6      # [1]=device: 0x0A keyboard (0x05 / 0x0D other devices)
+DONGLE_KEYBOARD = 0x0A
+DONGLE_FETCH = 0xFC       # copy the keyboard's answer into the feature report
+# Answers that do not start with the command byte (raw data pages).
+DATA_READ_CMDS = frozenset({0x89, 0x8B, 0x8C, 0x90})
 # Bluetooth (BLE / HOGP). Los PID son los que el driver oficial marca como
 # "isblue". El L75 usa 0x4012 (nombre "L75 BT5.0").
 PID_BLUETOOTH = (0x4012, 0x4013, 0x401C, 0x401D, 0x401F, 0x4020, 0x4023, 0x4024)

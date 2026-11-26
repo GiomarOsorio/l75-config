@@ -13,7 +13,8 @@ from PySide6.QtWidgets import (QApplication, QButtonGroup, QFrame, QLabel, QMain
 from .. import __version__
 from ..keyboard import L75
 from ..i18n import t as tr
-from ..transport import Cancelled, NoResponse, PermissionDenied, list_devices
+from ..transport import (Cancelled, DongleTransport, KeyboardOffline, NoResponse, PermissionDenied, TransportError,
+                         list_devices)
 from . import widgets as W
 from .theme import font, paint_rgb_line, theme
 
@@ -51,7 +52,8 @@ class Task(QRunnable):
                 self.kwargs["progress"] = lambda f, m: self.signals.progress.emit(f, m)
             self.signals.done.emit(self.func(*self.args, **self.kwargs))
         except Exception as exc:  # noqa: BLE001
-            traceback.print_exc()
+            if not isinstance(exc, TransportError):  # device errors are shown in the window already
+                traceback.print_exc()
             self.signals.failed.emit(exc)
 
 
@@ -169,12 +171,12 @@ class Topbar(QWidget):
                margins=(10, 0, 12, 0), parent=self.conn)
         # aviso BT
         self.bt_pill = W.pill("  " + tr("Images by cable only"), "warn")
-        self.bt_pill.setToolTip(tr("Images cannot be uploaded to the screen over Bluetooth. Plug in the USB-C cable."))
+        self.bt_pill.setToolTip(tr("Images cannot be uploaded to the screen wirelessly. Plug in the USB-C cable."))
         # acciones sin teclado
         self.b_retry = W.button(tr("Retry"), "secondary", "reintentar", size="sm", on_click=win.reconnect)
         self.b_demo = W.button(tr("Try demo mode"), "ghost", "demo", size="sm",
                                on_click=lambda: win.connect_device(demo=True))
-        self.rf_hint = W.label(tr("Connect it by cable or Bluetooth."), "cap")
+        self.rf_hint = W.label(tr("Switch the keyboard to 2.4 GHz mode, or connect it by cable or Bluetooth."), "cap")
         # actividad
         self.act_div = W.divider("v")
         self.act_div.setFixedHeight(20)
@@ -213,10 +215,7 @@ class Topbar(QWidget):
         self.batt = W.Battery()
         self.batt_text = QLabel("")
         self.batt_text.setObjectName("Batt")
-        self.batt_bolt = QLabel()
-        self.batt_bolt.setFixedSize(14, 14)
-        W.set_icon(self.batt_bolt, "rayo", "success", 14)
-        batt = W.hbox(self.batt, self.batt_text, self.batt_bolt, spacing=6)
+        batt = W.hbox(self.batt, self.batt_text, spacing=6)
         self.batt_box = QWidget()
         self.batt_box.setLayout(batt)
 
@@ -238,9 +237,10 @@ class Topbar(QWidget):
         states = {"searching": ("Looking for the keyboard…", None, ""),
                   "usb": ("Connected by cable", "cable", "ok"),
                   "bt": ("Connected by Bluetooth", "inalambrico", "bt"),
+                  "dongle": ("Connected by 2.4 GHz receiver", "receptor", "bt"),
                   "demo": ("Demo mode", "demo", "demo"),
                   "none": ("Keyboard not found", "desconectado", "err"),
-                  "rf": ("2.4 GHz receiver detected", "receptor", "rf")}
+                  "rf": ("Receiver found, keyboard not connected", "receptor", "rf")}
         text, icon, st = states[state]
         self.conn_label.setText(tr(text))
         W.set_prop(self.conn, "state", st)
@@ -252,8 +252,8 @@ class Topbar(QWidget):
         self.conn_sub.setText(sub)
         self.conn_sub.setVisible(bool(sub))
         self.conn_sep.setVisible(bool(sub))
-        connected = state in ("usb", "bt", "demo")
-        self.bt_pill.setVisible(state == "bt")
+        connected = state in ("usb", "bt", "dongle", "demo")
+        self.bt_pill.setVisible(state in ("bt", "dongle"))
         self.b_retry.setVisible(state in ("none",))
         self.b_demo.setVisible(state in ("none",))
         self.rf_hint.setVisible(state == "rf")
@@ -275,11 +275,10 @@ class Topbar(QWidget):
         if 0 <= i < 3:
             self.chips[i].setChecked(True)
 
-    def set_battery(self, level: int, status: str):
-        self.batt.set(level, status == "charging")
+    def set_battery(self, level: int):
+        self.batt.set(level)
         self.batt_text.setText(f"{level} %")
-        self.batt_bolt.setVisible(status == "charging")
-        self.batt_box.setToolTip(tr("Battery {n} % · {status}").format(n=level, status=tr(status)))
+        self.batt_box.setToolTip(tr("Battery {n} %").format(n=level))
 
     # ---- actividad
     def set_activity(self, text: str | None, progress: float | None = None, count: str = "", error: bool = False,
@@ -369,7 +368,7 @@ class MainWindow(QMainWindow):
         self.resize(1280, 800)
         self.kb: L75 | None = None
         self.profile = 0
-        self.battery: tuple[int, str] | None = None
+        self.battery: int | None = None
         self.info: dict = {}
         self.pool = QThreadPool.globalInstance()
         self._tasks: dict[Task, tuple] = {}
@@ -400,10 +399,25 @@ class MainWindow(QMainWindow):
         self.sidebar.buttons["keys"].setChecked(True)
         theme().changed.connect(self._theme_changed)
         W.connect_theme_refresh()
-        last = QSettings("l75-config", "l75-config").value("section", "keys")
-        self.current = last if last in self.pages else "keys"
+        prefs = QSettings("l75-config", "l75-config")
+        start = prefs.value("start_section", "last")  # a section key, or "last" (the one used last)
+        if start not in self.pages:
+            start = prefs.value("section", "keys")
+        self.current = start if start in self.pages else "keys"
         self.sidebar.buttons[self.current].setChecked(True)
         self.stack.setCurrentWidget(self.empty)
+        # Cable plugged/unplugged or the mode switch moved while the app is open: the set of
+        # L75 interfaces changes, so we reconnect (cable first) and tell the user.
+        self._seen: tuple = (frozenset(), None)  # (device paths, keyboard on the 2.4 GHz receiver)
+        self._watch = QTimer(self)
+        self._watch.setInterval(1500)
+        self._watch.timeout.connect(self._watch_devices)
+        self._watch.start()
+        # The battery level changes on its own: read it now and then.
+        self._batt_timer = QTimer(self)
+        self._batt_timer.setInterval(20_000)
+        self._batt_timer.timeout.connect(self._poll_battery)
+        self._batt_timer.start()
         QTimer.singleShot(60, lambda: self.connect_device(demo=demo, first=True))
 
     # ------------------------------------------------------------ navegación
@@ -426,8 +440,8 @@ class MainWindow(QMainWindow):
                 theme().shadow(w, 2)
 
     # ------------------------------------------------------------ avisos
-    def toast(self, kind: str, text: str, action: str | None = None, on_action=None):
-        self.toaster.show_toast(kind, text, action, on_action)
+    def toast(self, kind: str, text: str, action: str | None = None, on_action=None, tag: str | None = None):
+        self.toaster.show_toast(kind, text, action, on_action, tag=tag)
 
     def confirm(self, title, text, confirm, on_ok, danger=False, icon="restaurar", require=None, extra=None):
         return W.Dialog(self.centralWidget(), title, text, confirm, on_ok, danger=danger, icon=icon,
@@ -462,6 +476,9 @@ class MainWindow(QMainWindow):
             if isinstance(exc, Cancelled):
                 self.toast("info", tr("Upload cancelled."))
                 return
+            if isinstance(exc, KeyboardOffline):  # it fell asleep or left the receiver mid-way
+                self._lost_keyboard(exc)
+                return
             nice = msg[:1].upper() + msg[1:]
             self.topbar.set_activity(_short_error(exc), error=True, retry=retry)
             self.toast("err", nice, tr("Retry") if retry else None, retry)
@@ -484,34 +501,146 @@ class MainWindow(QMainWindow):
     def reconnect(self):
         self.connect_device(demo=False)
 
-    def connect_device(self, demo: bool = False, first: bool = False):
+    def connect_device(self, demo: bool = False, first: bool = False, notify: bool = False):
         if self.kb:
-            self.kb.close()
+            try:
+                self.kb.close()
+            except Exception:  # noqa: BLE001  (the device may already be gone)
+                pass
             self.kb = None
+        self.battery = None
         self.topbar.set_connection("searching")
         self.empty.set_state("searching")
         self.stack.setCurrentWidget(self.empty)
         QApplication.processEvents()
+        if not demo:
+            self._remember_devices()
         try:
             self.kb = L75.open(demo=demo)
         except Exception as e:  # noqa: BLE001
             self._no_keyboard(e)
+            if notify:
+                self.toast("warn", tr("Keyboard disconnected."), tag="conn")
             return
+        # connected again: the "disconnected" notice and errors left by the lost device are stale
+        self.toaster.dismiss_where(lambda t: t.tag == "conn" or t.kind == "err")
         bus = "demo" if demo else self.kb.bus
-        self.topbar.set_connection(bus, tr("simulated keyboard") if demo else ("L75 BT5.0" if bus == "bt" else "L75"))
+        self.topbar.set_connection(bus, tr("simulated keyboard") if demo else _conn_sub(bus))
         self.stack.setCurrentWidget(self.pages[self.current])
+        if notify:
+            text = {"usb": "Connected by cable", "bt": "Connected by Bluetooth",
+                    "dongle": "Connected by 2.4 GHz receiver"}[bus]
+            self.toast("ok" if bus == "usb" else "info", tr(text), tag="conn")
         self.on_connected()
+
+    def _lost_keyboard(self, exc: Exception):
+        """The keyboard left the receiver: show the receiver state; the watcher reconnects when it is back."""
+        if self.kb:
+            try:
+                self.kb.close()
+            except Exception:  # noqa: BLE001
+                pass
+            self.kb = None
+        self.battery = None
+        self._remember_devices()
+        self._no_keyboard(exc)
+
+    def _remember_devices(self):
+        try:
+            devs = list_devices()
+            self._seen = (frozenset(d.path for d in devs), self._dongle_online(devs))
+        except Exception:  # noqa: BLE001
+            self._seen = (frozenset(), None)
+
+    def _dongle_online(self, devs) -> bool | None:
+        """Whether the keyboard is on the 2.4 GHz receiver (None: no receiver / unknown).
+        The receiver stays plugged in when the switch moves, so its status is the only hint."""
+        dongles = [d for d in devs if d.bus == "dongle"]
+        if not dongles:
+            return None
+        kb = self.kb
+        if kb is not None and isinstance(kb.t, DongleTransport):
+            if not kb._lock.acquire(blocking=False):
+                return None
+            try:
+                return kb.t.alive()
+            finally:
+                kb._lock.release()
+        try:
+            tr_ = DongleTransport(dongles[0].path)
+        except Exception:  # noqa: BLE001
+            return None
+        try:
+            return tr_.alive()
+        finally:
+            tr_.close()
+
+    def _watch_devices(self):
+        """Follow the cable, the mode switch and the receiver while the app is open."""
+        if (self.kb and self.kb.is_demo) or self._tasks or not self.isVisible():
+            return  # busy: look again on the next tick
+        try:
+            devs = list_devices()
+            online = self._dongle_online(devs)
+        except Exception:  # noqa: BLE001
+            return
+        paths = frozenset(d.path for d in devs)
+        if online is None and self.kb is not None and self.kb.bus == "dongle":
+            online = self._seen[1]  # receiver busy this tick: keep the last known state
+        state = (paths, online)
+        if state == self._seen:
+            return
+        self._seen = state
+        buses = {d.bus for d in devs}
+        if self.kb is None:
+            if buses - {"dongle"} or online:
+                self.connect_device(notify=True)
+            return
+        bus = self.kb.bus
+        current = getattr(self.kb.t, "path", None)
+        if current not in paths:  # unplugged, or the switch moved to another mode
+            self.connect_device(notify=True)
+        elif bus == "dongle" and online is False:  # the keyboard left the receiver
+            self.connect_device(notify=True)
+        elif bus != "usb" and "usb" in buses:  # cable plugged in: prefer it
+            self.connect_device(notify=True)
+        elif bus == "bt" and online:  # switched to 2.4 GHz (the Bluetooth link lingers for a while)
+            self.connect_device(notify=True)
+
+    def _poll_battery(self):
+        kb = self.kb
+        if not kb or kb.is_demo or self._tasks or not self.isVisible():
+            return
+
+        def read():
+            try:
+                return kb.battery()
+            except Exception:  # noqa: BLE001  (the watcher handles a lost device)
+                return None
+
+        task = Task(read)
+        self._tasks[task] = ("", True)
+
+        def done(bat):
+            self._tasks.pop(task, None)
+            if bat is not None and self.kb is kb:
+                self.set_battery(bat)
+
+        task.signals.done.connect(done)
+        self.pool.start(task)
+
+    def set_battery(self, level: int):
+        self.battery = level
+        self.topbar.set_battery(level)
+        settings = self.pages.get("settings")
+        if settings is not None:
+            settings.show_battery(level)
 
     def _no_keyboard(self, exc: Exception):
         msg = str(exc)
         perm = isinstance(exc, PermissionDenied)
-        rf = False
-        if not perm:
-            try:
-                rf = any(d.bus == "dongle" for d in list_devices(include_dongles=True))
-            except Exception:  # noqa: BLE001
-                rf = False
-        self.topbar.set_connection("rf" if rf else "none", tr("not supported yet") if rf else "")
+        rf = isinstance(exc, KeyboardOffline)
+        self.topbar.set_connection("rf" if rf else "none")
         self.empty.set_state("udev" if perm else "none", msg)
         self.stack.setCurrentWidget(self.empty)
 
@@ -534,11 +663,9 @@ class MainWindow(QMainWindow):
             self.topbar.set_profile(self.profile)
             fw = info.get("fw")
             if fw is not None and not kb.is_demo:
-                sub = f"L75 · FW {fw >> 8}.{fw & 0xFF:02d}" if kb.bus == "usb" else "L75 BT5.0"
-                self.topbar.set_connection(kb.bus, sub)
-            if info.get("battery"):
-                self.battery = info["battery"]
-                self.topbar.set_battery(*info["battery"])
+                self.topbar.set_connection(kb.bus, _conn_sub(kb.bus, fw))
+            if info.get("battery") is not None:
+                self.set_battery(info["battery"])
             for page in self.pages.values():
                 page.on_connected()
 
@@ -600,7 +727,17 @@ def apply_language(code) -> str:
     return set_language(code)
 
 
+def _conn_sub(bus: str, fw: int | None = None) -> str:
+    if bus == "bt":
+        return "L75 BT5.0"
+    if bus == "dongle":
+        return "L75 · 2.4 GHz"
+    return f"L75 · FW {fw >> 8}.{fw & 0xFF:02d}" if fw is not None else "L75"
+
+
 def _short_error(exc: Exception) -> str:
+    if isinstance(exc, KeyboardOffline):
+        return tr("Keyboard not connected")
     if isinstance(exc, NoResponse):
         return tr("The keyboard did not answer")
     if isinstance(exc, PermissionDenied):

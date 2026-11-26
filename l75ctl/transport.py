@@ -27,6 +27,10 @@ class NoResponse(TransportError):
     """The keyboard did not answer in time."""
 
 
+class KeyboardOffline(NoResponse):
+    """The 2.4 GHz receiver is there, but the keyboard is off or in another mode."""
+
+
 class Cancelled(TransportError):
     """The user cancelled a long operation (screen upload)."""
 
@@ -56,6 +60,10 @@ class Transport:
     def read(self) -> bytes:
         raise NotImplementedError
 
+    def alive(self) -> bool:
+        """Cheap check that the keyboard answers on this transport."""
+        return True
+
     def close(self) -> None:
         pass
 
@@ -81,8 +89,8 @@ def _hid_module():
     return hid
 
 
-def list_devices(include_dongles: bool = False) -> list[DeviceInfo]:
-    """Interfaces de configuracion del L75: por cable (bus "usb") y Bluetooth ("bt")."""
+def list_devices(include_dongles: bool = True) -> list[DeviceInfo]:
+    """L75 configuration interfaces: cable ("usb"), Bluetooth ("bt") and 2.4 GHz receiver ("dongle")."""
     hid = _hid_module()
     found: list[DeviceInfo] = []
     seen: set[bytes] = set()
@@ -93,8 +101,13 @@ def list_devices(include_dongles: bool = False) -> list[DeviceInfo]:
         bus = None
         if pid == P.PID_WIRED or (include_dongles and pid in P.PID_DONGLES):
             # En Linux (hidraw) usage_page suele venir bien; si no, usar interfaz 2.
-            if usage_page == P.USAGE_PAGE or (usage_page == 0 and iface == P.INTERFACE):
-                bus = "usb" if pid == P.PID_WIRED else "dongle"
+            if pid == P.PID_WIRED:
+                if usage_page == P.USAGE_PAGE or (usage_page == 0 and iface == P.INTERFACE):
+                    bus = "usb"
+            # receiver: the official driver uses interface 2 (usage 2); interface 1 answers the same
+            elif (usage_page == P.USAGE_PAGE and d.get("usage", 0) == P.USAGE) or \
+                    (usage_page in (0, P.USAGE_PAGE) and iface == P.INTERFACE):
+                bus = "dongle"
         elif pid in P.PID_BLUETOOTH:
             if usage_page in P.BLE_USAGE_PAGES:
                 bus = "bt"
@@ -158,26 +171,46 @@ def _open_hid(path: bytes):
             path=path.decode(errors="replace"), error=exc) + "\n" + hint) from exc
 
 
+_TRANSPORTS = {"usb": lambda p: HidTransport(p), "bt": lambda p: BleTransport(p),
+               "dongle": lambda p: DongleTransport(p)}
+_BUS_ORDER = ("usb", "dongle", "bt")   # cable first; the receiver says whether the keyboard is on it
+
+
 def open_transport(prefer: str = "auto", path: bytes | None = None) -> "Transport":
-    """Abre el teclado. prefer: auto (cable si hay, si no Bluetooth) | usb | bt."""
-    if path is not None:
-        dev = next((d for d in list_devices() if d.path == path), None)
-        if dev and dev.bus == "bt":
-            return BleTransport(path)
-        return HidTransport(path)
+    """Open the keyboard. prefer: auto (cable, then 2.4 GHz receiver, then Bluetooth) | usb | dongle | bt."""
     devs = list_devices()
-    usb = [d for d in devs if d.bus == "usb"]
-    bt = [d for d in devs if d.bus == "bt"]
-    if prefer in ("auto", "usb") and usb:
-        return HidTransport(usb[0].path)
-    if prefer in ("auto", "bt") and bt:
-        return BleTransport(bt[0].path)
-    raise DeviceNotFound(
-        t("L75 not found.") + "\n"
-        + t("- Cable: USB-C plugged in and the switch in wired mode (USB 3151:4015).") + "\n"
-        + t("- Bluetooth: paired and connected as 'L75 BT5.0' (3151:4012).") + "\n"
-        + t("Check with: l75 list")
-    )
+    if path is not None:
+        dev = next((d for d in devs if d.path == path), None)
+        return _TRANSPORTS[dev.bus if dev else "usb"](path)
+    cands = [d for bus in _BUS_ORDER for d in devs if d.bus == bus and prefer in ("auto", bus)]
+    if not cands:
+        raise DeviceNotFound(
+            t("L75 not found.") + "\n"
+            + t("- Cable: USB-C plugged in and the switch in wired mode (USB 3151:4015).") + "\n"
+            + t("- Bluetooth: paired and connected as 'L75 BT5.0' (3151:4012).") + "\n"
+            + t("- 2.4 GHz: receiver plugged in and the switch in 2.4 GHz mode (3151:4011).") + "\n"
+            + t("Check with: l75 list")
+        )
+    if len(cands) == 1 and cands[0].bus != "dongle":
+        return _TRANSPORTS[cands[0].bus](cands[0].path)
+    # A receiver whose keyboard is asleep or in another mode, or a Bluetooth link that the
+    # system keeps for a while after the switch moved. Use the first one that is really alive.
+    first_error: Exception | None = None
+    for d in cands:
+        try:
+            tr = _TRANSPORTS[d.bus](d.path)
+        except TransportError as exc:
+            first_error = first_error or exc
+            continue
+        if tr.alive():
+            return tr
+        tr.close()
+    if first_error is not None:
+        raise first_error
+    if any(d.bus == "dongle" for d in cands) and not any(d.bus in ("usb", "bt") for d in cands):
+        raise KeyboardOffline(t("the 2.4 GHz receiver is plugged in, but the keyboard is not connected "
+                                "to it (switch it to 2.4 GHz mode or wake it up)"))
+    return _TRANSPORTS[cands[0].bus](cands[0].path)
 
 
 class HidTransport(Transport):
@@ -215,6 +248,79 @@ class HidTransport(Transport):
             self._dev.close()
         except Exception:
             pass
+
+
+class DongleTransport(HidTransport):
+    """Through the 2.4 GHz receiver ("dongle_common" in the official driver).
+
+    The receiver relays the same 64-byte commands. Before each command it must be idle (status byte 5
+    = 1) and told which device to talk to (F6 0A = keyboard). The answer arrives later over the radio:
+    poll the status (F7) until byte 0 = 1 and byte 5 = 1, send FC and read the feature report.
+    Polling faster than every ~20 ms upsets the receiver (it answers with old or empty data); the
+    official driver polls every 100 ms.
+    """
+
+    name = "dongle"
+    bus = "dongle"
+    POLL_S = 0.02
+    TIMEOUT_S = 3.0
+
+    def _raw(self, data: bytes) -> None:
+        HidTransport.write(self, bytes(data).ljust(P.PACKET_SIZE, b"\0"))
+
+    def status(self) -> bytes:
+        self._raw(bytes([P.DONGLE_STATUS]))
+        return HidTransport.read(self)
+
+    @staticmethod
+    def online(s: bytes) -> bool:
+        return s[3] == 0
+
+    def alive(self) -> bool:
+        try:
+            return self.online(self.status())
+        except TransportError:
+            return False
+
+    def battery(self) -> int | None:
+        """Battery % as the receiver last heard it (no radio round trip)."""
+        s = self.status()
+        return s[1] if self.online(s) else None
+
+    def _wait(self, ready) -> bytes:
+        deadline = time.monotonic() + self.TIMEOUT_S
+        while True:
+            s = self.status()
+            if not self.online(s):
+                raise KeyboardOffline(t("the keyboard is not connected to the 2.4 GHz receiver "
+                                        "(switch it to 2.4 GHz mode or wake it up)"))
+            if ready(s):
+                return s
+            if time.monotonic() > deadline:
+                raise NoResponse(t("the keyboard did not answer through the 2.4 GHz receiver"))
+            time.sleep(self.POLL_S)
+
+    def write(self, buf: bytes) -> None:
+        if len(buf) != P.PACKET_SIZE:
+            raise ValueError(t("the packet must be 64 bytes"))
+        self._wait(lambda s: s[5] == 1)
+        self._raw(bytes([P.DONGLE_SELECT, P.DONGLE_KEYBOARD]))
+        sleep_ms(10)
+        HidTransport.write(self, buf)
+
+    def read(self, expect: int | None = None) -> bytes:
+        deadline = time.monotonic() + self.TIMEOUT_S
+        while True:
+            time.sleep(self.POLL_S)
+            self._wait(lambda s: s[0] == 1 and s[5] == 1)
+            sleep_ms(10)
+            self._raw(bytes([P.DONGLE_FETCH]))
+            sleep_ms(10)
+            r = HidTransport.read(self)
+            if expect is None or r[0] == expect:
+                return r
+            if time.monotonic() > deadline:  # an old answer kept coming back
+                raise NoResponse(t("the keyboard did not answer through the 2.4 GHz receiver"))
 
 
 class BleTransport(Transport):
@@ -274,7 +380,9 @@ class BleTransport(Transport):
         except Exception as exc:
             raise TransportError(t("error sending over Bluetooth: {error}").format(error=exc)) from exc
 
-    def read(self) -> bytes:
+    def read(self, expect: int | None = None) -> bytes:
+        """Next answer. With `expect`, answers to another command (a late reply, or one meant
+        for another program using the keyboard at the same time) are skipped."""
         deadline = time.monotonic() + self.TIMEOUT_S
         while True:
             left = deadline - time.monotonic()
@@ -287,8 +395,24 @@ class BleTransport(Transport):
             if not r:
                 continue
             payload = self._note(bytes(r))
-            if payload is not None:
+            if payload is not None and (expect is None or payload[0] == expect):
                 return payload.ljust(P.PACKET_SIZE, b"\0")[: P.PACKET_SIZE]
+
+    def alive(self) -> bool:
+        """The system keeps a Bluetooth link for a while after the keyboard left it: ask for the
+        firmware version with a short timeout."""
+        old, self.TIMEOUT_S = self.TIMEOUT_S, 1.0
+        try:
+            pkt = bytearray(P.PACKET_SIZE)
+            pkt[0] = P.Cmd.GET_REV
+            P.apply_checksum(pkt, P.Checksum.BIT7)
+            self.write(bytes(pkt))
+            self.read(expect=P.Cmd.GET_REV)
+            return True
+        except TransportError:
+            return False
+        finally:
+            self.TIMEOUT_S = old
 
     def close(self) -> None:
         try:

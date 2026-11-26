@@ -35,12 +35,12 @@ def _progress(frac: float, msg: str) -> None:
 
 # ------------------------------------------------------------------ comandos
 def cmd_list(args):
-    devs = list_devices(include_dongles=True)
+    devs = list_devices()
     if not devs:
-        print(tr("No L75 found (neither by cable nor by Bluetooth)."))
+        print(tr("No L75 found (by cable, Bluetooth or 2.4 GHz receiver)."))
         return 1
     for d in devs:
-        tipo = {"usb": tr("cable"), "bt": "Bluetooth", "dongle": tr("2.4G receiver (not supported yet)")}[d.bus]
+        tipo = {"usb": tr("cable"), "bt": "Bluetooth", "dongle": tr("2.4 GHz receiver")}[d.bus]
         print(f"{d.path.decode(errors='replace')}  {d.vid:04x}:{d.pid:04x}  if={d.interface}  "
               f"{d.manufacturer} {d.product}  [{tipo}]")
     return 0
@@ -48,16 +48,17 @@ def cmd_list(args):
 
 def cmd_info(args):
     with _open(args) as kb:
-        conn = "Bluetooth" if kb.bus == "bt" else "demo" if kb.is_demo else tr("USB cable")
+        conn = ("demo" if kb.is_demo else
+                {"bt": "Bluetooth", "dongle": tr("2.4 GHz receiver")}.get(kb.bus, tr("USB cable")))
         fw = kb.firmware_version()
         did = kb.device_id()
-        pct, st = kb.battery()
+        pct = kb.battery()
         rows = [
             (tr("Connection"), conn),
             (tr("Firmware"), f"{fw >> 8}.{fw & 0xFF:02d} (0x{fw:04X})"),
             (tr("Model ID"), f"{did}" + (" (L75)" if did in P.DEVICE_IDS_L75 else "  ⚠ " + tr("not a known L75"))),
             (tr("Active profile"), str(kb.profile + 1)),
-            (tr("Battery"), f"{pct}% ({tr(st)})"),
+            (tr("Battery"), f"{pct}%"),
             (tr("Polling rate"), f"{kb.get_report_rate()} Hz"),
             (tr("Debounce"), f"{kb.get_debounce()} ms"),
             (tr("Key lighting"), kb.get_light().describe()),
@@ -300,8 +301,8 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--demo", action="store_true", help=tr("use a simulated keyboard (no hardware)"))
     p.add_argument("--dry-run", action="store_true", help=tr("send nothing: show the packets that would be sent"))
     p.add_argument("--profile", type=lambda s: int(s) - 1, help=tr("profile 1..3 (default: the active one)"))
-    p.add_argument("--via", choices=["auto", "usb", "bt"], default="auto",
-                   help=tr("connection: auto (cable if present, otherwise Bluetooth), usb or bt"))
+    p.add_argument("--via", choices=["auto", "usb", "dongle", "bt"], default="auto",
+                   help=tr("connection: auto (cable, then 2.4 GHz receiver, then Bluetooth), usb, dongle or bt"))
     p.add_argument("--lang", choices=["auto", "en", "es"], default=None,
                    help=tr("language: auto (system), en or es"))
     sub = p.add_subparsers(dest="cmd", required=True)

@@ -530,11 +530,10 @@ class Battery(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.level = 0
-        self.charging = False
         self.setFixedSize(26, 14)
 
-    def set(self, level: int, charging: bool):
-        self.level, self.charging = level, charging
+    def set(self, level: int):
+        self.level = level
         self.update()
 
     def paintEvent(self, _e):
@@ -666,6 +665,7 @@ class Toast(QFrame):
         self.setMinimumWidth(300)
         self.setMaximumWidth(480)
         self.setMinimumHeight(44)
+        self.kind, self.tag = kind, None
         ic, col = self.ICONS.get(kind, self.ICONS["info"])
         lay = hbox(icon_label(ic, col, 16), spacing=10, margins=(14, 6, 6, 6), parent=self)
         tx = label(text, wrap=True)
@@ -714,11 +714,19 @@ class Toaster(QWidget):
         h = max(h, self.lay.sizeHint().height())
         self.setGeometry((self.host.width() - w) // 2, self.host.height() - h - 24, w, h)
 
-    def show_toast(self, kind: str, text: str, action: str | None = None, on_action=None):
-        # sin duplicados ni más de 3 a la vez
+    def dismiss_where(self, pred) -> None:
+        for t in list(self.toasts):
+            if pred(t):
+                t.dismiss()
+
+    def show_toast(self, kind: str, text: str, action: str | None = None, on_action=None, tag: str | None = None):
+        # sin duplicados ni más de 3 a la vez; un toast con etiqueta reemplaza a los de la misma etiqueta
+        if tag:
+            self.dismiss_where(lambda t: t.tag == tag)
         while len(self.toasts) >= 3:
             self.toasts[0].dismiss()
         t = Toast(kind, text, action, on_action, self)
+        t.tag = tag
         self.toasts.append(t)
         t.closed.connect(lambda t=t: self._closed(t))
         self.lay.addWidget(t, 0, Qt.AlignHCenter)

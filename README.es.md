@@ -6,7 +6,7 @@ Aplicación libre (interfaz gráfica y línea de comandos) para configurar el te
 **ROYALAXE × ProtoArc L75** en Linux, Windows y macOS, sin el driver oficial.
 
 > Estado: **v0.3. Probado con un L75 real por Bluetooth** (lectura de estado, luces y teclas, y
-> escritura de luz verificada). **Por cable todavía sin probar.** El protocolo se obtuvo leyendo el
+> escritura de luz verificada), **por cable y por el receptor 2.4 GHz** (lectura). El protocolo se obtuvo leyendo el
 > driver oficial (ver [docs/PROTOCOL.md](docs/PROTOCOL.md), en inglés) y está cubierto por pruebas
 > automáticas y un teclado simulado. La primera vez que lo conectes, prueba primero los comandos de solo
 > lectura (`l75 info`) y después cambios pequeños.
@@ -46,11 +46,12 @@ con el teclado.
 | Tasa de sondeo, debounce, tiempo de reposo, bloqueo de Win, modo Mac, WASD↔flechas | ✅ | `l75 settings` |
 | Restaurar valores de fábrica | ✅ | `l75 reset` |
 
-**Conexión:** por **cable USB-C** o por **Bluetooth** (`L75 BT5.0`). Por defecto usa el cable si está
-conectado y, si no, el Bluetooth. Puedes forzarlo con `--via usb` o `--via bt`.
-Por Bluetooth funciona todo **menos subir imágenes a la pantalla**, que solo va por cable (igual que en
-el driver oficial). La hora sí se puede sincronizar por Bluetooth.
-El receptor 2.4 GHz todavía no está soportado.
+**Conexión:** por **cable USB-C**, por el **receptor 2.4 GHz** o por **Bluetooth** (`L75 BT5.0`). Por
+defecto usa el cable si está conectado, luego el receptor y luego el Bluetooth. Puedes forzarlo con
+`--via usb`, `--via dongle` o `--via bt`. La app sigue el interruptor de modo mientras está abierta.
+Sin cable funciona todo **menos subir imágenes a la pantalla**, que solo va por cable (igual que en el
+driver oficial). La hora sí se puede sincronizar sin cable.
+**Batería:** solo se muestra el nivel. El teclado no informa de forma fiable si está cargando.
 
 En la **capa Fn**, las funciones del sistema del teclado (canales Bluetooth, distribución iOS/Mac/Windows,
 controles de luz, pantalla, reset…) se muestran con su nombre real y bloqueadas en rojo, como en el driver
@@ -165,7 +166,8 @@ En el teclado, **Fn + Ctrl** cambia la pantalla entre tu imagen y el estilo por 
 
 | Problema | Solución |
 |---|---|
-| «No encuentro el L75» | Cable: conectado y con el interruptor en modo cable (`lsusb` debe mostrar `3151:4015`). Bluetooth: emparejado y conectado como «L75 BT5.0». `l75 list` muestra lo que se detecta. |
+| «No encuentro el L75» | Cable: conectado y con el interruptor en modo cable (`lsusb` debe mostrar `3151:4015`). Bluetooth: emparejado y conectado como «L75 BT5.0». 2.4 GHz: receptor conectado y el interruptor en modo 2.4 GHz. `l75 list` muestra lo que se detecta. |
+| «Receptor detectado, teclado sin conectar» | El teclado está dormido o en otro modo. Pulsa una tecla: la app se reconecta sola. |
 | Por Bluetooth tarda | Es normal: cada comando BT tarda unos 70 ms. Leer todas las teclas tarda 1 o 2 s. |
 | «No pude abrir … permiso» | Instala la regla udev (ver arriba) y reconecta el teclado (por Bluetooth: desconéctalo y vuelve a conectarlo). |
 | La pantalla no responde al subir | Enciende la pantalla (Fn + Ctrl) y reintenta. |
@@ -197,7 +199,7 @@ l75ctl/
   l75_data.py   matriz por defecto, layout y capa Fn (del driver y de un L75 real)
 packaging/             PyInstaller, instalador de Windows, DMG, AppImage y Flatpak
 .github/workflows/     compilación de los paquetes en GitHub Actions
-docs/PROTOCOL.md       protocolo USB y Bluetooth (en inglés)
+docs/PROTOCOL.md       protocolo USB, Bluetooth y 2.4 GHz (en inglés)
 docs/DESIGN_BRIEF.md   brief para el rediseño visual (Claude Design)
 docs/design/           entrega de Claude Design: capturas, tokens, iconos y guía (HANDOFF.md)
 ```

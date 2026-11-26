@@ -6,10 +6,12 @@
 # Wired keyboard (USB 3151:4015)
 SUBSYSTEM=="hidraw", ATTRS{idVendor}=="3151", ATTRS{idProduct}=="4015", MODE="0660", TAG+="uaccess"
 
-# Rongyuan 2.4 GHz receivers (for future versions of the app)
+# Rongyuan 2.4 GHz receivers (the L75 one is 3151:4011)
 SUBSYSTEM=="hidraw", ATTRS{idVendor}=="3151", ATTRS{idProduct}=="4011", MODE="0660", TAG+="uaccess"
 SUBSYSTEM=="hidraw", ATTRS{idVendor}=="3151", ATTRS{idProduct}=="4014", MODE="0660", TAG+="uaccess"
 SUBSYSTEM=="hidraw", ATTRS{idVendor}=="3151", ATTRS{idProduct}=="4017", MODE="0660", TAG+="uaccess"
+SUBSYSTEM=="hidraw", ATTRS{idVendor}=="3151", ATTRS{idProduct}=="4021", MODE="0660", TAG+="uaccess"
+SUBSYSTEM=="hidraw", ATTRS{idVendor}=="3151", ATTRS{idProduct}=="4027", MODE="0660", TAG+="uaccess"
 
 # Bluetooth (BLE): the HID device is named 0005:3151:4012.XXXX
 KERNEL=="hidraw*", SUBSYSTEM=="hidraw", KERNELS=="0005:3151:4012.*", MODE="0660", TAG+="uaccess"

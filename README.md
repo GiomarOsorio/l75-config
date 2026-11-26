@@ -6,7 +6,7 @@ Free app (graphical interface and command line) to configure the **ROYALAXE × P
 keyboard on Linux, Windows and macOS, without the official driver.
 
 > Status: **v0.3. Tested with a real L75 over Bluetooth** (reading status, lighting and keys, and
-> writing lighting verified). **The cable connection is not tested yet.** The protocol was obtained by
+> writing lighting verified), **by cable and through the 2.4 GHz receiver** (reading). The protocol was obtained by
 > reading the official driver (see [docs/PROTOCOL.md](docs/PROTOCOL.md)) and is covered by automated
 > tests and a simulated keyboard. The first time you connect it, try the read-only commands first
 > (`l75 info`) and then small changes.
@@ -46,11 +46,12 @@ on real hardware yet.
 | Polling rate, debounce, sleep time, Windows-key lock, Mac mode, WASD↔arrows | ✅ | `l75 settings` |
 | Factory reset | ✅ | `l75 reset` |
 
-**Connection:** by **USB-C cable** or by **Bluetooth** (`L75 BT5.0`). By default it uses the cable if it is
-connected and Bluetooth otherwise. You can force it with `--via usb` or `--via bt`.
-Over Bluetooth everything works **except uploading images to the screen**, which only works by cable (same
-as the official driver). The time can be synced over Bluetooth.
-The 2.4 GHz receiver is not supported yet.
+**Connection:** by **USB-C cable**, through the **2.4 GHz receiver** or by **Bluetooth** (`L75 BT5.0`). By
+default it uses the cable if it is connected, then the receiver, then Bluetooth. You can force it with
+`--via usb`, `--via dongle` or `--via bt`. The app follows the mode switch while it is open.
+Wirelessly everything works **except uploading images to the screen**, which only works by cable (same
+as the official driver). The time can be synced wirelessly.
+**Battery:** only the level is shown. The keyboard does not report reliably whether it is charging.
 
 In the **Fn layer**, the keyboard's system functions (Bluetooth channels, iOS/Mac/Windows layout, lighting
 controls, screen, reset…) are shown with their real names and locked in red, like in the official driver.
@@ -164,7 +165,8 @@ On the keyboard, **Fn + Ctrl** switches the screen between your image and the de
 
 | Problem | Solution |
 |---|---|
-| "L75 not found" | Cable: plugged in and with the switch in wired mode (`lsusb` must show `3151:4015`). Bluetooth: paired and connected as "L75 BT5.0". `l75 list` shows what is detected. |
+| "L75 not found" | Cable: plugged in and with the switch in wired mode (`lsusb` must show `3151:4015`). Bluetooth: paired and connected as "L75 BT5.0". 2.4 GHz: receiver plugged in and the switch in 2.4 GHz mode. `l75 list` shows what is detected. |
+| "Receiver found, keyboard not connected" | The keyboard is asleep or in another mode. Press a key: the app reconnects on its own. |
 | Bluetooth is slow | That is normal: each Bluetooth command takes about 70 ms. Reading every key takes 1 to 2 s. |
 | "Could not open … permission" | Install the udev rule (see above) and reconnect the keyboard (over Bluetooth: disconnect and connect it again). |
 | The screen does not answer when uploading | Turn the screen on (Fn + Ctrl) and retry. |
@@ -196,7 +198,7 @@ l75ctl/
   l75_data.py   default matrix, layout and Fn layer (from the driver and a real L75)
 packaging/             PyInstaller, Windows installer, DMG, AppImage and Flatpak
 .github/workflows/     package builds on GitHub Actions
-docs/PROTOCOL.md       USB and Bluetooth protocol
+docs/PROTOCOL.md       USB, Bluetooth and 2.4 GHz protocol
 docs/DESIGN_BRIEF.md   brief for the visual redesign (Claude Design)
 docs/design/           Claude Design deliverable: screenshots, tokens, icons and guide (HANDOFF.md)
 ```

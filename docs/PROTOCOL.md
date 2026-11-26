@@ -1,4 +1,4 @@
-# ROYALAXE / ProtoArc L75 USB and Bluetooth protocol
+# ROYALAXE / ProtoArc L75 USB, Bluetooth and 2.4 GHz protocol
 
 ## Source
 
@@ -44,6 +44,32 @@ reader thread in `HidBLE::new`) and confirmed with the keyboard:
   report.
 - Screen/music use another header, `[0x06, 0x56, 0x0C, …]`, not implemented.
 - The official app blocks image upload and firmware updates over BT.
+- `0x83` (battery): the level in `[1]` is often stale over BT (it can stay at 100 % for minutes after
+  unplugging), and the charging byte `[2]` is always 0, even with the cable plugged in. The app only shows
+  the level.
+
+## 2.4 GHz receiver. Verified with a real L75 (firmware 1.17)
+
+The receiver is `3151:4011` ("ROYUAN 2.4G Wireless Keyboard"). Other Rongyuan receivers use `4014`,
+`4017`, `4021` and `4027`. The configuration interface is interface 2 (usage page `0xFFFF`, usage
+`0x02`); on Linux interface 1 answers the same. It uses feature reports like the cable, but every command
+goes through the receiver's own wrapper (`dangle_common` in `iot_driver`):
+
+| Receiver command | Meaning |
+|---|---|
+| `F7` | Status. After `SET_FEATURE [F7]`, `GET_FEATURE` returns `[0]`=1 answer ready, `[1]` battery % as the receiver last heard it, `[3]`=0 keyboard connected (1 = asleep or in another mode), `[5]`=1 idle (previous write done), `[6]` receiver type |
+| `F6 xx` | Select the target: `0A` keyboard (`05` and `0D` are other devices) |
+| `FC` | Fetch: the next `GET_FEATURE` returns the keyboard's answer |
+
+- **Send:** poll `F7` until `[5]`=1, send `F6 0A`, wait 10 ms, then send the normal 64-byte command with its
+  checksum.
+- **Read:** poll `F7` until `[0]`=1 and `[5]`=1, wait 10 ms, send `FC`, wait 10 ms, `GET_FEATURE`.
+  Poll every 20 ms or slower (the official driver uses 100 ms): faster polling returns stale or empty
+  answers. A query takes about 140 ms.
+- Answers echo the command byte like the cable, except the data reads `0x89`, `0x8B`, `0x8C` and `0x90`.
+- If `F7 [3]` is not 0 the keyboard is asleep or in another mode: a key press wakes it.
+- The charging byte of `0x83` is always 0 here too. `F7 [1]` and `0x83 [1]` can disagree.
+- Image upload is blocked over the receiver, as over BT.
 
 ## Commands used
 
@@ -127,10 +153,9 @@ The driver replaces white `FFFFFF` with `FAFFFA`.
 
 ## Pending / not verified
 
-- The USB cable path has not been tested on the real keyboard yet. Bluetooth has: reading info, lighting,
-  the matrix, and a lighting write confirmed by reading it back.
-- 2.4 GHz receiver (`3151:4011/4014/4017`): the driver uses a different "dongle_common" wrapper. Not
-  implemented.
+- Tested on the real keyboard: Bluetooth (reading info, lighting, the matrix, and a lighting write confirmed
+  by reading it back); cable and 2.4 GHz receiver (reading info and the key matrix). Writes over the
+  cable and the receiver have not been tested yet.
 - `0x8F` returns the model ID in `[1..2]` LE. A real L75 returned 820, which the driver table also lists
   as "L75".
 - The factory default of the Fn layer is only known from one real L75 (see below), so

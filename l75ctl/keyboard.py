@@ -13,7 +13,7 @@ from . import protocol as P
 from .i18n import t
 from .keymap import Action, PhysicalKey, matrix_to_actions
 from .macros import Macro, decode_macro, encode_macro, macro_pages
-from .transport import (Cancelled, DryRunTransport, NoResponse, SimulatedTransport, Transport, TransportError,
+from .transport import (BleTransport, Cancelled, DongleTransport, DryRunTransport, NoResponse, SimulatedTransport, Transport, TransportError,
                         open_transport, sleep_ms)
 
 Progress = Callable[[float, str], None]
@@ -74,6 +74,11 @@ class L75:
         return self.t.bus
 
     @property
+    def wireless(self) -> bool:
+        """Bluetooth or 2.4 GHz receiver."""
+        return self.t.bus in ("bt", "dongle")
+
+    @property
     def is_demo(self) -> bool:
         return isinstance(self.t, SimulatedTransport)
 
@@ -109,6 +114,8 @@ class L75:
         with self._lock:
             self.send(buf, checksum)
             sleep_ms(self.READ_DELAY_MS if read_delay_ms is None else read_delay_ms)
+            if isinstance(self.t, (BleTransport, DongleTransport)):
+                return self.t.read(expect=None if buf[0] in P.DATA_READ_CMDS else buf[0])
             return self.t.read()
 
     def _get(self, cmd: int, *args: int) -> bytes:
@@ -127,10 +134,13 @@ class L75:
         r = self.device_info_raw()
         return r[1] | r[2] << 8
 
-    def battery(self) -> tuple[int, str]:
-        r = self._get(P.Cmd.GET_BATTERY)
-        status = {0: "discharging", 1: "charging", 2: "charged"}.get(r[2], f"?{r[2]}")
-        return r[1], status
+    def battery(self) -> int:
+        """Battery % as the keyboard reports it.
+
+        The answer also has a charging byte, but it is not reliable: over Bluetooth and the
+        2.4 GHz receiver the L75 (firmware 1.17) always answers 0, even with the cable plugged in.
+        """
+        return self._get(P.Cmd.GET_BATTERY)[1]
 
     # ------------------------------------------------------------ perfiles
     def get_profile(self) -> int:
@@ -279,9 +289,9 @@ class L75:
     def upload_animation(self, anim: lcd.Animation, progress: Progress | None = None,
                          cancel: Callable[[], bool] | None = None) -> None:
         """Sube una imagen o GIF a la pantalla (solo por cable)."""
-        if self.bus == "bt":
+        if self.wireless:
             raise TransportError(t("image upload only works over the cable "
-                                   "(the official driver does not allow it over Bluetooth either)"))
+                                   "(the official driver does not allow it wirelessly either)"))
         frames = anim.frames
         n = len(frames)
         if not 1 <= n <= P.LCD_MAX_FRAMES:
