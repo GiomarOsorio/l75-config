@@ -27,6 +27,9 @@
     <control>keyboard</control>
   </supports>
   <releases>
+    <release version="0.4.0" date="2026-11-26">
+      <description><p>2.4 GHz receiver support, the app follows cable and mode changes while open, battery level only, start page option.</p></description>
+    </release>
     <release version="0.3.0" date="2026-11-10">
       <description><p>New interface (dark and light theme), Fn layer with real system functions, packages for Windows, macOS and Linux.</p></description>
     </release>

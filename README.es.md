@@ -5,7 +5,7 @@
 Aplicación libre (interfaz gráfica y línea de comandos) para configurar el teclado
 **ROYALAXE × ProtoArc L75** en Linux, Windows y macOS, sin el driver oficial.
 
-> Estado: **v0.3. Probado con un L75 real por Bluetooth** (lectura de estado, luces y teclas, y
+> Estado: **v0.4. Probado con un L75 real por Bluetooth** (lectura de estado, luces y teclas, y
 > escritura de luz verificada), **por cable y por el receptor 2.4 GHz** (lectura). El protocolo se obtuvo leyendo el
 > driver oficial (ver [docs/PROTOCOL.md](docs/PROTOCOL.md), en inglés) y está cubierto por pruebas
 > automáticas y un teclado simulado. La primera vez que lo conectes, prueba primero los comandos de solo

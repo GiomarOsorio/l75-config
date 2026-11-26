@@ -5,7 +5,7 @@
 Free app (graphical interface and command line) to configure the **ROYALAXE × ProtoArc L75**
 keyboard on Linux, Windows and macOS, without the official driver.
 
-> Status: **v0.3. Tested with a real L75 over Bluetooth** (reading status, lighting and keys, and
+> Status: **v0.4. Tested with a real L75 over Bluetooth** (reading status, lighting and keys, and
 > writing lighting verified), **by cable and through the 2.4 GHz receiver** (reading). The protocol was obtained by
 > reading the official driver (see [docs/PROTOCOL.md](docs/PROTOCOL.md)) and is covered by automated
 > tests and a simulated keyboard. The first time you connect it, try the read-only commands first

@@ -1,8 +1,8 @@
 ; Instalador de Windows (Inno Setup 6) para L75 Config.
 ;   1) pyinstaller --noconfirm packaging/l75-config.spec      -> dist\L75 Config\
-;   2) iscc /DAppVersion=0.3.0 packaging\windows\l75-config.iss -> dist\L75_Config-0.3.0-Setup.exe
+;   2) iscc /DAppVersion=0.4.0 packaging\windows\l75-config.iss -> dist\L75_Config-0.4.0-Setup.exe
 #ifndef AppVersion
-  #define AppVersion "0.3.0"
+  #define AppVersion "0.4.0"
 #endif
 #define AppName "L75 Config"
 #define AppExe "l75-config.exe"
